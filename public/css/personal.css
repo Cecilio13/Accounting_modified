@@ -1,0 +1,100 @@
+.width30{
+	width: 30px !important; 
+}
+
+.padding0{
+	padding: 0 !important;
+	margin: 0;
+}
+
+.pt-3-half {
+    padding-top: 1.4rem;
+}
+
+.progress {
+	height: 1.5rem;
+}
+
+.font12 {
+	font-size: 12px !important;
+}
+
+.font12 p{
+	font-size: 12px !important;
+}
+
+.font14 {
+	font-size: 11px !important;
+}
+
+.w-200px {
+	width: 200px;
+}
+
+
+/*FONT COLORS*/
+.text-orange{
+	color: #EF6B1C;
+}
+
+.text-ltgreen{
+	color: #78BF2A;
+}
+
+.text-blue{
+	color: #006CB1;
+}
+
+.text-ltblue{
+	color: #23A7F1;
+}
+
+.text-grey{
+	color: #B3B7BE;
+}
+
+.text-red{
+	color: #d83b41 !important;
+}
+
+.text-white p{
+	color: white !important;
+}
+
+
+
+/*BACKGROUND COLORS*/
+.bg-orange{
+	background-color: #EF6B1C;
+}
+
+.bg-ltgreen{
+	background-color: #78BF2A;
+}
+
+.bg-blue{
+	background-color: #006CB1;
+}
+
+.bg-ltblue{
+	background-color: #23A7F1;
+}
+
+.bg-grey{
+	background-color: #B3B7BE;
+}
+
+.bg-ltgrey{
+	background-color: #DCDCDC;
+}
+
+
+/*MODAL*/
+.modal-full {
+    min-width: 100%;
+    margin: 0;
+}
+
+.modal-full .modal-content {
+    min-height: 100vh;
+}
