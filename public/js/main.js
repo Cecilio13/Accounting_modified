@@ -92,6 +92,11 @@ jQuery(document).ready(function($) {
 		  });
 		console.log('reset export buttons');
 		})
+	$('#setselectpickerbuttonjournal_entry').on('click',function(event){
+		$('#accjournbale'+document.getElementById('setselectpickerbuttonjournal_entry').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerbuttonjournal_entry').getAttribute('data-value'));
+		//refreshpicjer();
+	})
 	$('#setselectpickerbutton').on('click',function(event){
 		$('.selectpicker').selectpicker('refresh');
 		console.log('refresh selectpicker');

@@ -1689,12 +1689,12 @@
                 </select>
             </div>
             <script>document.getElementById('sub_accoinmt2').value="{{$chart->coa_sub_account}}";</script>
-            <div class="col-md-6 p-1">
+            <div class="col-md-6 p-1" style="display:none;">
                 <p>Balance</p>
                 <input id="coaBalance2" type="number" value="{{$chart->coa_beginning_balance}}" name="COABalance2" min="0" step="0.01" class="w-100">
                 
             </div>
-            <div class="col-md-6 p-1">
+            <div class="col-md-6 p-1" style="display:none;">
                 <p>as of</p>
                 <input type="date" name="COAAsof2" value="{{$chart->coa_as_of_date}}" class="w-100">
             </div>

@@ -6324,7 +6324,8 @@ function addCardCreditedit(){
     <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
         <div class="modal-content" style="min-height: 100vh;">
             <div class="modal-header">
-                <h5 class="modal-title">Journal Entry</h5>
+                <h5 class="modal-title" id="journal_entry_title_header">Journal Entry</h5>
+                <input type="hidden" name="journal_entry_type" id="journal_entry_type" value="ChequeVoucher">
                 <button type="button" class="close" data-dismiss="modal" id="Closeeee" aria-label="Close">
                 <span aria-hidden="true">×</span>
                 </button>
@@ -6461,13 +6462,22 @@ function addCardCreditedit(){
                                     $("#modallike2").toggle("slide");
                                 });
                             }
+                            function setAccountJournalEntry(row){
+                                
+                                var code=document.getElementById('accjournalcode'+row).value;
+                                document.getElementById('accjournbale'+row).value=code;
+                                document.getElementById('setselectpickerbuttonjournal_entry').setAttribute('data-value',row);
+                                document.getElementById('setselectpickerbuttonjournal_entry').click();
+                                
+                            }
                         </script>
                     
                     <a class="dropdown-item" href="#" style="display:none;" id="SalesReceiptModalHiddenButton" onclick="no_reload_sr()" data-toggle="modal" data-target="#salesreceiptmodal">Sales Receipt</a>
                     <a class="dropdown-item"  href="#" id="invoicemodalSelect" style="display:none;" data-toggle="modal" data-target="#invoicemodaljournal">Invoice</a>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="journalentrytable">
+                    <table class="table table-bordered table-responsive-md table-striped text-left font14  table-sm" id="journalentrytable">
                         <tr style="background-color:white;">
                             <th class="text-left">#</th>
+                            <th class="text-left" width="10%">CODE</th>
                             <th class="text-left" width="10%">ACCOUNT</th>
                             <th class="text-left" width="15%">DEBITS</th>
                             <th class="text-left" width="15%">CREDITS</th>
@@ -6478,6 +6488,14 @@ function addCardCreditedit(){
                         <tbody id="journalentrytablebody">
                         <tr id="journalrow1">
                             <td class="pt-3-half" contenteditable="false">1</td>
+                            <td class="pt-3-half" contenteditable="false">
+                                <select class="selectpicker" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
+                                    <option value="">--Select Account Code--</option>
+                                    @foreach($COA as $coa)
+                                    <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
                             <td class="pt-3-half" contenteditable="false">
                                 <select class="selectpicker" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select Account--</option>
@@ -6502,6 +6520,15 @@ function addCardCreditedit(){
                         <!-- This is our clonable table line -->
                         <tr id="journalrow2">
                             <td class="pt-3-half" contenteditable="false">2</td>
+                            <td class="pt-3-half" contenteditable="false">
+                                
+                                <select class="selectpicker" onchange="setAccountJournalEntry('2')" required data-live-search="true" id="accjournalcode2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
+                                    <option value="">--Select Account Code--</option>
+                                    @foreach($COA as $coa)
+                                    <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
+                                    @endforeach
+                                </select>    
+                            </td>
                             <td class="pt-3-half" contenteditable="false">
                                 
                                 <select class="selectpicker" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
@@ -6761,6 +6788,7 @@ function addCardCreditedit(){
                                 var td5 = document.createElement("td"); 
 								var td6 = document.createElement("td"); 
                                 var td7 = document.createElement("td");
+                                var td8 = document.createElement("td");
 
                                 var x1=document.createTextNode(journalrow);
                                 td1.appendChild(x1);
@@ -6795,6 +6823,10 @@ function addCardCreditedit(){
                                 
                                 
                                 td7.setAttribute("class", "pt-3-half text-center");
+
+                                td8.setAttribute("contenteditable", "false");
+                                td8.setAttribute("class", "pt-3-half");
+
                                 var x7 = document.createElement("a");
 
                                 x7.setAttribute("class", "fa fa-trash");
@@ -6818,12 +6850,28 @@ function addCardCreditedit(){
                                 @foreach($COA as $coa)
                                 var option = document.createElement("option");
                                 option.value = "{{$coa->id}}";
-                                option.text = "{{$coa->coa_name}}";
+                                option.text = "{!! $coa->coa_name !!}";
                                 input.appendChild(option);
                                 
                                 @endforeach
 
-
+                                var input2 = document.createElement("select");
+                                input2.setAttribute("class", "selectpicker");
+                                input2.setAttribute("data-live-search", "true");
+                                input2.setAttribute("required", "true");
+                                input2.setAttribute("id", "accjournalcode"+journalrow);
+                                input2.setAttribute("onchange", "setAccountJournalEntry("+journalrow+")");
+                                var option = document.createElement("option");
+                                option.value = "";
+                                option.text = "--Select Account Code--";
+                                input2.appendChild(option);
+                                @foreach($COA as $coa)
+                                var option = document.createElement("option");
+                                option.value = "{{$coa->id}}";
+                                option.text = "{!! $coa->coa_code !!}";
+                                input2.appendChild(option);
+                                @endforeach
+                                //onchange="setAccountJournalEntry('1')"
                                 var input12 = document.createElement("input");
                                 input12.setAttribute("id", "journalnamename"+journalrow);
                                 input12.setAttribute("list", "customer_list_all");
@@ -6834,7 +6882,9 @@ function addCardCreditedit(){
                                 input12.setAttribute("onchange", "addnewCustomerDatalist(this)");
                                 td6.appendChild(input12);
                                 td2.appendChild(input);
+                                td8.appendChild(input2);
                                 tr.appendChild(td1);
+                                tr.appendChild(td8);
                                 tr.appendChild(td2);
                                 tr.appendChild(td3);
                                 tr.appendChild(td4);
@@ -6918,6 +6968,7 @@ function addCardCreditedit(){
             </div>
             <div class="modal-footer">
                 <button type="button" style="display:none;" id="setselectpickerbutton">
+                <button type="button" style="display:none;" id="setselectpickerbuttonjournal_entry">
                 <button type="button" id="canceljournalentry" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
                 <button class="btn btn-success rounded" disabled id="JournalEntrySaveButton" onclick="saveJournalEntry()">Save</button>
             </div>
@@ -9670,12 +9721,12 @@ function edit_journal_entries(je_no){
                             <option >Prepayments</option>
                         </select>
                     </div>
-                    <div class="col-md-6 p-1">
+                    <div class="col-md-6 p-1" style="display:none;">
                         <p>Balance</p>
                         <input id="coaBalance" type="number" name="COABalance" value="0" min="0" step="0.01" class="w-100">
                         
                     </div>
-                    <div class="col-md-6 p-1">
+                    <div class="col-md-6 p-1" style="display:none;">
                         <p>as of</p>
                         <input type="date" name="COAAsof" class="w-100">
                     </div>
@@ -11441,6 +11492,7 @@ function removeComma(str){
             // document.getElementById('CostCenterInvoice'+obj.getAttribute("data-columncount")).value="";
             // refreshpicjer();
         }
+        
         function refreshpicjer(){
             document.getElementById('setselectpickerbutton').click();
         }

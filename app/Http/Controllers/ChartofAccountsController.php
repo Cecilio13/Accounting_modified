@@ -1332,53 +1332,69 @@ class ChartofAccountsController extends Controller
         $rowcount=0;
         $fforeaccount=0;
         foreach($data as $row){
-            // $Log.=$row[0];
-            
             $rowcount++;
             $countloop++;
-            
             if($row->account_code!=""){
                 $Chart=ChartofAccount::where('coa_code',$row->account_code)->count();
                 if($Chart<1){
-                   
-                    if($row->account_type!=""){
+                    if($row->line_item!=""){
                         if($row->account_title!=""){
                             if($row->normal_balance!=""){
                                 if($row->account_classification!=""){
-                                    $Chart= New ChartofAccount;
-                                    $Chart->id= ChartofAccount::count() + 1;
-                                    $cccdcd=ChartofAccount::count() + 1;
-                                    
-                                    $Chart->coa_account_type=$row->account_type;
-                                    $Chart->coa_detail_type=$row->account_title;
-                                    $Chart->coa_name=$row->account_title;
-                                    $Chart->coa_sub_account=$row->sub_account;
-                                    $Chart->coa_description=$row->account_description;
-                                    $Chart->coa_code=$row->account_code;
-                                    $Chart->normal_balance=$row->normal_balance;
-                                    $Chart->coa_balance=preg_replace("/[^0-9\.]/", "",$row->beginning_balance)!=""? preg_replace("/[^0-9\.]/", "",$row->beginning_balance) : 0;
-                                    $Chart->coa_beginning_balance=preg_replace("/[^0-9\.]/", "",$row->beginning_balance)!=""? preg_replace("/[^0-9\.]/", "",$row->beginning_balance) : 0;
-                                    $Chart->coa_is_sub_acc="0";
-                                    $Chart->coa_active="1";
-                                    $Chart->coa_title=$row->account_classification;
-                                    if($Chart->save()){
-                                        $AuditLog= new AuditLog;
-                                        $AuditLogcount=AuditLog::count()+1;
-                                        $userid = Auth::user()->id;
-                                        $username = Auth::user()->name;
-                                        $eventlog="Added Account No. ".$cccdcd;
-                                        $AuditLog->log_id=$AuditLogcount;
-                                        $AuditLog->log_user_id=$username;
-                                        $AuditLog->log_event=$eventlog;
-                                        $AuditLog->log_name="";
-                                        $AuditLog->log_transaction_date="";
-                                        $AuditLog->log_amount="";
-                                        $AuditLog->save();
-                                        $saved_count++;
+                                    if($row->cost_center_code!=""){
+                                        $cc_code_check=CostCenter::where([
+                                            ['cc_name_code','=',$row->cost_center_code]
+                                        ])->get();
+                                        if(count($cc_code_check)>0){
+                                            $cc_id="";
+                                            foreach($cc_code_check as $ccs){
+                                                $cc_id=$ccs->cc_no;
+                                            }
+                                            $Chart= New ChartofAccount;
+                                            $Chart->id= ChartofAccount::count() + 1;
+                                            $cccdcd=ChartofAccount::count() + 1;
+                                            $Chart->coa_account_type=$row->line_item;
+                                            $Chart->coa_detail_type=$row->account_title;
+                                            $Chart->coa_name=$row->account_title;
+                                            $Chart->coa_sub_account=$row->sub_account;
+                                            $Chart->coa_description=$row->account_description;
+                                            $Chart->coa_code=$row->account_code;
+                                            $Chart->normal_balance=$row->normal_balance;
+                                            $Chart->coa_cc=$cc_id;
+                                            $Chart->coa_balance=0;
+                                            $Chart->coa_beginning_balance=0;
+                                            $Chart->coa_is_sub_acc="0";
+                                            $Chart->coa_active="1";
+                                            $Chart->coa_title=$row->account_classification;
+                                            if($Chart->save()){
+                                                $AuditLog= new AuditLog;
+                                                $AuditLogcount=AuditLog::count()+1;
+                                                $userid = Auth::user()->id;
+                                                $username = Auth::user()->name;
+                                                $eventlog="Added Account No. ".$cccdcd;
+                                                $AuditLog->log_id=$AuditLogcount;
+                                                $AuditLog->log_user_id=$username;
+                                                $AuditLog->log_event=$eventlog;
+                                                $AuditLog->log_name="";
+                                                $AuditLog->log_transaction_date="";
+                                                $AuditLog->log_amount="";
+                                                $AuditLog->save();
+                                                $saved_count++;
+                                            }else{
+                                                $error_count++;
+                                                $Log.="Error Saving Data on row ".$rowcount." from file.\n";  
+                                            }
+                                        }else{
+                                            //not existing Cost Center Code
+                                            $error_count++;
+                                            $Log.="Cost Center Code not Existing on row ".$rowcount." from file.\n";
+                                        }
                                     }else{
+                                        //empty Cost Center Code
                                         $error_count++;
-                                        $Log.="Error Saving Data on row ".$rowcount." from file.\n";  
+                                        $Log.="Empty Cost Center Code on row ".$rowcount." from file.\n";
                                     }
+                                    
                                 }else{
                                     //empty Account Title
                                     $error_count++;
@@ -1395,9 +1411,9 @@ class ChartofAccountsController extends Controller
                             $Log.="Empty Account Title on row ".$rowcount." from file.\n";
                         }
                     }else{
-                        //empty account type
+                        //empty Line Item
                         $error_count++;
-                        $Log.="Empty Account Type on row ".$rowcount." from file.\n";
+                        $Log.="Empty Line Item on row ".$rowcount." from file.\n";
                     }
                    
                 }else{

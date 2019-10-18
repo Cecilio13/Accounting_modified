@@ -93,14 +93,19 @@
     <div class="row" style="">
         <div class="col-md-12" >
             <div class=" mr-2 mb-5 mt-3">
-                <a href="#" class="btn btn-success" data-target='#journalentrymodal' data-toggle="modal">New Journal Entry</a>
+                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Cheque Voucher')" data-toggle="modal">Cheque Voucher</a>
+                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Journal Voucher')" data-toggle="modal">Journal Voucher</a>
                 <a href="#" class="btn btn-success" data-target='#ImportJournalEntryModal' data-toggle="modal">Import Journal Entry</a>
                 
             </div>
             
         </div>
         <script>
-            
+            function changejournalentrytype(value){
+                document.getElementById('journal_entry_type').value=value;
+                document.getElementById('journal_entry_title_header').innerHTML=value;
+
+            }
             function DownloadTemplateJournalEntry(){
 				$.ajax({
 				type: 'POST',
