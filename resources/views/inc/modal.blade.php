@@ -6510,7 +6510,53 @@ function addCardCreditedit(){
                     <a class="dropdown-item"  href="#" id="invoicemodalSelect" style="display:none;" data-toggle="modal" data-target="#invoicemodaljournal">Invoice</a>
                     <div class="table-responsive-md">
 
-                    
+                        <script>
+                            var initialheight=0;
+                            var initialheight2=0;
+                            var hiiiiqweqwe=40;
+                            function dragging(e,element){
+                                console.log($(element).attr('id'));
+                                var dragX = e.pageX, dragY = e.pageY;
+                                console.log(initialheight+" X: "+dragX+" Y: "+dragY+" 22222:"+initialheight2);
+                                initialheight=dragY;
+                                
+                                if(initialheight>initialheight2){
+                                    initialheight2=dragY+parseInt(1);
+                                }else{
+                                    initialheight2=dragY-1;
+                                }
+
+                                if(initialheight>initialheight2){
+                                    hiiiiqweqwe=hiiiiqweqwe-5;
+                                }else{
+                                    hiiiiqweqwe=hiiiiqweqwe+parseFloat(5); 
+                                }
+                                console.log(hiiiiqweqwe);
+                                element.style.height=hiiiiqweqwe+"px";
+                                //console.log(initialheight+" X: "+dragX+" Y: "+dragY+" height: "+element.style.height);
+                                
+
+                                
+
+                            }
+                            function setDefaultDraggfging(event){
+                                if(hiiiiqweqwe<40){
+                                    hiiiiqweqwe=40;
+                                }
+                                console.log("setted to :"+hiiiiqweqwe);
+                            }
+                        </script>
+                        <style>
+                        .draggablepencilbutton {
+                            position: absolute;
+                        right: 0;
+                        bottom: 0;
+                        cursor:s-resize;
+                        color:white;
+                        background-color: transparent;
+                        width:100%;
+                        }
+                        </style>
                     <table class="table table-bordered text-left font14  table-sm" id="journalentrytable">
                         <thead>
                         <tr style="background-color:rgb(228, 236, 247);color:#666;">
@@ -6529,53 +6575,7 @@ function addCardCreditedit(){
                         </thead>
                         <tbody id="journalentrytablebody">
                         <tr id="journalrow1" ondrag="dragging(event,this)" ondragover="setDefaultDraggfging(event)">
-                            <script>
-                                var initialheight=0;
-                                var initialheight2=0;
-                                var hiiiiqweqwe=40;
-                                function dragging(e,element){
-                                    console.log($(element).attr('id'));
-                                    var dragX = e.pageX, dragY = e.pageY;
-                                    console.log(initialheight+" X: "+dragX+" Y: "+dragY+" 22222:"+initialheight2);
-                                    initialheight=dragY;
-                                    
-                                    if(initialheight>initialheight2){
-                                        initialheight2=dragY+parseInt(1);
-                                    }else{
-                                        initialheight2=dragY-1;
-                                    }
-
-                                    if(initialheight>initialheight2){
-                                        hiiiiqweqwe=hiiiiqweqwe-5;
-                                    }else{
-                                        hiiiiqweqwe=hiiiiqweqwe+parseFloat(5); 
-                                    }
-                                    console.log(hiiiiqweqwe);
-                                    element.style.height=hiiiiqweqwe+"px";
-                                    //console.log(initialheight+" X: "+dragX+" Y: "+dragY+" height: "+element.style.height);
-                                    
-
-                                    
-
-                                }
-                                function setDefaultDraggfging(event){
-                                    if(hiiiiqweqwe<40){
-                                        hiiiiqweqwe=40;
-                                    }
-                                    console.log("setted to :"+hiiiiqweqwe);
-                                }
-                            </script>
-                            <style>
-                            .draggablepencilbutton {
-                                position: absolute;
-                            right: 0;
-                            bottom: 0;
-                            cursor:s-resize;
-                            color:white;
-                            background-color: transparent;
-                            width:100%;
-                            }
-                            </style>
+                            
                             <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">1</td>
                             <td class="pt-3-half" contenteditable="false">
                                 <select class="selectpicker" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
@@ -6763,9 +6763,9 @@ function addCardCreditedit(){
                                                         td1 = tr[c].getElementsByTagName("td")[0];
                                                         td2 = tr[c].getElementsByTagName("td")[1];
                                                         
-                                                        td5 = document.getElementById('journaldescription'+sscsc);
+                                                        td5 = document.getElementById("journaldescription"+sscsc);
                                                         td6 = tr[c].getElementsByTagName("td")[7];
-                                                        console.log("C= "+c);
+                                                        
                                                         var sscsc=c+1;
                                                         td3 = document.getElementById("journaldebit"+sscsc);
                                                         td4 = document.getElementById("journalcredit"+sscsc);
@@ -6773,7 +6773,7 @@ function addCardCreditedit(){
                                                         var journalnamename=document.getElementById('journalnamename'+sscsc).value;
                                                         var cheque_no=document.getElementById("journalcheque_no_td"+sscsc);
                                                         var ref_no=document.getElementById("journalref_no_td"+sscsc);
-                                                        console.log(td1);
+                                                        var jouenaldesc=document.getElementById("journaldescription"+sscsc);
                                                         
                                                             $.ajax({
                                                         type: 'POST',
@@ -6781,7 +6781,7 @@ function addCardCreditedit(){
                                                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                                         },
                                                         url: '{{ route('add_journal_entry') }}',
-                                                        data: {cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:td5.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                        data: {cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
                                                         success: function(data) {
                                                             console.log("fata is "+data);
                                                             if(data==1){
@@ -6944,6 +6944,7 @@ function addCardCreditedit(){
                                 
                                 
                                 td7.setAttribute("class", "pt-3-half text-center");
+                                td7.setAttribute("style", "position:relative");
 
                                 td8.setAttribute("contenteditable", "false");
                                 td8.setAttribute("class", "pt-3-half");
