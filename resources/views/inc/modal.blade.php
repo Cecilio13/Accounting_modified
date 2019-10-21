@@ -6335,7 +6335,7 @@ function addCardCreditedit(){
                     <div class="col-md-12 p-0 mb-4">
                         <div class="col-md-2 p-0">
                             <p>Journal Date</p>
-                        <input type="date" name="" id="journalDate" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'disabled'}}  value="{{date('Y-m-d')}}">
+                        <input type="date" name="" id="journalDate"   value="{{date('Y-m-d')}}">
                         </div>
                         <div class="col-md-2 p-0">
                             <p>Journal No.</p>
@@ -6346,7 +6346,7 @@ function addCardCreditedit(){
                         <input type="text" style="display:none;" name="JournalEntryTransactionType" readonly id="JournalEntryTransactionType" value="Journal Entry">
 
                         </div>
-                        <div class="col-md-2 p-0" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
+                        <div class="col-md-2 p-0" style="display:none">
                             <p>Cost Center</p>
                             <select name="" class="selectpicker form-control" data-live-search="true" id="CostCenterJournalEntrty" onchange="enableFiledsJournalEntry(this.value)">
                                 <option value="">--Select Cost Center--</option>
@@ -6468,26 +6468,115 @@ function addCardCreditedit(){
                                 document.getElementById('accjournbale'+row).value=code;
                                 document.getElementById('setselectpickerbuttonjournal_entry').setAttribute('data-value',row);
                                 document.getElementById('setselectpickerbuttonjournal_entry').click();
+                                $.ajax({
+                                    type: "POST",
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    url: "getcoa_cc_name",
+                                    dataType:"json",
+                                    data: {id:code,_token:'{{csrf_token()}}'},
+                                    success: function (data) {
+                                        console.log(data.name);
+                                        document.getElementById('journalcost_center_td'+row).innerHTML=data.name;
+                                        document.getElementById('journalcost_center_td'+row).setAttribute('data-costcenter_no',data.no);
+                                    }
+                                });
                                 
+                            }
+                            function setAccountCodeJournalEntry(row){
+                                var code=document.getElementById('accjournbale'+row).value;
+                                document.getElementById('accjournalcode'+row).value=code;
+                                document.getElementById('setselectpickerbuttonjournal_entry_code').setAttribute('data-value',row);
+                                document.getElementById('setselectpickerbuttonjournal_entry_code').click();
+                                $.ajax({
+                                    type: "POST",
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    url: "getcoa_cc_name",
+                                    dataType:"json",
+                                    data: {id:code,_token:'{{csrf_token()}}'},
+                                    success: function (data) {
+                                        console.log(data.name);
+                                        document.getElementById('journalcost_center_td'+row).innerHTML=data.name;
+                                        document.getElementById('journalcost_center_td'+row).setAttribute('data-costcenter_no',data.no);
+                                    }
+                                });
                             }
                         </script>
                     
                     <a class="dropdown-item" href="#" style="display:none;" id="SalesReceiptModalHiddenButton" onclick="no_reload_sr()" data-toggle="modal" data-target="#salesreceiptmodal">Sales Receipt</a>
                     <a class="dropdown-item"  href="#" id="invoicemodalSelect" style="display:none;" data-toggle="modal" data-target="#invoicemodaljournal">Invoice</a>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14  table-sm" id="journalentrytable">
-                        <tr style="background-color:white;">
-                            <th class="text-left">#</th>
+                    <div class="table-responsive-md">
+
+                    
+                    <table class="table table-bordered text-left font14  table-sm" id="journalentrytable">
+                        <thead>
+                        <tr style="background-color:rgb(228, 236, 247);color:#666;">
+                            <th class="text-left" width="3%">#</th>
                             <th class="text-left" width="10%">CODE</th>
                             <th class="text-left" width="10%">ACCOUNT</th>
-                            <th class="text-left" width="15%">DEBITS</th>
-                            <th class="text-left" width="15%">CREDITS</th>
-                            <th class="text-left" width="20%">DESCRIPTION</th>
-                            <th class="text-left" width="15%">NAME</th>
-                            <th class="text-center"></th>
+                            <th class="text-left" width="10%">COST CENTER</th>
+                            <th class="text-left" width="10%">DEBITS</th>
+                            <th class="text-left" width="10%">CREDITS</th>
+                            <th class="text-left" width="10%">DESCRIPTION</th>
+                            <th class="text-left" width="10%">PAYEE</th>
+                            <th class="text-left" width="10%">CHEQUE NO</th>
+                            <th class="text-left" width="10%">REFERENCE</th>
+                            <th class="text-center" width="2%"></th>
                         </tr>
+                        </thead>
                         <tbody id="journalentrytablebody">
-                        <tr id="journalrow1">
-                            <td class="pt-3-half" contenteditable="false">1</td>
+                        <tr id="journalrow1" ondrag="dragging(event,this)" ondragover="setDefaultDraggfging(event)">
+                            <script>
+                                var initialheight=0;
+                                var initialheight2=0;
+                                var hiiiiqweqwe=40;
+                                function dragging(e,element){
+                                    console.log($(element).attr('id'));
+                                    var dragX = e.pageX, dragY = e.pageY;
+                                    console.log(initialheight+" X: "+dragX+" Y: "+dragY+" 22222:"+initialheight2);
+                                    initialheight=dragY;
+                                    
+                                    if(initialheight>initialheight2){
+                                        initialheight2=dragY+parseInt(1);
+                                    }else{
+                                        initialheight2=dragY-1;
+                                    }
+
+                                    if(initialheight>initialheight2){
+                                        hiiiiqweqwe=hiiiiqweqwe-5;
+                                    }else{
+                                        hiiiiqweqwe=hiiiiqweqwe+parseFloat(5); 
+                                    }
+                                    console.log(hiiiiqweqwe);
+                                    element.style.height=hiiiiqweqwe+"px";
+                                    //console.log(initialheight+" X: "+dragX+" Y: "+dragY+" height: "+element.style.height);
+                                    
+
+                                    
+
+                                }
+                                function setDefaultDraggfging(event){
+                                    if(hiiiiqweqwe<40){
+                                        hiiiiqweqwe=40;
+                                    }
+                                    console.log("setted to :"+hiiiiqweqwe);
+                                }
+                            </script>
+                            <style>
+                            .draggablepencilbutton {
+                                position: absolute;
+                            right: 0;
+                            bottom: 0;
+                            cursor:s-resize;
+                            color:white;
+                            background-color: transparent;
+                            width:100%;
+                            }
+                            </style>
+                            <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">1</td>
                             <td class="pt-3-half" contenteditable="false">
                                 <select class="selectpicker" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select Account Code--</option>
@@ -6495,14 +6584,19 @@ function addCardCreditedit(){
                                     <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
                                     @endforeach
                                 </select>
+                                
                             </td>
                             <td class="pt-3-half" contenteditable="false">
-                                <select class="selectpicker" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
+                                <select class="selectpicker" onchange="setAccountCodeJournalEntry('1')" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select Account--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
                                     @endforeach
                                 </select>
+                                
+                            </td>
+                            <td class="pt-3-half" contenteditable="false" id="journalcost_center_td1">
+
                             </td>
                             <td class="pt-3-half" contenteditable="false" >
                                 <input type="number" step="0.01" onkeyup="swap2('journalcredit','1')" oninput="swap2('journalcredit','1')" id="journaldebit1" >
@@ -6515,53 +6609,68 @@ function addCardCreditedit(){
                                 <input type="text" class="w-100" list="customer_list_all" placeholder="Supplier/Customer" onkeyup="addnewCustomerDatalist(this)" onchange="addnewCustomerDatalist(this)" id="journalnamename1" >
                                 
                             </td>
-                            <td class="pt-3-half text-center" contenteditable="false"></td>
+                            <td class="pt-3-half" contenteditable="true" id="journalcheque_no_td1">
+
+                            </td>
+                            <td class="pt-3-half" contenteditable="true" id="journalref_no_td1">
+
+                            </td>
+                            <td class="pt-3-half text-center" contenteditable="false" style="position:relative"><div class="draggablepencilbutton" draggable="true">_________</div></td>
                         </tr>
                         <!-- This is our clonable table line -->
-                        <tr id="journalrow2">
-                            <td class="pt-3-half" contenteditable="false">2</td>
+                        <tr id="journalrow2" ondrag="dragging(event,this)" ondragover="setDefaultDraggfging(event)">
+                            <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">2</td>
                             <td class="pt-3-half" contenteditable="false">
                                 
                                 <select class="selectpicker" onchange="setAccountJournalEntry('2')" required data-live-search="true" id="accjournalcode2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select Account Code--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
+                                    <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_code}}</option>
                                     @endforeach
                                 </select>    
                             </td>
                             <td class="pt-3-half" contenteditable="false">
                                 
-                                <select class="selectpicker" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
+                                <select class="selectpicker" onchange="setAccountCodeJournalEntry('2')" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select Account--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                    <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_name}}</option>
                                     @endforeach
                                 </select>    
+                            </td>
+                            <td class="pt-3-half" contenteditable="false" id="journalcost_center_td2">
+
                             </td>
                             <td class="pt-3-half" contenteditable="false" ><input type="number" step="0.01" onkeyup="swap2('journalcredit','2')" oninput="swap2('journalcredit','2')" id="journaldebit2" ></td>
                             <td class="pt-3-half" contenteditable="false" ><input type="number" step="0.01" onkeyup="swap2('journaldebit','2')" oninput="swap2('journaldebit','2')" id="journalcredit2"></td>
                             <td class="pt-3-half" contenteditable="true" id="journaldescription2" style="text-transform: capitalize;"></td>
                             <td class="pt-3-half" contenteditable="false" >
-                                    <input type="text" class="w-100" list="customer_list_all" placeholder="Supplier/Customer" onkeyup="addnewCustomerDatalist(this)" onchange="addnewCustomerDatalist(this)" id="journalnamename2" >
-                                        <datalist id="customer_list_all">
-                                        <option value="">--Select Name--</option>
-                                        @foreach ($customers as $ccc)
-                                            <option value="{{$ccc->display_name!=""? $ccc->display_name : $ccc->f_name." ".$ccc->l_name}}">{{$ccc->account_type}}</option>
-                                        @endforeach
-                                        <option value="--Add Customer/Supplier--">
-                                        </datalist>
-                                </td>
-                            <td class="pt-3-half text-center" contenteditable="false"></td>
+                                <input type="text" class="w-100" list="customer_list_all" placeholder="Supplier/Customer" onkeyup="addnewCustomerDatalist(this)" onchange="addnewCustomerDatalist(this)" id="journalnamename2" >
+                                    <datalist id="customer_list_all">
+                                    <option value="">--Select Name--</option>
+                                    @foreach ($customers as $ccc)
+                                        <option value="{{$ccc->display_name!=""? $ccc->display_name : $ccc->f_name." ".$ccc->l_name}}">{{$ccc->account_type}}</option>
+                                    @endforeach
+                                    <option value="--Add Customer/Supplier--">
+                                    </datalist>
+                            </td>
+                            <td class="pt-3-half" contenteditable="true" id="journalcheque_no_td2">
+
+                            </td>
+                            <td class="pt-3-half" contenteditable="true" id="journalref_no_td2">
+
+                            </td>
+                            <td class="pt-3-half text-center" contenteditable="false" style="position:relative"><div class="draggablepencilbutton" draggable="true">_________</div></td>
                         </tr>
                         <!-- This is our clonable table line -->
                         </tbody>
                     </table>
-                    
-                    <div class="col-md-12 p-0">
+                    </div>
+                    <div class="col-md-12 p-0 mt-1" >
                         <div class="float-left">
                             <div class="d-inline-flex">
-                                <button {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'disabled'}} id="journalentryaddrow" class="btn btn-outline-dark rounded mr-1 font14" onclick="AddTableRow()">Add Items</button>
-                                <button {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'disabled'}} id="journalentrydeleteallrow" class="btn btn-outline-dark rounded mr-1 font14" onclick="DeleteAllRows()">Clear All Items</button>
+                                <button  id="journalentryaddrow" class="btn btn-outline-dark rounded mr-1 font14" onclick="AddTableRow()">Add Items</button>
+                                <button  id="journalentrydeleteallrow" class="btn btn-outline-dark rounded mr-1 font14" onclick="DeleteAllRows()">Clear All Items</button>
                             </div>
                         </div>
                         <div class="float-right">
@@ -6591,7 +6700,7 @@ function addCardCreditedit(){
                                 var JournalMemo=document.getElementById('JournalMemo').value;
                                 var JournalEntryTransactionType=document.getElementById('JournalEntryTransactionType').value;
                                 var CostCenter=document.getElementById('CostCenterJournalEntrty').value;
-                                
+                                var journal_entry_type=document.getElementById('journal_entry_type').value;
                                 if(journalDate==""){
                                     swal("Error!", "No Journal Date.", "error");
                                 }
@@ -6649,18 +6758,21 @@ function addCardCreditedit(){
                                                     JournalNo=data;
                                                     //alert(data);
                                                     for(var c=tr.length-1;c>=0;c--){
+                                                        var no=c;
+                                                        no++;
                                                         td1 = tr[c].getElementsByTagName("td")[0];
                                                         td2 = tr[c].getElementsByTagName("td")[1];
                                                         
-                                                        td5 = tr[c].getElementsByTagName("td")[4];
-                                                        td6 = tr[c].getElementsByTagName("td")[5];
+                                                        td5 = document.getElementById('journaldescription'+sscsc);
+                                                        td6 = tr[c].getElementsByTagName("td")[7];
                                                         console.log("C= "+c);
                                                         var sscsc=c+1;
                                                         td3 = document.getElementById("journaldebit"+sscsc);
                                                         td4 = document.getElementById("journalcredit"+sscsc);
                                                         var accjournbale=document.getElementById('accjournbale'+sscsc).value;
                                                         var journalnamename=document.getElementById('journalnamename'+sscsc).value;
-                                                        
+                                                        var cheque_no=document.getElementById("journalcheque_no_td"+sscsc);
+                                                        var ref_no=document.getElementById("journalref_no_td"+sscsc);
                                                         console.log(td1);
                                                         
                                                             $.ajax({
@@ -6668,8 +6780,8 @@ function addCardCreditedit(){
                                                         headers: {
                                                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                                         },
-                                                        url: '{{ route('add_journal_entry') }}',                
-                                                        data: {CostCenter:CostCenter,JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:td1.innerHTML,account:accjournbale,debit:td3.value,credit:td4.value,description:td5.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                        url: '{{ route('add_journal_entry') }}',
+                                                        data: {cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:td5.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
                                                         success: function(data) {
                                                             console.log("fata is "+data);
                                                             if(data==1){
@@ -6757,6 +6869,8 @@ function addCardCreditedit(){
                             }
                             
                             function AddTableRow(){
+                                
+                                $("#journalentrytable").dataTable().fnDestroy();
                                 var debitJhint=0;
                                 var creditJhint=0;
                                 for(var c=1;c<=journalrow;c++){
@@ -6781,6 +6895,9 @@ function addCardCreditedit(){
                                 var t = document.getElementById('journalentrytablebody');
 								var tr = document.createElement("tr");
                                 tr.setAttribute("id", "journalrow"+journalrow);
+                                tr.setAttribute("ondrag", "dragging(event,this)");
+                                tr.setAttribute("ondragover", "setDefaultDraggfging(event)");
+                                
                                 var td1 = document.createElement("td"); 
 								var td2 = document.createElement("td"); 
 								var td3 = document.createElement("td"); 
@@ -6789,9 +6906,13 @@ function addCardCreditedit(){
 								var td6 = document.createElement("td"); 
                                 var td7 = document.createElement("td");
                                 var td8 = document.createElement("td");
+                                var td9 = document.createElement("td");
+                                var td10 = document.createElement("td");
+                                var td11 = document.createElement("td");
 
                                 var x1=document.createTextNode(journalrow);
                                 td1.appendChild(x1);
+                                td1.setAttribute("style", "padding:0px 0px 0px 2px");
                                 td2.setAttribute("contenteditable", "false");
                                 td2.setAttribute("class", "pt-3-half");
                                 td3.setAttribute("contenteditable", "false");
@@ -6827,6 +6948,17 @@ function addCardCreditedit(){
                                 td8.setAttribute("contenteditable", "false");
                                 td8.setAttribute("class", "pt-3-half");
 
+                                td9.setAttribute("contenteditable", "false");
+                                td9.setAttribute("class", "pt-3-half");
+                                td9.setAttribute("id", "journalcost_center_td"+journalrow);
+                                
+                                td10.setAttribute("contenteditable", "true");
+                                td10.setAttribute("class", "pt-3-half");
+                                td10.setAttribute("id", "journalcheque_no_td"+journalrow);
+                                td11.setAttribute("contenteditable", "true");
+                                td11.setAttribute("class", "pt-3-half");
+                                td11.setAttribute("id", "journalref_no_td"+journalrow);
+
                                 var x7 = document.createElement("a");
 
                                 x7.setAttribute("class", "fa fa-trash");
@@ -6835,6 +6967,14 @@ function addCardCreditedit(){
 								x7.setAttribute("onclick", "DeleteJournalRow("+journalrow+")");
 								
                                 td7.appendChild(x7);
+
+                                var x72 = document.createElement("div");
+
+                                x72.setAttribute("class", "draggablepencilbutton");
+                                x72.setAttribute("draggable", "true");
+                                var x71=document.createTextNode("_________");
+								x72.appendChild(x71);
+                                td7.appendChild(x72);
                                 
                                 var input = document.createElement("select");
                                 input.setAttribute("class", "selectpicker");
@@ -6842,7 +6982,8 @@ function addCardCreditedit(){
                                 input.setAttribute("required", "true");
                                 
                                 input.setAttribute("id", "accjournbale"+journalrow);
-                                
+                                input.setAttribute("onchange", "setAccountCodeJournalEntry("+journalrow+")");
+                               
                                 var option = document.createElement("option");
                                 option.value = "";
                                 option.text = "--Select Account--";
@@ -6851,6 +6992,7 @@ function addCardCreditedit(){
                                 var option = document.createElement("option");
                                 option.value = "{{$coa->id}}";
                                 option.text = "{!! $coa->coa_name !!}";
+                                option.setAttribute('data-costcenter','{{$coa->coa_cc}}')
                                 input.appendChild(option);
                                 
                                 @endforeach
@@ -6869,6 +7011,8 @@ function addCardCreditedit(){
                                 var option = document.createElement("option");
                                 option.value = "{{$coa->id}}";
                                 option.text = "{!! $coa->coa_code !!}";
+                                
+                                option.setAttribute('data-costcenter','{{$coa->coa_cc}}')
                                 input2.appendChild(option);
                                 @endforeach
                                 //onchange="setAccountJournalEntry('1')"
@@ -6883,14 +7027,45 @@ function addCardCreditedit(){
                                 td6.appendChild(input12);
                                 td2.appendChild(input);
                                 td8.appendChild(input2);
-                                tr.appendChild(td1);
-                                tr.appendChild(td8);
-                                tr.appendChild(td2);
-                                tr.appendChild(td3);
-                                tr.appendChild(td4);
-                                tr.appendChild(td5);
-                                tr.appendChild(td6);
-                                tr.appendChild(td7);
+                                var table = document.getElementById("journalentrytable");
+                                var txt = "";
+                                var i;
+                                for (i = 0; i < table.rows[0].cells.length; i++) {
+                                    txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                                    if(table.rows[0].cells[i].innerHTML=="#"){
+                                        tr.appendChild(td1);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="CODE"){
+                                        tr.appendChild(td8);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
+                                        tr.appendChild(td2);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="COST CENTER"){
+                                        tr.appendChild(td9);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="DEBITS"){
+                                        tr.appendChild(td3);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="CREDITS"){
+                                        tr.appendChild(td4);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                                        tr.appendChild(td5);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="PAYEE"){
+                                        tr.appendChild(td6);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="CHEQUE NO"){
+                                        tr.appendChild(td10);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="REFERENCE"){
+                                        tr.appendChild(td11);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML==""){
+                                        tr.appendChild(td7);
+                                    }
+                                }
                                 t.appendChild(tr);
                                 if(debitJhint!=creditJhint){
                                     if(debitJhint!=0){
@@ -6907,9 +7082,20 @@ function addCardCreditedit(){
                                     document.getElementById('DeleteJournalRow'+deduc).style.display="none";
                                 }
 								document.getElementById('setselectpickerbutton').click();
-
+                                $("#journalentrytable").dataTable({
+                                    paging: false,
+                                    "ordering": true,
+                                    'dom': 'Rlfrtip',
+                                    "autoWidth": false,
+                                    rowReorder: true
+                                });
+                                if(document.getElementById('journalentrytable_info')){
+                                    document.getElementById('journalentrytable_info').style.display="none";
+                                    document.getElementById('journalentrytable_filter').style.display="none";
+                                }
                             }
                             function DeleteJournalRow(rownum){
+                                $("#journalentrytable").dataTable().fnDestroy();
                                 var t = document.getElementById('journalentrytablebody');
 								var tr = document.getElementById("journalrow"+rownum);
 								    t.removeChild(tr);
@@ -6933,8 +7119,20 @@ function addCardCreditedit(){
                                     }
                                     document.getElementById('debit_total_hitn').innerHTML=number_format(debitJhint,2);
                                     document.getElementById('credit_total_hitn').innerHTML=number_format(creditJhint,2);
+                                    $("#journalentrytable").dataTable({
+                                        paging: false,
+                                        "ordering": true,
+                                        'dom': 'Rlfrtip',
+                                        "autoWidth": false,
+                                        rowReorder: true
+                                    });
+                                    if(document.getElementById('journalentrytable_info')){
+                                        document.getElementById('journalentrytable_info').style.display="none";
+                                        document.getElementById('journalentrytable_filter').style.display="none";
+                                    }
                             }
                             function DeleteAllRows(){
+                                $("#journalentrytable").dataTable().fnDestroy();
                                 var t = document.getElementById('journalentrytablebody');
                                 if(journalrow>2){
                                     for(var c=journalrow;c>2;c--){
@@ -6943,13 +7141,27 @@ function addCardCreditedit(){
                                     }
                                     journalrow=2;
                                 }
+                                $("#journalentrytable").dataTable({
+                                    paging: false,
+                                    "ordering": true,
+                                    'dom': 'Rlfrtip',
+                                    "autoWidth": false,
+                                    rowReorder:true
+                                    
+                                });
+                                if(document.getElementById('journalentrytable_info')){
+                                    document.getElementById('journalentrytable_info').style.display="none";
+                                    document.getElementById('journalentrytable_filter').style.display="none";
+                                }
                             }
                         </script>
                     </div>
                     <div class="col-md-12 p-0 mt-4">
+                        {{-- <div id="grid_array2" ></div> --}}
+                        
                         <div class="col-md-6 pl-0">
                             <p>Memo</p>
-                            <textarea rows="3" class="w-100" id="JournalMemo" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'disabled'}}></textarea>
+                            <textarea rows="3" class="w-100" id="JournalMemo" ></textarea>
                         </div>
                         <div class="col-md-6 m-0 pr-0" style="display:none">
                             <div class="d-inline-flex">
@@ -6969,8 +7181,10 @@ function addCardCreditedit(){
             <div class="modal-footer">
                 <button type="button" style="display:none;" id="setselectpickerbutton">
                 <button type="button" style="display:none;" id="setselectpickerbuttonjournal_entry">
+                <button type="button" style="display:none;" id="setselectpickerbuttonjournal_entry_code">
+                        
                 <button type="button" id="canceljournalentry" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                <button class="btn btn-success rounded" disabled id="JournalEntrySaveButton" onclick="saveJournalEntry()">Save</button>
+                <button class="btn btn-success rounded"  id="JournalEntrySaveButton" onclick="saveJournalEntry()">Save</button>
             </div>
         </div>
     </div>
@@ -9777,6 +9991,7 @@ function edit_journal_entries(je_no){
     var bill_payment_table;
     var table_pay_bills_modal_tabel;
     var table_pending_bill;
+    var journalentrytable;
     $(document).ready(function(){
         if(document.getElementById('customertransactiontable')){
             customertransactiontable = $('#customertransactiontable').DataTable({
@@ -9964,8 +10179,21 @@ function edit_journal_entries(je_no){
         jounalentrytable = $('#jounalentrytable').DataTable({
             order: [[ 2, "desc" ]],
                 paging: false,
+                'dom': 'Rlfrtip'
             
         });
+        journalentrytable = $('#journalentrytable').DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+        });
+
+        if(document.getElementById('journalentrytable_info')){
+            document.getElementById('journalentrytable_info').style.display="none";
+            document.getElementById('journalentrytable_filter').style.display="none";
+        }
         if(document.getElementById('jounalentrytable_info')){
             document.getElementById('jounalentrytable_info').style.display="none";
             document.getElementById('jounalentrytable_filter').style.display="none";

@@ -2619,3 +2619,10 @@ table td{
 .dropdown-menu-custom{
   transform: translateX(-100%) !important
 }
+.bootstrap-select .btn{
+  background-color: white;
+  color:#666;
+}
+#journalentrytable th {
+  padding:5px;
+}

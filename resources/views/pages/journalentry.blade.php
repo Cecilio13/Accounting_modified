@@ -7,8 +7,74 @@
         <div class="page-header float-left">
             <div class="page-title">
                 <h1 >Journal Entry</h1>
+                <script>
                 
+                ( function ( $ ) {
+                    
+                    $(document).ready(function(){
+                        console.log('Jquery $');
+                    "use strict";
+                    // var data = [
+                    //     [1, 'Exxon Mobil', '339,938.0', '36,130.0','Description','Name'],
+                    //     [2, 'Wal-Mart Stores', '315,654.0', '11,231.0','Description','Name'],
+                    //     [3, 'Royal Dutch Shell', '306,731.0', '25,311.0','Description','Name'],
+                    //     [4, 'BP', '267,600.0', '22,341.0','Description','Name'],
+                    //     [5, 'General Motors', '192,604.0', '-10,567.0','Description','Name'],
+                    //     [6, 'Chevron', '189,481.0', '14,099.0','Description','Name'],
+                    //     [7, 'DaimlerChrysler', '186,106.3', '3,536.3','Description','Name'],
+                    //     [8, 'Toyota Motor', '185,805.0', '12,119.6','Description','Name'],
+                    //     [9, 'Ford Motor', '177,210.0', '2,024.0','Description','Name'],
+                    //     [10, 'ConocoPhillips', '166,683.0', '13,529.0','Description','Name'],
+                    //     [11, 'General Electric', '157,153.0', '16,353.0','Description','Name'],
+                    //     [12, 'Total', '152,360.7', '15,250.0','Description','Name'],
+                    //     [13, 'ING Group', '138,235.3', '8,958.9','Description','Name'],
+                    //     [14, 'Citigroup', '131,045.0', '24,589.0','Description','Name'],
+                    //     [15, 'AXA', '129,839.2', '5,186.5','Description','Name'],
+                    //     [16, 'Allianz', '121,406.0', '5,442.4','Description','Name'],
+                    //     [17, 'Volkswagen', '118,376.6', '1,391.7','Description','Name'],
+                    //     [18, 'Fortis', '112,351.4', '4,896.3','Description','Name'],
+                    //     [19, 'Crédit Agricole', '110,764.6', '7,434.3','Description','Name'],
+                    //     [20, 'American Intl. Group', '108,905.0', '10,477.0','Description','Name']
+                    // ];
 
+
+                    
+                    
+                    // //var data = $( "#grid_array" ).pqGrid( "getRowData", {rowIndxPage: 2} );
+                    // var obj = { width:700, height: 400, title: "Sample Excel API",resizable:true,draggable:true };
+                    // obj.colModel = [{ title: "Code", width: "16.6%", dataType: "integer",dataIndx: "Code" },
+                    // { title: "Account", width: "16.6%", dataType: "string" },
+                    // { title: "Debits", width: "16.6%", dataType: "float", align: "right" },
+                    // { title: "Credit", width: "16.6%", dataType: "float", align: "right"},
+                    // { title: "Description", width: "16.6%", dataType: "string"},
+                    // { title: "Name", width: "16.6%", dataType: "string"},
+                    // ];
+                    // obj.dataModel = { data: data };
+                    // var row1Data=$("#grid_array2").pqGrid(obj);
+                    
+                    // var data = $( "#grid_array2" ).pqGrid( "getRowData", {rowIndxPage: 2} );
+                    //var row1Data = $("#grid_array").pqGrid("getRowData", { rowIndx: 0 });
+                    
+                    // console.log("asdasd : "+data);
+                    // $( "#grid_array" ).pqGrid( "addRow",
+                    //     { rowData: {} } 
+                    // );
+                    // document.getElementById('grid_array').style.height="500px";
+                    
+                    // var windowWidth = $(window).width();
+                    
+                    // row1Data.pqGrid( "option", "width", windowWidth-50 ).pqGrid('refresh');
+                    // row1Data.pqGrid( "option", "height", 500 ).pqGrid('refresh');
+                    //row1Data.pqGrid( "expand" );
+                    //$( "#journalentrytable td" ).resizable();
+                    //$( "#journalentrytable td" ).resizable();
+                    
+                    })
+                    
+                } )( jQuery );
+                
+                </script>  
+                
             </div>
         </div>
     </div>
@@ -23,6 +89,22 @@
             </div>
         </div>
         </div> -->
+        <style>
+            
+            #journalentrytablebody td{
+                padding:0px 0px 0px 0px;
+                height: 30px;
+            }
+            #journalentrytablebody input{
+                border: 0px solid white;
+                width:100%;
+                height: 100%;
+                padding:0px 0px 0px 3px;
+            }
+            #journalentrytablebody select{
+                height: 100%;
+            }
+        </style>
     <div class="modal fade" id="ImportJournalEntryModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog  modal-sm" role="document">
         <div class="modal-content">
@@ -104,7 +186,7 @@
             function changejournalentrytype(value){
                 document.getElementById('journal_entry_type').value=value;
                 document.getElementById('journal_entry_title_header').innerHTML=value;
-
+                
             }
             function DownloadTemplateJournalEntry(){
 				$.ajax({

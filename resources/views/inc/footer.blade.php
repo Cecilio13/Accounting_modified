@@ -34,7 +34,11 @@
 
         <!-- DataTables -->
         <script src="{{asset('js/datatable.js')}}"></script>
-        
+        <script src="{{asset('js/colreorder.js')}}"></script>
+        <script src="{{asset('js/rowreorder.js')}}"></script>
+
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
         <!--  flot-chart js -->
         <script  src="{{asset('fontawesome/js/all.js')}}"></script>
         <script src="{{asset('js/lib/flot-chart/excanvas.min.js')}}"></script>
@@ -49,6 +53,7 @@
         <script src="{{asset('js/lib/flot-chart/flot-chart-init.js')}}"></script>
         <script>if (window.module) module = window.module;</script>
         <script>
+                
                 ( function ( $ ) {
                 "use strict";
 

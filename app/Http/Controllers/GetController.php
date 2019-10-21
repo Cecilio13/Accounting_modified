@@ -54,4 +54,20 @@ class GetController extends Controller
         $data->cc_code=$request->typecode;
         $data->save();
     }
+    public function getcoa_cc_name(Request $request){
+        $data=ChartofAccount::find($request->id);
+        $cc=$data->coa_cc;
+        $name="";
+        if($cc==""){
+            $name="";
+        }else{
+            $cc_list=CostCenter::find($cc);
+            $name=$cc_list->cc_name;
+        }
+        $data = array(
+            'name' => $name,
+            'no' => $cc,
+        );
+        return json_encode($data);
+    }
 }

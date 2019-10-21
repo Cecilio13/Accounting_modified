@@ -145,6 +145,10 @@ class JournalEntryController extends Controller
     public function add_journal_entry(Request $request)
     {
         
+        $cheque_no=$request->input('cheque_no');
+        $ref_no=$request->input('ref_no');
+        $journal_entry_type=$request->input('journal_entry_type');
+
         $JDate=$request->input('JDate');
         $JNo=$request->input('JNo');
         $JMemo=$request->input('JMemo');
@@ -178,8 +182,12 @@ class JournalEntryController extends Controller
             $journal_entries->je_attachment=$JDate;
             $journal_entries->je_transaction_type=$type;
             $journal_entries->je_cost_center=$CostCenter;
+            $journal_entries->cheque_no=$cheque_no;
+            $journal_entries->ref_no=$ref_no;
+            $journal_entries->journal_type=$journal_entry_type;
             
             $journal_entries->save();
+            
             $AuditLog= new AuditLog;
             $AuditLogcount=AuditLog::count()+1;
             $userid = Auth::user()->id;

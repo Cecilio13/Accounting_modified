@@ -97,6 +97,11 @@ jQuery(document).ready(function($) {
 		console.log(document.getElementById('setselectpickerbuttonjournal_entry').getAttribute('data-value'));
 		//refreshpicjer();
 	})
+	$('#setselectpickerbuttonjournal_entry_code').on('click',function(event){
+		$('#accjournalcode'+document.getElementById('setselectpickerbuttonjournal_entry_code').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerbuttonjournal_entry_code').getAttribute('data-value'));
+		//refreshpicjer();
+	})
 	$('#setselectpickerbutton').on('click',function(event){
 		$('.selectpicker').selectpicker('refresh');
 		console.log('refresh selectpicker');

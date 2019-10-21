@@ -18,10 +18,23 @@
         <link rel="stylesheet" href="{{asset('css/table.css')}}">
         <link rel="stylesheet" href="{{asset('css/personal.css')}}">
         <link rel="stylesheet" href="{{asset('css/donut.css')}}">
+
+        
         <link href="{{asset('open-iconic/font/css/open-iconic-bootstrap.css')}}" rel="stylesheet">
         <link href="{{asset('css/lib/vector-map/jqvmap.min.css')}}" rel="stylesheet">
         <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>  
         <script src="{{asset('jquery-3.3.1.min.js')}}"></script>
+
+        
+        <!--jQuery dependencies-->
+        <link rel="stylesheet" href="{{asset('paramjquery/jquery-ui.css')}}" />    
+        <script src="{{asset('paramjquery/jqueryui.js')}}"></script>
+        <!--PQ Grid files-->
+        <link rel="stylesheet" href="{{asset('paramjquery/pqgrid.min.css')}}" />
+        <script src="{{asset('paramjquery/pqgrid.min.js')}}"></script>
+        <!--PQ Grid Office theme-->
+        <link rel="stylesheet" href="{{asset('paramjquery/pqgrid.css')}}" />
+
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="{{asset('css/modal.css')}}">
         <!-- Styles -->
@@ -30,7 +43,8 @@
         <script lang="javascript" src="{{asset('js/FileSaver.min.js')}}"></script>
        <!-- DataTables -->
        <link rel="stylesheet" href="{{asset('css/dataTables.min.css')}}">
-
+       
+       
        <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="{{asset('extra/bootstrap-select/dist/css/bootstrap-select.min.css')}}">
 
