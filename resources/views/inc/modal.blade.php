@@ -6568,8 +6568,9 @@ function addCardCreditedit(){
                             <th class="text-left" width="10%">CREDITS</th>
                             <th class="text-left" width="10%">DESCRIPTION</th>
                             <th class="text-left" width="10%">PAYEE</th>
-                            <th class="text-left" width="10%">CHEQUE NO</th>
+                            <th class="text-left" width="5%">CHEQUE NO</th>
                             <th class="text-left" width="10%">REFERENCE</th>
+                            <th class="text-left" width="5%">DATE DEPOSITED</th>
                             <th class="text-center" width="2%"></th>
                         </tr>
                         </thead>
@@ -6615,6 +6616,9 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="true" id="journalref_no_td1">
 
                             </td>
+                            <td class="pt-3-half" contenteditable="true" >
+                                <input type="date" id="date_deposited1" style="height:unset">
+                            </td>
                             <td class="pt-3-half text-center" contenteditable="false" style="position:relative"><div class="draggablepencilbutton" draggable="true">_________</div></td>
                         </tr>
                         <!-- This is our clonable table line -->
@@ -6659,6 +6663,9 @@ function addCardCreditedit(){
                             </td>
                             <td class="pt-3-half" contenteditable="true" id="journalref_no_td2">
 
+                            </td>
+                            <td class="pt-3-half" contenteditable="true"  >
+                                <input type="date" id="date_deposited2" style="height:unset;">
                             </td>
                             <td class="pt-3-half text-center" contenteditable="false" style="position:relative"><div class="draggablepencilbutton" draggable="true">_________</div></td>
                         </tr>
@@ -6774,14 +6781,14 @@ function addCardCreditedit(){
                                                         var cheque_no=document.getElementById("journalcheque_no_td"+sscsc);
                                                         var ref_no=document.getElementById("journalref_no_td"+sscsc);
                                                         var jouenaldesc=document.getElementById("journaldescription"+sscsc);
-                                                        
+                                                        var date_deposited=document.getElementById("date_deposited"+sscsc).value;
                                                             $.ajax({
                                                         type: 'POST',
                                                         headers: {
                                                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                                         },
                                                         url: '{{ route('add_journal_entry') }}',
-                                                        data: {cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                        data: {date_deposited:date_deposited,cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
                                                         success: function(data) {
                                                             console.log("fata is "+data);
                                                             if(data==1){
@@ -6909,6 +6916,7 @@ function addCardCreditedit(){
                                 var td9 = document.createElement("td");
                                 var td10 = document.createElement("td");
                                 var td11 = document.createElement("td");
+                                var td12 = document.createElement("td");
 
                                 var x1=document.createTextNode(journalrow);
                                 td1.appendChild(x1);
@@ -6959,6 +6967,18 @@ function addCardCreditedit(){
                                 td11.setAttribute("contenteditable", "true");
                                 td11.setAttribute("class", "pt-3-half");
                                 td11.setAttribute("id", "journalref_no_td"+journalrow);
+
+                                td12.setAttribute("contenteditable", "false");
+                                td12.setAttribute("class", "pt-3-half");
+
+                                var deposited_input = document.createElement("input");
+
+                                deposited_input.setAttribute('type','date');
+                                deposited_input.setAttribute('style','height:unset');
+                                deposited_input.setAttribute('id','date_deposited'+journalrow);
+
+                                td12.appendChild(deposited_input);
+
 
                                 var x7 = document.createElement("a");
 
@@ -7062,6 +7082,9 @@ function addCardCreditedit(){
                                     }
                                     if(table.rows[0].cells[i].innerHTML=="REFERENCE"){
                                         tr.appendChild(td11);
+                                    }
+                                    if(table.rows[0].cells[i].innerHTML=="DATE DEPOSITED"){
+                                        tr.appendChild(td12);
                                     }
                                     if(table.rows[0].cells[i].innerHTML==""){
                                         tr.appendChild(td7);

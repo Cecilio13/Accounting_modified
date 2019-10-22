@@ -162,6 +162,7 @@ class JournalEntryController extends Controller
         $type=$request->input('JournalEntryTransactionType');
         $sentence=$JDate." ".$JNo." ".$JMemo;
         $CostCenter=$request->input('CostCenter');
+        $date_deposited=$request->input('date_deposited');
         //return $no;
         if($no=="" || $account==""){
             return 2;
@@ -185,6 +186,7 @@ class JournalEntryController extends Controller
             $journal_entries->cheque_no=$cheque_no;
             $journal_entries->ref_no=$ref_no;
             $journal_entries->journal_type=$journal_entry_type;
+            $journal_entries->date_deposited=$date_deposited;
             
             $journal_entries->save();
             

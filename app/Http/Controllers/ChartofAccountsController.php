@@ -422,6 +422,8 @@ class ChartofAccountsController extends Controller
                 $sheet1 = $doc->setActiveSheetIndex(0);
                 $sheet1->getStyle("A")
                 ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+                $sheet1->getStyle("L")
+                ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
             $oro=0;
             $cuss=0;
             $cccc=0;
@@ -1771,6 +1773,7 @@ class ChartofAccountsController extends Controller
                                 $journal_type=$row->journal_type;
                                 $cheque_no=$row->cheque_no;
                                 $reference=$row->reference;
+                                $date_deposited=$row->date_deposited;
                                 
                                 $type="Journal Entry";
                                 $CostCenter=$row->cost_center;
@@ -1794,6 +1797,7 @@ class ChartofAccountsController extends Controller
                                 $journal_entries->journal_type=$journal_type;
                                 $journal_entries->je_transaction_type=$type;
                                 $journal_entries->je_cost_center=$CostCenter;
+                                $journal_entries->date_deposited=$date_deposited;
                                         
                                 $journal_entries->save();
                                 $AuditLog= new AuditLog;
