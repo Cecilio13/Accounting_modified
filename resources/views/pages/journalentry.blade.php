@@ -175,8 +175,8 @@
     <div class="row" style="">
         <div class="col-md-12" >
             <div class=" mr-2 mb-5 mt-3">
-                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Cheque Voucher')" data-toggle="modal">Cheque Voucher</a>
-                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Journal Voucher')" data-toggle="modal">Journal Voucher</a>
+                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Cheque Voucher')" data-toggle="modal">Create new Cheque Voucher</a>
+                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Journal Voucher')" data-toggle="modal">Create new Journal Voucher</a>
                 <a href="#" class="btn btn-success" data-target='#ImportJournalEntryModal' data-toggle="modal">Import Journal Entry</a>
                 
             </div>
