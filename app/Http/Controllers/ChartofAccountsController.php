@@ -467,6 +467,12 @@ class ChartofAccountsController extends Controller
                 
                 $objValidation->setShowDropDown( true );
                 $objValidation->setFormula1('CostCenter!$A:$A');
+
+                $objValidation = $sheet1->getCell('K'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$I2:$I3');
                 
                 //$objValidation->setFormula1('Accounts'); //note this!
             }
@@ -1653,47 +1659,62 @@ class ChartofAccountsController extends Controller
                 
                 if($unique==$row->journal_no){
                     $individualjournalnocount++;
-                    if($row->journal_date!=""){
-                        if($row->cost_center!=""){
-                            if($row->journal_no!=""){
-                                if($row->account!=""){
-                                    if($row->debit=="" && $row->credit==""){
+                    if($row->journal_type!=""){
+                        if($row->journal_type=="Cheque Voucher" || $row->journal_type=="Journal Voucher"){
+                            if($row->journal_date!=""){
+                                if($row->cost_center!=""){
+                                    if($row->journal_no!=""){
+                                        if($row->account!=""){
+                                            if($row->debit=="" && $row->credit==""){
+                                                $valid=1; 
+                                                //empty first name
+                                                //$error_count++;
+                                                $Log.="Empty Credit/Debit on row ".$rowcount." from file.\n"; 
+                                            }else{
+                                                if($row->debit!=""){
+                                                    $debit+=$row->debit;
+                                                }else{
+                                                    $credit+=$row->credit;
+                                                }
+                                                
+                                            }
+                                        }else{
+                                            $valid=1; 
+                                            //empty first name
+                                            //$error_count++;
+                                            $Log.="Empty Account on row ".$rowcount." from file.\n"; 
+                                        }
+                                    }else{
                                         $valid=1; 
                                         //empty first name
                                         //$error_count++;
-                                        $Log.="Empty Credit/Debit on row ".$rowcount." from file.\n"; 
-                                    }else{
-                                        if($row->debit!=""){
-                                            $debit+=$row->debit;
-                                        }else{
-                                            $credit+=$row->credit;
-                                        }
-                                        
-                                    }
+                                        $Log.="Empty Journal No on row ".$rowcount." from file.\n"; 
+                                     }
                                 }else{
                                     $valid=1; 
                                     //empty first name
                                     //$error_count++;
-                                    $Log.="Empty Account on row ".$rowcount." from file.\n"; 
+                                    $Log.="Empty Cost Center on row ".$rowcount." from file.\n"; 
                                  }
                             }else{
                                 $valid=1; 
                                 //empty first name
                                 //$error_count++;
-                                $Log.="Empty Journal No on row ".$rowcount." from file.\n"; 
-                             }
+                                $Log.="Empty Journal Date on row ".$rowcount." from file.\n"; 
+                            }
                         }else{
                             $valid=1; 
                             //empty first name
                             //$error_count++;
-                            $Log.="Empty Cost Center on row ".$rowcount." from file.\n"; 
-                         }
+                            $Log.="Invalid Journal Type on row ".$rowcount." from file.\n"; 
+                        }
                     }else{
                         $valid=1; 
                         //empty first name
                         //$error_count++;
-                        $Log.="Empty Journal Date on row ".$rowcount." from file.\n"; 
+                        $Log.="Empty Journal Type on row ".$rowcount." from file.\n"; 
                     }
+                    
                 }
 
             }
@@ -1747,6 +1768,9 @@ class ChartofAccountsController extends Controller
                                 $credit= $row->credit;
                                 $description= $row->description;
                                 $name=$row->name;
+                                $journal_type=$row->journal_type;
+                                $cheque_no=$row->cheque_no;
+                                $reference=$row->reference;
                                 
                                 $type="Journal Entry";
                                 $CostCenter=$row->cost_center;
@@ -1765,7 +1789,9 @@ class ChartofAccountsController extends Controller
                                 $journal_entries->created_at=$JDate;
                                 $journal_entries->je_attachment=$JDate;
                                 $journal_entries->other_no="Journal-".$JNo;
-                                
+                                $journal_entries->cheque_no=$cheque_no;
+                                $journal_entries->ref_no=$reference;
+                                $journal_entries->journal_type=$journal_type;
                                 $journal_entries->je_transaction_type=$type;
                                 $journal_entries->je_cost_center=$CostCenter;
                                         
