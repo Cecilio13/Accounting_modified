@@ -14,6 +14,7 @@ use \setasign\Fpdi\Fpdi;
 Route::group(['middleware'=>['auth']], function() {
     
     
+    Route::post('/export_test', 'ChartofAccountsController@export_test');
     Route::post('/getcoa_cc_name', 'GetController@getcoa_cc_name');
     Route::post('/save_cc_type', 'GetController@save_cc_type');
     Route::post('/check_cost_center_code', 'GetController@check_cost_center_code');

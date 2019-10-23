@@ -21,6 +21,8 @@ use App\Budgets;
 use App\BudgetsEdit;
 use App\StInvoice;
 use Illuminate\Support\Facades\Storage;
+use PHPExcel; 
+use PHPExcel_IOFactory;
 class ChartofAccountsController extends Controller
 {
     /**
@@ -329,6 +331,41 @@ class ChartofAccountsController extends Controller
         // $AuditLog->log_amount="";
         // $AuditLog->save();
         return redirect('/accounting')->with('success','Chart of Account Deleted');
+    }
+    public function export_test(Request $request){
+        // $dataTable = new \Svrnm\ExcelDataTables\ExcelDataTable();
+		// // Specify the source file
+        // $in = 'export_report_template.xlsx';
+		// // Specify the output file
+        // $out = 'test.xlsx';
+		// // Specify the data for the worksheet. 
+        // $data = array(
+        //                 array("Date" => new \DateTime('2014-01-01 13:00:00'), "Value 1" => 0, "Value 2" => 1),
+        //                 array("Date" => new \DateTime('2014-01-02 14:00:00'), "Value 1" => 1, "Value 2" => 0),
+        //                 array("Date" => new \DateTime('2014-01-03 15:00:00'), "Value 1" => 2, "Value 2" => -1),
+        //                 array("Date" => new \DateTime('2014-01-04 16:00:00'), "Value 1" => 3, "Value 2" => -2),
+        //                 array("Date" => new \DateTime('2014-01-05 17:00:00'), "Value 1" => 4, "Value 2" => -3),
+        // );
+		// // Attach the data table and copy the new xlsx file to the output file.
+        // $dataTable->showHeaders()->addRows($data)->attachToFile($in, $out);
+        $excel2 = PHPExcel_IOFactory::createReader('Excel2007');
+        $excel2 = $excel2->load('export_report_template.xlsx'); // Empty Sheet
+        // $excel2->setActiveSheetIndex(0);
+        // $excel2->getActiveSheet()->setCellValue('C6', '12232132131234')
+        //     ->setCellValue('C7', '12312312')
+        //     ->setCellValue('C8', '31231236')       
+        //     ->setCellValue('C9', 'sdasdasdasd7');
+
+        // $excel2->setActiveSheetIndex(1);
+        // $excel2->getActiveSheet()->setCellValue('A7', '4')
+        //     ->setCellValue('C7', '5');
+        $objWriter = PHPExcel_IOFactory::createWriter($excel2, 'Excel2007');
+        $objWriter->setIncludePivotTable(true);
+        $objWriter->save('Nimit New22.xlsx');
+
+        // Excel::load('export_report_template.xlsx', function($doc) {
+        
+        // })->setFilename('qweqweqweqweqweqw '.date('m-d-Y'))->download('xlsx');
     }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {

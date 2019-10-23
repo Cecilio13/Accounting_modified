@@ -28134,20 +28134,20 @@ class ReportController extends Controller
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         if($JE->remark==""){   
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : "";
+                        $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : "";
                         $tablecontent.="</a>";
                         }else{
-                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : ""; 
+                            $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : ""; 
                         }
                         $tablecontent.="</td>";  
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         
                         if($JE->remark==""){   
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                        $tablecontent.=$JE->je_memo;
+                        $tablecontent.=htmlentities($JE->je_memo);
                         $tablecontent.="</a>";
                         }else{
-                            $tablecontent.=$JE->je_memo;  
+                            $tablecontent.=htmlentities($JE->je_memo);  
                         }
                         $tablecontent.="</td>";
                         $tablecontent.="<td style='vertical-align:middle;'>";
@@ -28155,13 +28155,13 @@ class ReportController extends Controller
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                         foreach ($COA as $csa){
                             if($csa->id==$JE->je_account){
-                                $tablecontent.=$csa->coa_name;
+                                $tablecontent.=htmlentities($csa->coa_name);
                             }
                         }
                         }else{
                             foreach ($COA as $csa){
                                 if($csa->id==$JE->je_account){
-                                    $tablecontent.=$csa->coa_name;
+                                    $tablecontent.=htmlentities($csa->coa_name);
                                 }
                             } 
                         }
@@ -28171,7 +28171,7 @@ class ReportController extends Controller
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         
                         if($JE->remark!=""){
-                            $tablecontent.=$JE->remark;
+                            $tablecontent.=htmlentities($JE->remark);
                         }
                         
                        
@@ -28262,10 +28262,10 @@ class ReportController extends Controller
                 }else{
                     if($JE->remark==""){   
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                    $tablecontent.=$currentno!=$JE->je_no? $JE->other_no : "";
+                    $tablecontent.=htmlentities($currentno!=$JE->je_no? $JE->other_no : "");
                     $tablecontent.="</a>";
                     }else{
-                        $tablecontent.=$currentno!=$JE->je_no? $JE->other_no : "";  
+                        $tablecontent.=htmlentities($currentno!=$JE->je_no? $JE->other_no : "");  
                     }
                 }
                 
@@ -28273,20 +28273,20 @@ class ReportController extends Controller
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 if($JE->remark==""){   
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : "";
+                $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : "";
                 $tablecontent.="</a>";
                 }else{
-                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : ""; 
+                    $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : ""; 
                 }
                 $tablecontent.="</td>";  
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 
                 if($JE->remark==""){   
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                $tablecontent.=$JE->je_memo;
+                $tablecontent.=htmlentities($JE->je_memo);
                 $tablecontent.="</a>";
                 }else{
-                    $tablecontent.=$JE->je_memo;  
+                    $tablecontent.=htmlentities($JE->je_memo);  
                 }
                 $tablecontent.="</td>";
                 $tablecontent.="<td style='vertical-align:middle;'>";
@@ -28294,13 +28294,13 @@ class ReportController extends Controller
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                 foreach ($COA as $csa){
                     if($csa->id==$JE->je_account){
-                        $tablecontent.=$csa->coa_name;
+                        $tablecontent.=htmlentities($csa->coa_name);
                     }
                 }
                 }else{
                     foreach ($COA as $csa){
                         if($csa->id==$JE->je_account){
-                            $tablecontent.=$csa->coa_name;
+                            $tablecontent.=htmlentities($csa->coa_name);
                         }
                     } 
                 }
@@ -28310,7 +28310,7 @@ class ReportController extends Controller
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 
                 if($JE->remark!=""){
-                    $tablecontent.=$JE->remark;
+                    $tablecontent.=htmlentities($JE->remark);
                 }
                 
                

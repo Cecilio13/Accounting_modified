@@ -12,8 +12,10 @@
         "laravel/framework": "5.7.*",
         "laravel/tinker": "^1.0",
         "maatwebsite/excel": "~2.1.0",
+        "phpoffice/phpexcel": "^1.8",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi-fpdf": "^2.2",
+        "svrnm/exceldatatables": "^0.2.2",
         "uxweb/sweet-alert": "^2.0",
         "yajra/laravel-datatables-oracle": "~8.0"
     },
