@@ -221,6 +221,7 @@
                         <thead>
                             <tr>
                                 <th width="8%" class="text-center">JOURNAL DATE</th>
+                                <th width="5%" class="text-center">JOURNAL TYPE</th>
                                 <th width="5%" class="text-center">ACCOUNT CODE</th>
                                 <th width="5%" class="text-center">JOURNAL NO</th>
                                 <th width="20%" class="text-center">ACCOUNT</th>
@@ -250,7 +251,8 @@
                                 @endforeach
                                
                                 <tr>
-                                <td style="vertical-align:middle;">{{date("m-d-Y", strtotime($je->je_attachment))}} </td>
+                                <td style="vertical-align:middle;">{{date("m-d-Y", strtotime($je->je_attachment))}}</td>
+                                <td style="vertical-align:middle;text-align:center;">{{$je->journal_type}}</td>
                                 <td style="vertical-align:middle;text-align:center;">
                                     @foreach ($COA as $coa)
                                         @if($coa->id==$je->je_account)
@@ -307,7 +309,7 @@
                                             <div class="dropdown-menu dropdown-menu-custom">
                                                 <a  class="dropdown-item" href="print_journal_entry?no={{$je->je_no}}" target="_blank">Print</a>
                                                 @if ($je->je_transaction_type=="Journal Entry")
-                                                <a href="#"  onclick="edit_journal_entries('{{$je->je_no}}')" class="dropdown-item">Edit</a>
+                                                <a href="#" style="display:none;"  onclick="edit_journal_entries('{{$je->je_no}}')" class="dropdown-item">Edit</a>
                                                 @endif
                                                 <?php $invoice_validforcancel=0;?>
                                                 @if ($je->je_transaction_type=="Invoice")

@@ -348,24 +348,24 @@ class ChartofAccountsController extends Controller
         // );
 		// // Attach the data table and copy the new xlsx file to the output file.
         // $dataTable->showHeaders()->addRows($data)->attachToFile($in, $out);
-        $excel2 = PHPExcel_IOFactory::createReader('Excel2007');
-        $excel2 = $excel2->load('export_report_template.xlsx'); // Empty Sheet
-        // $excel2->setActiveSheetIndex(0);
-        // $excel2->getActiveSheet()->setCellValue('C6', '12232132131234')
-        //     ->setCellValue('C7', '12312312')
-        //     ->setCellValue('C8', '31231236')       
-        //     ->setCellValue('C9', 'sdasdasdasd7');
+        // $excel2 = PHPExcel_IOFactory::createReader('Excel2007');
+        // $excel2 = $excel2->load('export_report_template.xlsx'); // Empty Sheet
+        // // $excel2->setActiveSheetIndex(0);
+        // // $excel2->getActiveSheet()->setCellValue('C6', '12232132131234')
+        // //     ->setCellValue('C7', '12312312')
+        // //     ->setCellValue('C8', '31231236')       
+        // //     ->setCellValue('C9', 'sdasdasdasd7');
 
-        // $excel2->setActiveSheetIndex(1);
-        // $excel2->getActiveSheet()->setCellValue('A7', '4')
-        //     ->setCellValue('C7', '5');
-        $objWriter = PHPExcel_IOFactory::createWriter($excel2, 'Excel2007');
-        $objWriter->setIncludePivotTable(true);
-        $objWriter->save('Nimit New22.xlsx');
+        // // $excel2->setActiveSheetIndex(1);
+        // // $excel2->getActiveSheet()->setCellValue('A7', '4')
+        // //     ->setCellValue('C7', '5');
+        // $objWriter = PHPExcel_IOFactory::createWriter($excel2, 'Excel2007');
+        // $objWriter->setIncludePivotTable(true);
+        // $objWriter->save('Nimit New22.xlsx');
 
-        // Excel::load('export_report_template.xlsx', function($doc) {
+        Excel::load('export_report_template.xlsx', function($doc) {
         
-        // })->setFilename('qweqweqweqweqweqw '.date('m-d-Y'))->download('xlsx');
+        })->setFilename('Journal Entry '.date('m-d-Y'))->download('xlsx');
     }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {

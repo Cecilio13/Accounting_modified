@@ -47,7 +47,7 @@
                         $(document).ready(function(){
                             //tablemain
                             
-                            for(var i=10;i<13;i++){
+                            for(var i=11;i<14;i++){
                                 $('td:nth-child('+i+'),th:nth-child('+i+')','#tablemain ').hide();
                             }
                             
@@ -101,7 +101,7 @@
                         <label class="custom-control-label" for="customCheck9">Billing Address</label>
                         </div>
                         <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="10" id="customCheck10">
+                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="10" id="customCheck10">
                         <label class="custom-control-label" for="customCheck10">Shipping Address</label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -138,16 +138,16 @@
                                     //window.location.replace("/Invoice_List?date_from="+FROM+"&date_to="+TO);
                                     $.ajax({
                                         type: 'POST',
-                                        url: 'Journal_by_date',                
+                                        url: 'Journal_by_date',              
                                         data: {CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {
                                         $( "#tablemain" ).replaceWith( data);
-                                        $("input[name='columnnames[]']").each( function () {
-                                            if(this.checked==false){
-                                                hideshowcolumntable(this);
-                                                
-                                                //alert($(this).val());
-                                            }
+                                            $("input[name='columnnames[]']").each( function () {
+                                                if(this.checked==false){
+                                                    hideshowcolumntable(this);
+                                                    
+                                                    //alert($(this).val());
+                                                }
                                                         
                                             });
                                            
@@ -571,7 +571,7 @@
                     <td style="vertical-align:middle;text-align:right;">
                         
                         {{-- <a href="export_test" class="btn-link btn-sm" title="Export to Excel" ><span class="fa fa-table"></a> --}}
-                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcelnew('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>

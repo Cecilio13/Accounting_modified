@@ -478,7 +478,10 @@ class PagesController extends Controller
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
         $cost_center_list_all= CostCenter::orderBy('cc_type_code', 'asc')->get();
-        return view('pages.print_journal', compact('cost_center_list_all','Journal_no_selected','numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
+        $journal_type_query=JournalEntry::where([
+            ['je_no','=',$Journal_no_selected]
+        ])->first();
+        return view('pages.print_journal', compact('journal_type_query','cost_center_list_all','Journal_no_selected','numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
     }
     public function reports(){
         $customers = Customers::all();

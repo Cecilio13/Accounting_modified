@@ -28051,21 +28051,22 @@ class ReportController extends Controller
         }                  
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortjournal." 
-                            ORDER BY created_at ASC");
+                            ORDER BY je_no DESC");
         
         $COA= ChartofAccount::where('coa_active','1')->get();
         $tablecontent="";
-        $tablecontent.="<script>";
+        // $tablecontent.="<script>";
         
-        $tablecontent.="var totaldebit=0;";
-        $tablecontent.="var totalcredit=0;";
-        $tablecontent.="$(document).ready(function(){";
-        $tablecontent.="document.getElementById('TotalDebit').innerHTML=(totaldebit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
-        $tablecontent.="document.getElementById('TotalCredit').innerHTML=(totalcredit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
-        $tablecontent.="});";
-        $tablecontent.="</script>";
+        // $tablecontent.="var totaldebit=0;";
+        // $tablecontent.="var totalcredit=0;";
+        // $tablecontent.="$(document).ready(function(){";
+        // $tablecontent.="document.getElementById('TotalDebit').innerHTML=(totaldebit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
+        // $tablecontent.="document.getElementById('TotalCredit').innerHTML=(totalcredit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
+        // $tablecontent.="});";
+        // $tablecontent.="</script>";
         $currentno="";
-
+        $totalccccrrrreeddit=0;
+        $totaldebbiiittt=0;
         if($CostCenterFilter=="By Cost Center"){
             foreach($je_grouped as $group){
                 $tablecontent.="<tr>";
@@ -28101,6 +28102,9 @@ class ReportController extends Controller
                         }else{
                             $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : ""; 
                         }
+                        $tablecontent.="</td>";
+                        $tablecontent.="<td style='vertical-align:middle;'>";
+                            $tablecontent.=$JE->journal_type;
                         $tablecontent.="</td>";
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         if($JE->remark==""){  
@@ -28182,24 +28186,31 @@ class ReportController extends Controller
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">'; 
                         $tablecontent.=number_format($JE->je_debit,2);
                         $tablecontent.="</a>";
-                        $tablecontent.="<script>";
-                        $tablecontent.="totaldebit+=".$JE->je_debit.";";
-                        $tablecontent.="</script>";
+                        
                         }else{
                             $tablecontent.=number_format($JE->je_debit,2);
                         }
                         }
                         
                         $tablecontent.="</td>";
+                        if($JE->je_debit!=""){
+                        if($JE->remark==""){   
+                        
+                        // $tablecontent.="<script>";
+                        // $tablecontent.="totaldebit+=".$JE->je_debit.";";
+                        // $tablecontent.="</script>";
+                        $totaldebbiiittt+=$JE->je_debit;
+                        }else{
+                          
+                        }
+                        }
                         $tablecontent.="<td style='vertical-align:middle;text-align:right;'>";
                         if($JE->je_credit!=""){
                         if($JE->remark==""){
                             $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">';   
                             $tablecontent.=number_format($JE->je_credit,2);
                             $tablecontent.="</a>";
-                            $tablecontent.="<script>";
-                            $tablecontent.="totalcredit+=".$JE->je_credit.";";
-                            $tablecontent.="</script>";
+                           
                         }else{
                             $tablecontent.=number_format($JE->je_credit,2); 
                         }
@@ -28207,6 +28218,17 @@ class ReportController extends Controller
                         }
                         
                         $tablecontent.="</td>";
+                            if($JE->je_credit!=""){
+                            if($JE->remark==""){
+                                // $tablecontent.="<script>";
+                                // $tablecontent.="totalcredit+=".$JE->je_credit.";";
+                                // $tablecontent.="</script>";
+                                $totalccccrrrreeddit+=$JE->je_credit;
+                            }else{
+                             
+                            }
+                            
+                            }
                         $tablecontent.="</tr>";    
                         if($currentno!=$JE->je_no){
                             $currentno=$JE->je_no;
@@ -28240,6 +28262,9 @@ class ReportController extends Controller
                 }else{
                     $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : ""; 
                 }
+                $tablecontent.="</td>";
+                $tablecontent.="<td style='vertical-align:middle;'>";
+                    $tablecontent.=$JE->journal_type;
                 $tablecontent.="</td>";
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 if($JE->remark==""){  
@@ -28321,24 +28346,31 @@ class ReportController extends Controller
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">'; 
                 $tablecontent.=number_format($JE->je_debit,2);
                 $tablecontent.="</a>";
-                $tablecontent.="<script>";
-                $tablecontent.="totaldebit+=".$JE->je_debit.";";
-                $tablecontent.="</script>";
+                
                 }else{
                     $tablecontent.=number_format($JE->je_debit,2);
                 }
                 }
                 
                 $tablecontent.="</td>";
+                if($JE->je_debit!=""){
+                if($JE->remark==""){   
+                
+                // $tablecontent.="<script>";
+                // $tablecontent.="totaldebit+=".$JE->je_debit.";";
+                // $tablecontent.="</script>";
+                $totalccccrrrreeddit+=$JE->je_debit;
+                }else{
+                    
+                }
+                }
                 $tablecontent.="<td style='vertical-align:middle;text-align:right;'>";
                 if($JE->je_credit!=""){
                 if($JE->remark==""){
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">';   
                     $tablecontent.=number_format($JE->je_credit,2);
                     $tablecontent.="</a>";
-                    $tablecontent.="<script>";
-                    $tablecontent.="totalcredit+=".$JE->je_credit.";";
-                    $tablecontent.="</script>";
+                    
                 }else{
                     $tablecontent.=number_format($JE->je_credit,2); 
                 }
@@ -28346,6 +28378,17 @@ class ReportController extends Controller
                 }
                 
                 $tablecontent.="</td>";
+                if($JE->je_credit!=""){
+                if($JE->remark==""){
+                    // $tablecontent.="<script>";
+                    // $tablecontent.="totalcredit+=".$JE->je_credit.";";
+                    // $tablecontent.="</script>";
+                    $totaldebbiiittt+=$JE->je_credit;
+                }else{
+                    
+                }
+                
+                }
                 $tablecontent.="</tr>";    
                 if($currentno!=$JE->je_no){
                     $currentno=$JE->je_no;
@@ -28356,19 +28399,19 @@ class ReportController extends Controller
 
         
         $tablecontent.="<tr>";
-        $tablecontent.='<td colspan="9" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
+        $tablecontent.='<td colspan="10" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.='<td colspan="1" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.='<td colspan="1" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.="</tr>";
         $tablecontent.="<tr>";
-        $tablecontent.='<td colspan="7" style="vertical-align:middle;font-weight:bold;" >Total</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalDebit"></td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalCredit"></td>';
+        $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;" >Total</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalDebit">'.number_format($totalccccrrrreeddit,2).'</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalCredit">'.number_format($totaldebbiiittt,2).'</td>';
         $tablecontent.="</tr>";
 
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th>Date</th><th>Transaction type</th><th>No.</th><th>Name</th><th>Memo</th><th>Account</th><th>Remark</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
+                .'<th>Date</th><th>Journal Type</th><th>Transaction type</th><th>No.</th><th>Name</th><th>Memo</th><th>Account</th><th>Remark</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent

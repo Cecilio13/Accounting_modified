@@ -17,6 +17,9 @@
 
 <table id="jounalentrytable" class="table table-bordered table-responsive-md table-sm  font14" width="100%">
         <thead>
+            <tr>
+                <th colspan="20" class="text-center"><b>{{$journal_type_query->journal_type}}</b></th>
+            </tr>
             <tr id="thead_tr_print_withCSS" style="background-color:rgb(228, 236, 247);color:#green;">
                 
                 <th width="5%" class="text-center">JOURNAL DATE</th>
