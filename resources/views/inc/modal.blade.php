@@ -6628,18 +6628,19 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="false" >
                                 <input type="number" step="0.01" onkeyup="swap2('journaldebit','1')" oninput="swap2('journaldebit','1')" id="journalcredit1" >
                             </td>
-                            <td class="pt-3-half" contenteditable="true" id="journaldescription1" style="text-transform: capitalize;"></td>
+                            <td class="pt-3-half" contenteditable="false" >
+                                <textarea id="journaldescription1" style="width: 100%;border: 0px solid white;text-transform: capitalize;"></textarea>
+                            </td>
                             <td class="pt-3-half" contenteditable="false" >
                                 <input type="text" class="w-100" list="customer_list_all" placeholder="Supplier/Customer" onkeyup="addnewCustomerDatalist(this)" onchange="addnewCustomerDatalist(this)" id="journalnamename1" >
-                                
                             </td>
-                            <td class="pt-3-half" contenteditable="true" id="journalcheque_no_td1">
-
+                            <td class="pt-3-half" contenteditable="false" >
+                                <textarea id="journalcheque_no_td1" style="width: 100%;border: 0px solid white;"></textarea>
                             </td>
-                            <td class="pt-3-half" contenteditable="true" id="journalref_no_td1">
-
+                            <td class="pt-3-half" contenteditable="false">
+                                <textarea id="journalref_no_td1" style="width: 100%;border: 0px solid white;"></textarea>
                             </td>
-                            <td class="pt-3-half" contenteditable="true" >
+                            <td class="pt-3-half" contenteditable="false" >
                                 <input type="date" id="date_deposited1" style="height:unset">
                             </td>
                             <td class="pt-3-half text-center" contenteditable="false" style="position:relative"><div class="draggablepencilbutton" draggable="true">_________</div></td>
@@ -6670,7 +6671,9 @@ function addCardCreditedit(){
                             </td>
                             <td class="pt-3-half" contenteditable="false" ><input type="number" step="0.01" onkeyup="swap2('journalcredit','2')" oninput="swap2('journalcredit','2')" id="journaldebit2" ></td>
                             <td class="pt-3-half" contenteditable="false" ><input type="number" step="0.01" onkeyup="swap2('journaldebit','2')" oninput="swap2('journaldebit','2')" id="journalcredit2"></td>
-                            <td class="pt-3-half" contenteditable="true" id="journaldescription2" style="text-transform: capitalize;"></td>
+                            <td class="pt-3-half" contenteditable="false">
+                                <textarea id="journaldescription2" style="width: 100%;border: 0px solid white;text-transform: capitalize;"></textarea>
+                            </td>
                             <td class="pt-3-half" contenteditable="false" >
                                 <input type="text" class="w-100" list="customer_list_all" placeholder="Supplier/Customer" onkeyup="addnewCustomerDatalist(this)" onchange="addnewCustomerDatalist(this)" id="journalnamename2" >
                                     <datalist id="customer_list_all">
@@ -6681,11 +6684,11 @@ function addCardCreditedit(){
                                     <option value="--Add Customer/Supplier--">
                                     </datalist>
                             </td>
-                            <td class="pt-3-half" contenteditable="true" id="journalcheque_no_td2">
-
+                            <td class="pt-3-half" contenteditable="false" id="">
+                                <textarea id="journalcheque_no_td2" style="width: 100%;border: 0px solid white;"></textarea>
                             </td>
-                            <td class="pt-3-half" contenteditable="true" id="journalref_no_td2">
-
+                            <td class="pt-3-half" contenteditable="false" >
+                                <textarea id="journalref_no_td2" style="width: 100%;border: 0px solid white;"></textarea>
                             </td>
                             <td class="pt-3-half" contenteditable="true"  >
                                 <input type="date" id="date_deposited2" style="height:unset;">
@@ -6745,8 +6748,8 @@ function addCardCreditedit(){
 
                                     for(var c=tr.length;c>0;c--){
                                         console.log(c);
-                                        td3 = document.getElementById("journaldebit"+c);
-                                        td4 = document.getElementById("journalcredit"+c);
+                                        var td3 = document.getElementById("journaldebit"+c);
+                                        var td4 = document.getElementById("journalcredit"+c);
                                         if(td3.value!=""){
                                            
                                             debitJ=debitJ+parseFloat(td3.value);
@@ -6811,7 +6814,7 @@ function addCardCreditedit(){
                                                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                                         },
                                                         url: '{{ route('add_journal_entry') }}',
-                                                        data: {date_deposited:date_deposited,cheque_no:cheque_no.innerHTML,ref_no:ref_no.innerHTML,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.innerHTML,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                        data: {date_deposited:date_deposited,cheque_no:cheque_no.value,ref_no:ref_no.value,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.value,name:journalnamename,_token: '{{csrf_token()}}'},
                                                         success: function(data) {
                                                             console.log("fata is "+data);
                                                             if(data==1){
@@ -6965,14 +6968,17 @@ function addCardCreditedit(){
                                 x4.setAttribute("onkeyup", "swap2('journaldebit',"+journalrow+")");
                                 x4.setAttribute("oninput", "swap2('journaldebit',"+journalrow+")");
                                 td4.appendChild(x4);
-                                td5.setAttribute("contenteditable", "true");
+                                td5.setAttribute("contenteditable", "false");
                                 td5.setAttribute("class", "pt-3-half");
                                 td5.setAttribute("style", "text-transform: capitalize;");
                                 
-                                td5.setAttribute("id", "journaldescription"+journalrow);
-                                td6.setAttribute("contenteditable", "true");
+                                //td5.setAttribute("id", "journaldescription"+journalrow);
+                                var textdescription = document.createElement("textarea");
+                                textdescription.setAttribute("style", "width: 100%;border: 0px solid white;text-transform: capitalize;");
+                                textdescription.setAttribute("id","journaldescription"+journalrow);
+                                td5.appendChild(textdescription);
+                                td6.setAttribute("contenteditable", "false");
                                 td6.setAttribute("class", "pt-3-half");
-                                
                                 
                                 td7.setAttribute("class", "pt-3-half text-center");
                                 td7.setAttribute("style", "position:relative");
@@ -6984,12 +6990,23 @@ function addCardCreditedit(){
                                 td9.setAttribute("class", "pt-3-half");
                                 td9.setAttribute("id", "journalcost_center_td"+journalrow);
                                 
-                                td10.setAttribute("contenteditable", "true");
+                                td10.setAttribute("contenteditable", "false");
                                 td10.setAttribute("class", "pt-3-half");
                                 td10.setAttribute("id", "journalcheque_no_td"+journalrow);
-                                td11.setAttribute("contenteditable", "true");
+
+                                var textdescription = document.createElement("textarea");
+                                textdescription.setAttribute("style", "width: 100%;border: 0px solid white;");
+                                textdescription.setAttribute("id","journalcheque_no_td"+journalrow);
+                                td10.appendChild(textdescription);
+
+                                td11.setAttribute("contenteditable", "false");
                                 td11.setAttribute("class", "pt-3-half");
                                 td11.setAttribute("id", "journalref_no_td"+journalrow);
+
+                                var textdescription = document.createElement("textarea");
+                                textdescription.setAttribute("style", "width: 100%;border: 0px solid white;");
+                                textdescription.setAttribute("id","journalref_no_td"+journalrow);
+                                td11.appendChild(textdescription);
 
                                 td12.setAttribute("contenteditable", "false");
                                 td12.setAttribute("class", "pt-3-half");
@@ -10224,7 +10241,7 @@ function edit_journal_entries(je_no){
             
         });
         jounalentrytable = $('#jounalentrytable').DataTable({
-            order: [[ 2, "desc" ]],
+            order: [[ 3, "desc" ]],
                 paging: false,
                 'dom': 'Rlfrtip'
             

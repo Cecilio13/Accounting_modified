@@ -345,13 +345,13 @@ class ChartofAccountsController extends Controller
             $sortsettingjournal="";
         }
         if($sortsettingjournal==""){
-            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."' AND (remark!='NULLED' OR remark IS NULL)";
+            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."' AND (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
         }else{
-            $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'  AND (remark!='NULLED' OR remark IS NULL)";
+            $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'  AND (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
         }
         
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
-            $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL)";
+            $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
             $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
             if($filtertemplate=="All"){
                 $sortsetting="";
@@ -379,66 +379,114 @@ class ChartofAccountsController extends Controller
         $columncount=5;
         $sheet = $doc->setActiveSheetIndex(0);
         if($CostCenterFilter=="By Cost Center"){
-
+            
         }else{
+            $total_balance_debit=0;
+            $total_balance_credit=0;
             foreach($JournalEntry as $je){
-                $sheet->setCellValue('B'.$columncount, date('d/m/Y',strtotime($je->je_attachment)));
-                $sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
-                if($je->journal_type=="Cheque Voucher"){
-                    $sheet->setCellValue('D'.$columncount,$je->je_no);
-                }else{
-                    $sheet->setCellValue('E'.$columncount,$je->je_no);
-                }
-                $COA= ChartofAccount::find($je->je_account);
-                $sheet->setCellValue('F'.$columncount,$COA->coa_code);
-                $sheet->setCellValue('G'.$columncount,$COA->coa_name);
-                $sheet->setCellValue('H'.$columncount,$COA->coa_title);
-                if($je->je_debit!=""){
-                    if($je->remark==""){   
-                        $sheet->setCellValue('J'.$columncount,number_format($je->je_debit,2));
+                if($je->remark!='Cancelled'){
+                    $sheet->setCellValue('B'.$columncount, date('d/m/Y',strtotime($je->je_attachment)));
+                    $sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
+                    if($je->journal_type=="Cheque Voucher"){
+                        $sheet->setCellValue('D'.$columncount,$je->je_no);
                     }else{
-                       
+                        $sheet->setCellValue('E'.$columncount,$je->je_no);
                     }
-                }
-                if($je->je_credit!=""){
-                    if($je->remark==""){   
-                        $sheet->setCellValue('K'.$columncount,number_format($je->je_credit,2));
-                    }else{
-                       
+                    $COA= ChartofAccount::find($je->je_account);
+                    $sheet->setCellValue('F'.$columncount,$COA->coa_code);
+                    $sheet->setCellValue('G'.$columncount,$COA->coa_name);
+                    $sheet->setCellValue('H'.$columncount,$COA->coa_title);
+                    if($je->je_debit!=""){
+                        if($je->remark==""){   
+                            $sheet->setCellValue('J'.$columncount,number_format($je->je_debit,2));
+                            $total_balance_debit+=$je->je_debit;
+            
+                        }else{
+                           
+                        }
                     }
-                }
-                if($je->je_cost_center!="null"){
-                    $cost_center_list= CostCenter::find($je->je_cost_center);
-                    $sheet->setCellValue('L'.$columncount,$cost_center_list->cc_name);
+                    if($je->je_credit!=""){
+                        if($je->remark==""){   
+                            $sheet->setCellValue('K'.$columncount,number_format($je->je_credit,2));
+                            $total_balance_credit+=$je->je_credit;
+                        }else{
+                           
+                        }
+                    }
+                    if($je->je_cost_center!="null"){
+                        $cost_center_list= CostCenter::find($je->je_cost_center);
+                        $sheet->setCellValue('L'.$columncount,$cost_center_list->cc_name);
+                    }
+                    
+                    $sheet->setCellValue('M'.$columncount,$je->je_name);
+                    $sheet->setCellValue('N'.$columncount,$je->cheque_no);
+                    $sheet->setCellValue('O'.$columncount,$je->ref_no);
+                    if($je->date_deposited!=NULL){
+                        $sheet->setCellValue('P'.$columncount,date('d/m/Y',strtotime($je->date_deposited)));
+                    }
+                    $sheet->setCellValue('Q'.$columncount,$je->je_memo);
+                    
+        
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                        )
+                    );
+                    $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
+        
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('J'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('K'.$columncount.'')->applyFromArray($style);
+                    $columncount++;
                 }
                 
-                $sheet->setCellValue('M'.$columncount,$je->je_name);
-                $sheet->setCellValue('N'.$columncount,$je->cheque_no);
-                $sheet->setCellValue('O'.$columncount,$je->ref_no);
-                if($je->date_deposited!=NULL){
-                    $sheet->setCellValue('P'.$columncount,date('d/m/Y',strtotime($je->date_deposited)));
-                }
-                $sheet->setCellValue('Q'.$columncount,$je->je_memo);
-                
-    
-                $style = array(
-                    'alignment' => array(
-                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                    )
-                );
-                $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
-                $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
-                $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
-    
-                $style = array(
-                    'alignment' => array(
-                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
-                    )
-                );
-                $sheet->getStyle('J'.$columncount.'')->applyFromArray($style);
-                $sheet->getStyle('K'.$columncount.'')->applyFromArray($style);
-                $columncount++;
             }
+            $style = array(
+                'borders' => array(
+                    'top'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    ),
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('I'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('J'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('K'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('L'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('M'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('N'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('O'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('P'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('Q'.$columncount.'')->applyFromArray($style);
+            $sheet->setCellValue('J'.$columncount,number_format($total_balance_debit,2));
+            $sheet->setCellValue('K'.$columncount,number_format($total_balance_credit,2));
         }
         
         
