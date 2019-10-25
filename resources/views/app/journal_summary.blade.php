@@ -474,23 +474,7 @@
             }
             })
     }
-    function exporttoexcelnew(id){
-        $.ajax({
-            type: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: 'export_test',                
-            data: {_token: '{{csrf_token()}}'},
-            success: function(data) {
-                
-            } ,
-            error: function (xhr, ajaxOptions, thrownError) {
-                alert(xhr.responseText);
-                alert(thrownError);
-            }
-        })
-    }
+    
 </script>
 <div class="row">
     <div class="col-md-12" >
@@ -569,9 +553,9 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        
+                        {{-- onclick="exporttoexcelnew('tablemain')" --}}
                         {{-- <a href="export_test" class="btn-link btn-sm" title="Export to Excel" ><span class="fa fa-table"></a> --}}
-                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcelnew('Journal Entry Summary')"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>

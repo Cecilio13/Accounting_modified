@@ -257,6 +257,29 @@ function exporttoexcel(table_id){
             
           
 }
+function exporttoexcelnew(type,from,to,cost_center){
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_test?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+        // $.ajax({
+        //     type: 'POST',
+        //     headers: {
+        //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //     },
+        //     url: 'export_test',                
+        //     data: {CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,type:type,_token: '{{csrf_token()}}'},
+        //     success: function(data) {
+                
+        //     } ,
+        //     error: function (xhr, ajaxOptions, thrownError) {
+        //         alert(xhr.responseText);
+        //         alert(thrownError);
+        //     }
+        // })
+    }
 </script> 
 <style>
         #AddBudgetModal{
