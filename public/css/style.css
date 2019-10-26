@@ -2626,3 +2626,7 @@ table td{
 #journalentrytable th {
   padding:5px;
 }
+.btn-upper-report{
+  font-size:14px !important;
+  padding:5px;
+}

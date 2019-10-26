@@ -45,7 +45,7 @@
                 @if ($Journal_no_selected==$je->je_no)
                     <tr>
                         <td style="vertical-align:middle;text-align:center;">{{date("m-d-Y", strtotime($je->created_at))}} </td>
-                        <td style="vertical-align:middle;text-align:center;">{{$je->je_no}}</td>
+                        <td style="vertical-align:middle;text-align:center;">{{$je->je_series_no}}</td>
                         <td style="vertical-align:middle;text-align:center;">
                             @foreach ($COA as $coa)
                                 @if($coa->id==$je->je_account)

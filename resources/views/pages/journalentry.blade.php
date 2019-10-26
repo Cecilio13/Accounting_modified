@@ -182,33 +182,7 @@
             </div>
             
         </div>
-        <script>
-            function changejournalentrytype(value){
-                document.getElementById('journal_entry_type').value=value;
-                document.getElementById('journal_entry_title_header').innerHTML=value;
-                
-                var column = journalentrytable.column( 8 );
-                
-                if(value=="Cheque Voucher"){
-                    // Toggle the visibility
-                    column.visible( true );
-                }else{
-                    column.visible( false );
-                }
-                
-            }
-            function DownloadTemplateJournalEntry(){
-				$.ajax({
-				type: 'POST',
-				url: 'GetJournalEntryTemplateExcel',                
-				data: {INPUT:""},
-				success: function(data) {
-				//location.href='download2.php?file=extra/edit_excel/Adjustment Template.xlsx';	
-				} 											 
-				})
-									
-			}
-        </script>
+        
     </div>
     <div class="row" style="">
         <div class="col-md-10">
@@ -226,10 +200,10 @@
     <div class="row">
         <div class="col-md-12">
                 <div id="table" class="table-editable">
-                    
                     <table id="jounalentrytable" class="table table-bordered table-responsive-md table-striped  font14" width="100%">
                         <thead>
                             <tr>
+                                <th></th>
                                 <th width="8%" class="text-center">JOURNAL DATE</th>
                                 <th width="5%" class="text-center">JOURNAL TYPE</th>
                                 <th width="5%" class="text-center">ACCOUNT CODE</th>
@@ -261,6 +235,7 @@
                                 @endforeach
                                
                                 <tr>
+                                <td style="vertical-align:middle;">{{$je->je_no}}</td>
                                 <td style="vertical-align:middle;">{{date("m-d-Y", strtotime($je->je_attachment))}}</td>
                                 <td style="vertical-align:middle;text-align:center;">{{$je->journal_type}}</td>
                                 <td style="vertical-align:middle;text-align:center;">
@@ -293,9 +268,7 @@
                                 
                                 </td>
                                 <td style="vertical-align:middle;text-align:center;">
-                                    
-                                    {{$je->je_no}}
-                                    
+                                    {{$je->je_series_no}}
                                 </td>
                                 
                                 <td style="vertical-align:middle;{{$je->je_debit!=""? "text-align:left;": "text-align:left;padding-left:20px;"}}">{{is_numeric($je->je_account)==true? $journalaccount : $je->je_account}}</td>

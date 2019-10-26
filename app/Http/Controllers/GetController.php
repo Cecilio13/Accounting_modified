@@ -54,6 +54,29 @@ class GetController extends Controller
         $data->cc_code=$request->typecode;
         $data->save();
     }
+    public function get_latest_journal_series(Request $request){
+            $count=count(JournalEntry::where([
+                ['journal_type','=',$request->journal_entry_type]
+            ])->groupBy('je_no')->get())+1;
+
+            $journalvoucher_no_series="";
+            if($count<10){
+                $journalvoucher_no_series="000".$count;
+            }
+            else if($count>9 && $count<100){
+                $journalvoucher_no_series="00".$count;
+            }else if($count>99 && $count<1000){
+                $journalvoucher_no_series="0".$count;
+            }
+            $formated_journal_series="";
+            if($request->journal_entry_type=="Cheque Voucher"){
+                $formated_journal_series="CV".date('y').$journalvoucher_no_series;
+            }else{
+                $formated_journal_series="JV".date('y').$journalvoucher_no_series;
+            }
+            return $formated_journal_series;
+
+    }
     public function getcoa_cc_name(Request $request){
         $data=ChartofAccount::find($request->id);
         $cc=$data->coa_cc;

@@ -87,7 +87,12 @@ class AppServiceProvider extends ServiceProvider
         view()->share('VoucherCashCount', count(Voucher::where('voucher_type','=','Cash Voucher')->get()));
         view()->share('VoucherTransaction', VoucherTransaction::all());
         view()->share('VoucherJournalEntry', VoucherJournalEntry::all());
-        
+        view()->share('ChequeVoucherCount', count(JournalEntry::where([
+            ['journal_type','=','Cheque Voucher']
+        ])->groupBy('je_no')->get())+1);
+        view()->share('JournalVoucherCount', count(JournalEntry::where([
+            ['journal_type','=','Journal Voucher']
+        ])->groupBy('je_no')->get())+1);
         view()->share('BankEdits', BankEdits::all());
         view()->share('CostCenterEdit', CostCenterEdit::all());
         view()->share('BudgetsEdit', BudgetsEdit::all());

@@ -16,6 +16,7 @@ Route::group(['middleware'=>['auth']], function() {
     
     Route::get('/export_test', 'ChartofAccountsController@export_test');
     Route::post('/getcoa_cc_name', 'GetController@getcoa_cc_name');
+    Route::post('/get_latest_journal_series', 'GetController@get_latest_journal_series');
     Route::post('/save_cc_type', 'GetController@save_cc_type');
     Route::post('/check_cost_center_code', 'GetController@check_cost_center_code');
     Route::post('/check_cost_center_name', 'GetController@check_cost_center_name');

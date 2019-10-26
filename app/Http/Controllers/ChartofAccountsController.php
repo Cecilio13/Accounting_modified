@@ -388,9 +388,9 @@ class ChartofAccountsController extends Controller
                     $sheet->setCellValue('B'.$columncount, date('d/m/Y',strtotime($je->je_attachment)));
                     //$sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
                     if($je->journal_type=="Cheque Voucher"){
-                        $sheet->setCellValue('C'.$columncount,$je->je_no);
+                        $sheet->setCellValue('C'.$columncount,$je->je_series_no);
                     }else{
-                        $sheet->setCellValue('D'.$columncount,$je->je_no);
+                        $sheet->setCellValue('D'.$columncount,$je->je_series_no);
                     }
                     $COA= ChartofAccount::find($je->je_account);
                     $sheet->setCellValue('E'.$columncount,$COA->coa_code);
@@ -1891,6 +1891,32 @@ class ChartofAccountsController extends Controller
                             ->groupBy('je_no')
                             ->get();
                     $jounalcount=count($jounal)+1;
+                    $jounal3 = count(JournalEntry::where([
+                                ['journal_type','=','Cheque Voucher']
+                            ])->groupBy('je_no')->get())+1;
+                    $jounalcountchqeue=$jounal3;
+                    $chequevoucher_no_series="";
+                    if($jounalcountchqeue<10){
+                        $chequevoucher_no_series="000".$jounalcountchqeue;
+                    }
+                    else if($jounalcountchqeue>9 && $jounalcountchqeue<100){
+                        $chequevoucher_no_series="00".$jounalcountchqeue;
+                    }else if($jounalcountchqeue>99 && $jounalcountchqeue<1000){
+                        $chequevoucher_no_series="0".$jounalcountchqeue;
+                    }
+                    $jounal2 = count(JournalEntry::where([
+                        ['journal_type','=','Journal Voucher']
+                    ])->groupBy('je_no')->get())+1;
+                    $jounalcountjournal=$jounal2;
+                    $journalvoucher_no_series="";
+                    if($jounalcountjournal<10){
+                        $journalvoucher_no_series="000".$jounalcountjournal;
+                    }
+                    else if($jounalcountjournal>9 && $jounalcountjournal<100){
+                        $journalvoucher_no_series="00".$jounalcountjournal;
+                    }else if($jounalcountjournal>99 && $jounalcountjournal<1000){
+                        $journalvoucher_no_series="0".$jounalcountjournal;
+                    }
                     $Valid_je_no = []; 
                     $valid_coa=0;
                     $valid_cc=0;
@@ -1957,6 +1983,11 @@ class ChartofAccountsController extends Controller
                                 $journal_entries->cheque_no=$cheque_no;
                                 $journal_entries->ref_no=$reference;
                                 $journal_entries->journal_type=$journal_type;
+                                if($journal_type=="Cheque Voucher"){
+                                    $journal_entries->je_series_no="CV".date('y').$chequevoucher_no_series;
+                                }else{
+                                    $journal_entries->je_series_no="JV".date('y').$journalvoucher_no_series;
+                                }
                                 $journal_entries->je_transaction_type=$type;
                                 $journal_entries->je_cost_center=$CostCenter;
                                 $journal_entries->date_deposited=$date_deposited;

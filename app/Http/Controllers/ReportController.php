@@ -28119,10 +28119,10 @@ class ReportController extends Controller
                         if($JE->je_transaction_type=="Journal Entry"){
                             if($JE->remark==""){   
                             $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->je_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";
+                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";
                             $tablecontent.="</a>";
                             }else{
-                                $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";  
+                                $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";  
                             }
                         }else{
                             if($JE->remark==""){   
@@ -28279,10 +28279,10 @@ class ReportController extends Controller
                 if($JE->je_transaction_type=="Journal Entry"){
                     if($JE->remark==""){   
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";
+                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";
                     $tablecontent.="</a>";
                     }else{
-                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";  
+                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";  
                     }
                 }else{
                     if($JE->remark==""){   

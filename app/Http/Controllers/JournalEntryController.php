@@ -163,6 +163,7 @@ class JournalEntryController extends Controller
         $sentence=$JDate." ".$JNo." ".$JMemo;
         $CostCenter=$request->input('CostCenter');
         $date_deposited=$request->input('date_deposited');
+        $journal_series_no=$request->input('journal_series_no');
         //return $no;
         if($no=="" || $account==""){
             return 2;
@@ -187,7 +188,7 @@ class JournalEntryController extends Controller
             $journal_entries->ref_no=$ref_no;
             $journal_entries->journal_type=$journal_entry_type;
             $journal_entries->date_deposited=$date_deposited;
-            
+            $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
             
             $AuditLog= new AuditLog;

@@ -6343,6 +6343,57 @@ function addCardCreditedit(){
         </div>
     </div>
 </div>
+<?php 
+    $chequevoucher_no_series="";
+    if($ChequeVoucherCount<10){
+        $chequevoucher_no_series="000".$ChequeVoucherCount;
+    }
+    else if($ChequeVoucherCount>9 && $ChequeVoucherCount<100){
+        $chequevoucher_no_series="00".$ChequeVoucherCount;
+    }else if($ChequeVoucherCount>99 && $ChequeVoucherCount<1000){
+        $chequevoucher_no_series="0".$ChequeVoucherCount;
+    }
+    $journalvoucher_no_series="";
+    if($JournalVoucherCount<10){
+        $journalvoucher_no_series="000".$JournalVoucherCount;
+    }
+    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+        $journalvoucher_no_series="00".$JournalVoucherCount;
+    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+        $journalvoucher_no_series="0".$JournalVoucherCount;
+    }
+?>
+<script>
+    function changejournalentrytype(value){
+        document.getElementById('journal_entry_type').value=value;
+        document.getElementById('journal_entry_title_header').innerHTML=value;
+        
+        var column = journalentrytable.column( 8 );
+        
+        if(value=="Cheque Voucher"){
+            // Toggle the visibility
+            column.visible( true );
+            document.getElementById('JVCVVOUCHERNO').value="{{'CV'.date('y').$chequevoucher_no_series}}";
+           
+                   
+        }else{
+            column.visible( false );
+            document.getElementById('JVCVVOUCHERNO').value="{{'JV'.date('y').$journalvoucher_no_series}}";
+        }
+        
+    }
+    function DownloadTemplateJournalEntry(){
+		$.ajax({
+		type: 'POST',
+		url: 'GetJournalEntryTemplateExcel',                
+		data: {INPUT:""},
+		success: function(data) {
+		//location.href='download2.php?file=extra/edit_excel/Adjustment Template.xlsx';	
+		} 											 
+		})
+							
+	}
+</script>
 <div class="modal fade p-0" id="journalentrymodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
     <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
         <div class="modal-content" style="min-height: 100vh;">
@@ -6358,12 +6409,12 @@ function addCardCreditedit(){
                     <div class="col-md-12 p-0 mb-4">
                         <div class="col-md-2 p-0">
                             <p>Journal Date</p>
-                        <input type="date" name="" id="journalDate"   value="{{date('Y-m-d')}}">
+                            <input type="date" name="" id="journalDate"   value="{{date('Y-m-d')}}">
                         </div>
                         <div class="col-md-2 p-0">
-                            <p>Journal No.</p>
-                            
-                        <input type="number" name="" readonly id="JournalNo" placeholder="1" value="{{$jounalcount}}">
+                        <p>Journal No.</p>    
+                        <input type="number" name="" style="display:none;" readonly id="JournalNo" placeholder="1" value="{{$jounalcount}}">
+                        <input type="text" name="" readonly id="JVCVVOUCHERNO" value="{{$ChequeVoucherCount}}">
                         <input type="text" style="display:none;" name="OtherNo" readonly id="OtherNo" placeholder="1" value="{{'Journal-'.$jounalcount}}">
                         <input type="text" style="display:none;" name="goSalesReceipt" readonly id="goSalesReceipt" placeholder="1" value="0">
                         <input type="text" style="display:none;" name="JournalEntryTransactionType" readonly id="JournalEntryTransactionType" value="Journal Entry">
@@ -6806,70 +6857,88 @@ function addCardCreditedit(){
                                                         document.getElementById('JournalNo').value=data;
                                                         JournalNo=data;
                                                         //alert(data);
-                                                        $savequestion=1;
-                                                        for(var c=tr.length-1;c>=0;c--){
-                                                            var no=c;
-                                                            no++;
-                                                            td1 = tr[c].getElementsByTagName("td")[0];
-                                                            td2 = tr[c].getElementsByTagName("td")[1];
-                                                            
-                                                            td5 = document.getElementById("journaldescription"+sscsc);
-                                                            td6 = tr[c].getElementsByTagName("td")[7];
-                                                            
-                                                            var sscsc=c+1;
-                                                            td3 = document.getElementById("journaldebit"+sscsc);
-                                                            td4 = document.getElementById("journalcredit"+sscsc);
-                                                            var accjournbale=document.getElementById('accjournbale'+sscsc).value;
-                                                            var journalnamename=document.getElementById('journalnamename'+sscsc).value;
-                                                            var cheque_no="";
-                                                            if(document.getElementById("journalcheque_no_td"+sscsc)){
-                                                                var cheque_no=document.getElementById("journalcheque_no_td"+sscsc).value;
-                                                            }
-                                                            
-                                                            var ref_no=document.getElementById("journalref_no_td"+sscsc);
-                                                            var jouenaldesc=document.getElementById("journaldescription"+sscsc);
-                                                            var date_deposited=document.getElementById("date_deposited"+sscsc).value;
-                                                                $.ajax({
+                                                        //JVCVVOUCHERNO
+                                                        $.ajax({
                                                             type: 'POST',
                                                             headers: {
                                                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                                             },
-                                                            url: '{{ route('add_journal_entry') }}',
-                                                            data: {date_deposited:date_deposited,cheque_no:cheque_no,ref_no:ref_no.value,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.value,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                            url: 'get_latest_journal_series',                
+                                                            data: {journal_entry_type:journal_entry_type,_token: '{{csrf_token()}}'},
                                                             success: function(data) {
-                                                                console.log("fata is "+data);
-                                                                if(data==1){
-                                                                    //swal("Done!", "Added Journal Entry", "success");
-                                                                }
-                                                                if(data==0){
-                                                                    //swal("Error!", "Duplicate Journal No.", "error");
-                                                                    swal({title: "Error!", text: "Duplicate Journal No.", type: 
-                                                                    "error"}).then(function(){ 
-                                                                    }
-                                                                    );
-                                                                    $savequestion=0;
+                                                                document.getElementById('JVCVVOUCHERNO').value=data;
+                                                                var journal_series_no=data;
+                                                                var savequestion=1;
+                                                                for(var c=tr.length-1;c>=0;c--){
+                                                                    var no=c;
+                                                                    no++;
+                                                                    td1 = tr[c].getElementsByTagName("td")[0];
+                                                                    td2 = tr[c].getElementsByTagName("td")[1];
                                                                     
-                                                                }
-                                                                if(data==2){
-                                                                    //swal("Error!", "Fill all Field in the Journal Entry Table.", "error");
-                                                                    swal({title: "Error!", text: "Fill all Field in the Journal Entry Table.", type: 
-                                                                    "error"}).then(function(){ 
+                                                                    td5 = document.getElementById("journaldescription"+sscsc);
+                                                                    td6 = tr[c].getElementsByTagName("td")[7];
+                                                                    
+                                                                    var sscsc=c+1;
+                                                                    td3 = document.getElementById("journaldebit"+sscsc);
+                                                                    td4 = document.getElementById("journalcredit"+sscsc);
+                                                                    var accjournbale=document.getElementById('accjournbale'+sscsc).value;
+                                                                    var journalnamename=document.getElementById('journalnamename'+sscsc).value;
+                                                                    var cheque_no="";
+                                                                    if(document.getElementById("journalcheque_no_td"+sscsc)){
+                                                                        var cheque_no=document.getElementById("journalcheque_no_td"+sscsc).value;
                                                                     }
-                                                                    );
-                                                                    $savequestion=0;
+                                                                    
+                                                                    var ref_no=document.getElementById("journalref_no_td"+sscsc);
+                                                                    var jouenaldesc=document.getElementById("journaldescription"+sscsc);
+                                                                    var date_deposited=document.getElementById("date_deposited"+sscsc).value;
+                                                                        $.ajax({
+                                                                    type: 'POST',
+                                                                    headers: {
+                                                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                                                    },
+                                                                    url: '{{ route('add_journal_entry') }}',
+                                                                    data: {journal_series_no:journal_series_no,date_deposited:date_deposited,cheque_no:cheque_no,ref_no:ref_no.value,journal_entry_type:journal_entry_type,CostCenter:tr[c].getElementsByTagName("td")[3].getAttribute('data-costcenter_no'),JournalEntryTransactionType:JournalEntryTransactionType,OtherNo:OtherNo,JDate:journalDate,JNo:JournalNo,JMemo:JournalMemo,no:no,account:accjournbale,debit:td3.value,credit:td4.value,description:jouenaldesc.value,name:journalnamename,_token: '{{csrf_token()}}'},
+                                                                    success: function(data) {
+                                                                        console.log("fata is "+data);
+                                                                        if(data==1){
+                                                                            //swal("Done!", "Added Journal Entry", "success");
+                                                                        }
+                                                                        if(data==0){
+                                                                            //swal("Error!", "Duplicate Journal No.", "error");
+                                                                            swal({title: "Error!", text: "Duplicate Journal No.", type: 
+                                                                            "error"}).then(function(){ 
+                                                                            }
+                                                                            );
+                                                                            savequestion=0;
+                                                                            
+                                                                        }
+                                                                        if(data==2){
+                                                                            //swal("Error!", "Fill all Field in the Journal Entry Table.", "error");
+                                                                            swal({title: "Error!", text: "Fill all Field in the Journal Entry Table.", type: 
+                                                                            "error"}).then(function(){ 
+                                                                            }
+                                                                            );
+                                                                            savequestion=0;
+                                                                        }
+                                                                        
+                                                                            
+                                                                    }  
+
+                                                                    })    
+                                                                    
+                                                                    
                                                                 }
                                                                 
-                                                                    
-                                                            }  
+                                                                if(savequestion==1){
+                                                                    journal_aftermath_option(JournalNo);
+                                                                }
 
-                                                            })    
-                                                            
-                                                            
-                                                        }
+                                                            } ,
+                                                            error: function (xhr, ajaxOptions, thrownError) {
+                                                                
+                                                            }
+                                                        })
                                                         
-                                                        if($savequestion==1){
-                                                            journal_aftermath_option(JournalNo);
-                                                        }
 
                                                     } ,
                                                     error: function (xhr, ajaxOptions, thrownError) {
@@ -10306,9 +10375,10 @@ function edit_journal_entries(je_no){
             
         });
         jounalentrytable = $('#jounalentrytable').DataTable({
-            order: [[ 3, "desc" ]],
+            order: [[ 0, "desc" ]],
                 paging: false,
-                'dom': 'Rlfrtip'
+                'dom': 'Rlfrtip',
+                
             
         });
         journalentrytable = $('#journalentrytable').DataTable({
