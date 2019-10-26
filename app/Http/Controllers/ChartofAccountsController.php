@@ -386,19 +386,19 @@ class ChartofAccountsController extends Controller
             foreach($JournalEntry as $je){
                 if($je->remark!='Cancelled'){
                     $sheet->setCellValue('B'.$columncount, date('d/m/Y',strtotime($je->je_attachment)));
-                    $sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
+                    //$sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
                     if($je->journal_type=="Cheque Voucher"){
-                        $sheet->setCellValue('D'.$columncount,$je->je_no);
+                        $sheet->setCellValue('C'.$columncount,$je->je_no);
                     }else{
-                        $sheet->setCellValue('E'.$columncount,$je->je_no);
+                        $sheet->setCellValue('D'.$columncount,$je->je_no);
                     }
                     $COA= ChartofAccount::find($je->je_account);
-                    $sheet->setCellValue('F'.$columncount,$COA->coa_code);
-                    $sheet->setCellValue('G'.$columncount,$COA->coa_name);
-                    $sheet->setCellValue('H'.$columncount,$COA->coa_title);
+                    $sheet->setCellValue('E'.$columncount,$COA->coa_code);
+                    $sheet->setCellValue('F'.$columncount,$COA->coa_name);
+                    $sheet->setCellValue('G'.$columncount,$COA->coa_title);
                     if($je->je_debit!=""){
                         if($je->remark==""){   
-                            $sheet->setCellValue('J'.$columncount,number_format($je->je_debit,2));
+                            $sheet->setCellValue('H'.$columncount,number_format($je->je_debit,2));
                             $total_balance_debit+=$je->je_debit;
             
                         }else{
@@ -407,7 +407,7 @@ class ChartofAccountsController extends Controller
                     }
                     if($je->je_credit!=""){
                         if($je->remark==""){   
-                            $sheet->setCellValue('K'.$columncount,number_format($je->je_credit,2));
+                            $sheet->setCellValue('I'.$columncount,number_format($je->je_credit,2));
                             $total_balance_credit+=$je->je_credit;
                         }else{
                            
@@ -415,16 +415,16 @@ class ChartofAccountsController extends Controller
                     }
                     if($je->je_cost_center!="null"){
                         $cost_center_list= CostCenter::find($je->je_cost_center);
-                        $sheet->setCellValue('L'.$columncount,$cost_center_list->cc_name);
+                        $sheet->setCellValue('J'.$columncount,$cost_center_list->cc_name);
                     }
                     
-                    $sheet->setCellValue('M'.$columncount,$je->je_name);
-                    $sheet->setCellValue('N'.$columncount,$je->cheque_no);
-                    $sheet->setCellValue('O'.$columncount,$je->ref_no);
+                    $sheet->setCellValue('K'.$columncount,$je->je_name);
+                    $sheet->setCellValue('L'.$columncount,$je->cheque_no);
+                    $sheet->setCellValue('M'.$columncount,$je->ref_no);
                     if($je->date_deposited!=NULL){
-                        $sheet->setCellValue('P'.$columncount,date('d/m/Y',strtotime($je->date_deposited)));
+                        $sheet->setCellValue('N'.$columncount,date('d/m/Y',strtotime($je->date_deposited)));
                     }
-                    $sheet->setCellValue('Q'.$columncount,$je->je_memo);
+                    $sheet->setCellValue('O'.$columncount,$je->je_memo);
                     
         
                     $style = array(
@@ -432,17 +432,17 @@ class ChartofAccountsController extends Controller
                             'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
                         )
                     );
+                    $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
                     $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
                     $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
-                    $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
         
                     $style = array(
                         'alignment' => array(
                             'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
                         )
                     );
-                    $sheet->getStyle('J'.$columncount.'')->applyFromArray($style);
-                    $sheet->getStyle('K'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('I'.$columncount.'')->applyFromArray($style);
                     $columncount++;
                 }
                 
@@ -483,10 +483,8 @@ class ChartofAccountsController extends Controller
             $sheet->getStyle('M'.$columncount.'')->applyFromArray($style);
             $sheet->getStyle('N'.$columncount.'')->applyFromArray($style);
             $sheet->getStyle('O'.$columncount.'')->applyFromArray($style);
-            $sheet->getStyle('P'.$columncount.'')->applyFromArray($style);
-            $sheet->getStyle('Q'.$columncount.'')->applyFromArray($style);
-            $sheet->setCellValue('J'.$columncount,number_format($total_balance_debit,2));
-            $sheet->setCellValue('K'.$columncount,number_format($total_balance_credit,2));
+            $sheet->setCellValue('H'.$columncount,number_format($total_balance_debit,2));
+            $sheet->setCellValue('I'.$columncount,number_format($total_balance_credit,2));
         }
         
         

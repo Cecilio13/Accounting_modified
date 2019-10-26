@@ -30,8 +30,11 @@
                 <th class="text-center" width="10%">DEBITS</th>
                 <th class="text-center" width="10%">CREDITS</th>
                 <th class="text-center" width="10%">DESCRIPTION</th>
+                
                 <th class="text-center" width="10%">PAYEE</th>
-                <th class="text-center" width="5%">CHEQUE NO</th> 
+                @if ($journal_type_query->journal_type=="Cheque Voucher")
+                <th class="text-center" width="5%">CHEQUE NO</th>
+                @endif
                 <th class="text-center" width="8%">REFERENCE</th> 
                 <th class="text-center" width="5%">DATE DEPOSITED</th>
             </tr>
@@ -79,10 +82,13 @@
                             {{$je->je_name}}
                             
                         </td>
+                        @if ($journal_type_query->journal_type=="Cheque Voucher")
                         <td style="vertical-align:middle;">
                             {{$je->cheque_no}}
                             
                         </td>
+                        @endif
+                        
                         <td style="vertical-align:middle;">
                             {{$je->ref_no}}
                             

@@ -187,6 +187,15 @@
                 document.getElementById('journal_entry_type').value=value;
                 document.getElementById('journal_entry_title_header').innerHTML=value;
                 
+                var column = journalentrytable.column( 8 );
+                
+                if(value=="Cheque Voucher"){
+                    // Toggle the visibility
+                    column.visible( true );
+                }else{
+                    column.visible( false );
+                }
+                
             }
             function DownloadTemplateJournalEntry(){
 				$.ajax({
@@ -203,6 +212,7 @@
     </div>
     <div class="row" style="">
         <div class="col-md-10">
+            <a style="display:none;" href="print_journal_entry?no=" id="addedJournalPrintActionBtn" target="_blank">Print</a>
         </div>
         <div class="col-md-2">
             <div class="input-group mb-3">
