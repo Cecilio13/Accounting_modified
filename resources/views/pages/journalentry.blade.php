@@ -184,6 +184,218 @@
         </div>
         
     </div>
+    {{-- preview modal --}}
+    <script>
+        function formatDate(date) {
+        var monthNames = [
+            "01", "02", "03",
+            "04", "05", "06", "07",
+            "08", "09", "10",
+            "11", "12"
+        ];
+
+        var day = date.getDate();
+        var monthIndex = date.getMonth();
+        var year = date.getFullYear();
+
+        return monthNames[monthIndex] + '-' + day + '-' + year;
+        }
+
+        console.log(formatDate(new Date()));  // show current date-time in console
+        function viewJournalEntryDetail(no){
+            $.ajax({
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: 'get_journal_entry_data',                
+            data: {no:no,_token: '{{csrf_token()}}'},
+            success: function(data) {
+                var datacount=data.length;
+                var tablebodycontent="<tbody id='journalentrytablebodypreview'>";
+                var totaldebitpreview=0;
+                var totalcreditpreview=0;
+                for(var c=0;c<datacount;c++){
+                    
+                    var countsss=c+1;
+                    document.getElementById('journal_entry_title_header_preview').innerHTML=data[c]['journal_type'];
+                    document.getElementById('JE_NO_Preview').value=data[c]['je_series_no'];
+                    var res = data[c]['je_attachment'].replace(" 00:00:00", "");
+                    document.getElementById('journalDatepreview').value=res;
+                    document.getElementById('JournalMemopreview').value=data[c]['je_memo'];
+                    tablebodycontent=tablebodycontent+'<tr>';
+                    tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">'+countsss+'</td>';
+                    tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['coa_code']+'</td>';
+                    tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['coa_name']+'</td>';
+                    tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['cc_name']+'</td>';
+                    if(data[c]['je_debit']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;">'+number_format(data[c]['je_debit'],2)+'</td>';
+                        totaldebitpreview=totaldebitpreview+parseFloat(data[c]['je_debit']);
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    if(data[c]['je_credit']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;">'+number_format(data[c]['je_credit'],2)+'</td>';
+                        totalcreditpreview=totalcreditpreview+parseFloat(data[c]['je_credit']);
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    if(data[c]['je_desc']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['je_desc']+'</td>';
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    if(data[c]['je_name']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['je_desc']+'</td>';
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:left;vertical-align:middle;">'+data[c]['je_name']+'</td>';
+                    }
+                    if(data[c]['cheque_no']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:center;vertical-align:middle;">'+data[c]['cheque_no']+'</td>';
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    if(data[c]['ref_no']!=null){
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:center;vertical-align:middle;">'+data[c]['ref_no']+'</td>';
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    if(data[c]['date_deposited']!=null){
+                        var res = data[c]['date_deposited'].replace(" 00:00:00", "");
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:center;vertical-align:middle;">'+formatDate(new Date(res))+'</td>';
+                    }else{
+                        tablebodycontent=tablebodycontent+'<td class="pt-3-half" contenteditable="false" style="text-align:right;vertical-align:middle;"></td>';
+                    }
+                    console.log("datacount ="+c);
+                    tablebodycontent=tablebodycontent+'</tr>';
+               
+                }
+                tablebodycontent=tablebodycontent+'</tbody>';
+                $( "#journalentrytablebodypreview" ).replaceWith( tablebodycontent);
+                //journalentrytablebodypreview
+                //debit_total_hitnpreview
+                //credit_total_hitnpreview
+                document.getElementById('debit_total_hitnpreview').innerHTML=number_format(totaldebitpreview,2);
+                document.getElementById('credit_total_hitnpreview').innerHTML=number_format(totalcreditpreview,2);
+                document.getElementById('previewmodaljournal').click();
+            }
+            });
+            //journalentrymodalpreview modal id
+        }
+    </script>
+    <a href="#" data-target="#journalentrymodalpreview" id="previewmodaljournal" data-toggle="modal"></a>
+    <div class="modal fade p-0" id="journalentrymodalpreview" tabindex="-1" role="dialog" aria-hidden="true" style="">
+        <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
+            <div class="modal-content" style="min-height: 100vh;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="journal_entry_title_header_preview">Journal Entry</h5>
+                    <button type="button" class="close" data-dismiss="modal" id="Closeeee" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="col-md-12 p-0 mb-4">
+                        <div class="col-md-12 p-0 mb-4">
+                            <div class="col-md-2 p-0">
+                                <p>Journal Date</p>
+                                <input type="date" name="" id="journalDatepreview" value="{{date('Y-m-d')}}" readonly>
+                            </div>
+                            <div class="col-md-2 p-0">
+                            <p>Journal No.</p>    
+                            
+                            <input type="text" name="" readonly id="JE_NO_Preview" value="">
+                            
+                            </div>
+                        </div>
+                        <div class="table-responsive-md">
+                        <table class="table table-bordered text-left font14  table-sm" id="journalentrytablepreview">
+                            <thead>
+                            <tr style="background-color:rgb(228, 236, 247);color:#666;">
+                                <th class="text-left" width="3%">#</th>
+                                <th class="text-left" width="10%">CODE</th>
+                                <th class="text-left" width="10%">ACCOUNT</th>
+                                <th class="text-left" width="10%">COST CENTER</th>
+                                <th class="text-left" width="10%">DEBITS</th>
+                                <th class="text-left" width="10%">CREDITS</th>
+                                <th class="text-left" width="10%">DESCRIPTION</th>
+                                <th class="text-left" width="10%">PAYEE</th>
+                                <th class="text-left" width="5%">CHEQUE NO</th>
+                                <th class="text-left" width="10%">REFERENCE</th>
+                                <th class="text-left" width="5%">DATE DEPOSITED</th>
+                                
+                            </tr>
+                            </thead>
+                            <tbody id="journalentrytablebodypreview">
+                            <tr>
+                                <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">1</td>
+                                <td class="pt-3-half" contenteditable="false">
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false">
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false">
+
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                   
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                    
+                                </td>
+                                <td class="pt-3-half" contenteditable="false">
+                                   
+                                </td>
+                                <td class="pt-3-half" contenteditable="false" >
+                                   
+                                </td>
+                                
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;text-align:right;font-weight:bold;font-size:13px;" id="debit_total_hitnpreview">0.00</td>
+                                    <td style="vertical-align:middle;text-align:right;font-weight:bold;font-size:13px;" id="credit_total_hitnpreview">0.00</td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    <td style="vertical-align:middle;"></td>
+                                    
+                                </tr>
+                            </tfoot>
+                        </table>
+                        </div>
+                        <div class="col-md-12 p-0 mt-1" >
+                            
+                        </div>
+                        <div class="col-md-12 p-0 mt-4">
+                            <div class="col-md-6 pl-0">
+                                <p>Memo</p>
+                                <textarea rows="3" class="w-100" id="JournalMemopreview" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button"class="btn btn-secondary rounded" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row" style="">
         <div class="col-md-10">
             <a style="display:none;" href="print_journal_entry?no=" id="addedJournalPrintActionBtn" target="_blank">Print</a>
@@ -268,7 +480,7 @@
                                 
                                 </td>
                                 <td style="vertical-align:middle;text-align:center;">
-                                    {{$je->je_series_no}}
+                                    <a onclick="viewJournalEntryDetail('{{$je->je_no}}')" class="btn btn-link">{{$je->je_series_no}}</a>
                                 </td>
                                 
                                 <td style="vertical-align:middle;{{$je->je_debit!=""? "text-align:left;": "text-align:left;padding-left:20px;"}}">{{is_numeric($je->je_account)==true? $journalaccount : $je->je_account}}</td>

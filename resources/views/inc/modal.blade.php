@@ -6637,22 +6637,24 @@ function addCardCreditedit(){
                         box-sizing: border-box; */
                         width: 100px !important;
                         }
-                        
+                        tr.noBorder td {
+                        border: 0;
+                        }
                         </style>
-                    <table class="table table-bordered text-left font14  table-sm" id="journalentrytable">
+                    <table class="table table-bordered text-left font14  table-sm" style="border:0;" id="journalentrytable">
                         <thead>
                         <tr style="background-color:rgb(228, 236, 247);color:#666;">
                             <th class="text-left" width="3%">#</th>
                             <th class="text-left" width="10%">CODE</th>
-                            <th class="text-left" width="10%">ACCOUNT</th>
+                            <th class="text-left" width="9%">ACCOUNT</th>
                             <th class="text-left" width="10%">COST CENTER</th>
                             <th class="text-left" width="10%">DEBITS</th>
                             <th class="text-left" width="10%">CREDITS</th>
                             <th class="text-left" width="10%">DESCRIPTION</th>
-                            <th class="text-left" width="10%">PAYEE</th>
-                            <th class="text-left" width="5%">CHEQUE NO</th>
-                            <th class="text-left" width="10%">REFERENCE</th>
-                            <th class="text-left" width="5%">DATE DEPOSITED</th>
+                            <th class="text-left" width="15%">PAYEE</th>
+                            <th class="text-left" width="8%">CHEQUE NO</th>
+                            <th class="text-left" width="5%">REFERENCE</th>
+                            <th class="text-left" width="3%">DATE DEPOSITED</th>
                             <th class="text-center" width="2%"></th>
                         </tr>
                         </thead>
@@ -6662,7 +6664,7 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">1</td>
                             <td class="pt-3-half" contenteditable="false">
                                 <select class="selectpicker input-block-level" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
-                                    <option value="">--Code--</option>
+                                    <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
                                     @endforeach
@@ -6671,7 +6673,7 @@ function addCardCreditedit(){
                             </td>
                             <td class="pt-3-half" contenteditable="false">
                                 <select class="selectpicker"onchange="setAccountCodeJournalEntry('1')" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
-                                    <option value="">--Select Account--</option>
+                                    <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
                                     @endforeach
@@ -6710,7 +6712,7 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="false">
                                 
                                 <select class="selectpicker input-block-level" onchange="setAccountJournalEntry('2')" required data-live-search="true" id="accjournalcode2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
-                                    <option value="">--Code--</option>
+                                    <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_code}}</option>
                                     @endforeach
@@ -6719,7 +6721,7 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="false">
                                 
                                 <select class="selectpicker" onchange="setAccountCodeJournalEntry('2')" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
-                                    <option value="">--Select Account--</option>
+                                    <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_name}}</option>
                                     @endforeach
@@ -6757,7 +6759,7 @@ function addCardCreditedit(){
                         <!-- This is our clonable table line -->
                         </tbody>
                         <tfoot>
-                            <tr>
+                            <tr class="noBorder">
                                 <td style="vertical-align:middle;"></td>
                                 <td style="vertical-align:middle;"></td>
                                 <td style="vertical-align:middle;"></td>
@@ -6969,7 +6971,7 @@ function addCardCreditedit(){
                                 buttons: {
                                     print : "Print Entry",
                                     defeat: "Print Cheque",
-                                    cancel: "Finish"
+                                    cancel: "Exit"
                                 },
                                 })
                                 .then((value) => {
@@ -7148,7 +7150,7 @@ function addCardCreditedit(){
                                
                                 var option = document.createElement("option");
                                 option.value = "";
-                                option.text = "--Select Account--";
+                                option.text = "--Select--";
                                 input.appendChild(option);
                                 @foreach($COA as $coa)
                                 var option = document.createElement("option");
@@ -7167,7 +7169,7 @@ function addCardCreditedit(){
                                 input2.setAttribute("onchange", "setAccountJournalEntry("+journalrow+")");
                                 var option = document.createElement("option");
                                 option.value = "";
-                                option.text = "--Code--";
+                                option.text = "--Select--";
                                 input2.appendChild(option);
                                 @foreach($COA as $coa)
                                 var option = document.createElement("option");
@@ -10378,7 +10380,12 @@ function edit_journal_entries(je_no){
             order: [[ 0, "desc" ]],
                 paging: false,
                 'dom': 'Rlfrtip',
-                
+                "columnDefs": [
+                    {
+                        "targets": [ 0 ],
+                        "visible": false,
+                    }
+                ]
             
         });
         journalentrytable = $('#journalentrytable').DataTable({

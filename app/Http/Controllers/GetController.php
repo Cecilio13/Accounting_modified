@@ -77,6 +77,17 @@ class GetController extends Controller
             return $formated_journal_series;
 
     }
+    public function get_journal_entry_data(Request $request){
+        $va=$request->no;
+        $result=DB::connection('mysql')->select("SELECT * FROM journal_entries 
+        LEFT JOIN chart_of_accounts 
+        ON journal_entries.je_account=chart_of_accounts.id 
+        LEFT JOIN cost_center 
+        ON journal_entries.je_cost_center=cost_center.cc_no 
+        WHERE je_no='$va'");
+        return $result;
+        //SELECT *,FORMAT (`je_attachment`, 'yyyy-MM-dd') FROM `journal_entries` WHERE je_no='$request->no'
+    }
     public function getcoa_cc_name(Request $request){
         $data=ChartofAccount::find($request->id);
         $cc=$data->coa_cc;
