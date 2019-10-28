@@ -443,7 +443,7 @@ class PagesController extends Controller
     public function print_journal_entry(Request $request){
         $Journal_no_selected= $request->no;
         $customers = Customers::all();
-        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_debit','DESC')->get();
         $products_and_services = ProductsAndServices::all();
         $jounal = DB::table('journal_entries')
                 ->select('je_no')
@@ -482,6 +482,49 @@ class PagesController extends Controller
             ['je_no','=',$Journal_no_selected]
         ])->first();
         return view('pages.print_journal', compact('journal_type_query','cost_center_list_all','Journal_no_selected','numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
+    }
+    public function print_cheque_journal_entry(Request $request){
+        $Journal_no_selected= $request->no;
+        $customers = Customers::all();
+        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+        $products_and_services = ProductsAndServices::all();
+        $jounal = DB::table('journal_entries')
+                ->select('je_no')
+                ->groupBy('je_no')
+                ->get();
+        $jounalcount=count($jounal)+1;
+        $Report = Report::all();
+        $VoucherCount=Voucher::count() + 1;
+        if($VoucherCount<10){
+            $VoucherCount="000".$VoucherCount;
+        }
+        else if($VoucherCount<100 && $VoucherCount>9 ){
+            $VoucherCount="00".$VoucherCount;
+        }
+        else if($VoucherCount<1000 && $VoucherCount>99 ){
+            $VoucherCount="0".$VoucherCount;
+        }
+        $VoucherCount=Voucher::all();
+        $expense_transactions = DB::table('expense_transactions')
+            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+            ->get();
+            $et_acc = DB::table('et_account_details')->get();
+            $et_it = DB::table('et_item_details')->get();
+        $totalexp=0;
+        foreach($expense_transactions as $et){
+            if($et->remark==""){$totalexp=$totalexp+$et->et_ad_total;}
+        }
+        $COA= ChartofAccount::where('coa_active','1')->get();
+        $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
+        $favorite_report = DB::table('favorite_report')->get();
+        $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
+        $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+        $cost_center_list_all= CostCenter::orderBy('cc_type_code', 'asc')->get();
+        $journal_type_query=JournalEntry::where([
+            ['je_no','=',$Journal_no_selected]
+        ])->first();
+        return view('pages.print_cheque_journal', compact('journal_type_query','cost_center_list_all','Journal_no_selected','numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
     }
     public function reports(){
         $customers = Customers::all();

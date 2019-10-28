@@ -150,6 +150,8 @@ Route::group(['middleware'=>['auth']], function() {
     Route::get('/pending_user', 'PagesController@pending_user');
     
     Route::get('/print_journal_entry', 'PagesController@print_journal_entry');
+    Route::get('/print_cheque_journal_entry', 'PagesController@print_cheque_journal_entry');
+    
     Route::get('/expense', 'PagesController@expense');
     Route::get('/cheque', 'PagesController@cheque');
     Route::get('/bill', 'PagesController@bill');

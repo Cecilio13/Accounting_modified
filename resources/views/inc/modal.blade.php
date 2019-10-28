@@ -1338,20 +1338,25 @@ function exporttoexcelnew(type,from,to,cost_center){
                     </div>
                     </div>
 
-                    <table id="invoice_table" class="table table-bordered table-responsive-md table-striped text-left font14">
-                        <tr>
-                            <th class="text-center" width="5%">#</th>
-                            <th class="text-center" width="10%">PARTICULAR</th>
-                            <th class="text-center" width="10%">ITEM</th>
-                            <th class="text-center">DESCRIPTION</th>
-                            <th class="text-center" width="5%">QTY</th>
-                            <th class="text-center"  width="10%">RATE</th>
-                            <th class="text-center"  width="10%">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
+                    <table id="main_invoice_table" class="table table-bordered table-responsive-md text-left font14">
+                        <thead>
+                            <tr>
+                                <th class="text-center" width="5%">#</th>
+                                <th class="text-center" width="10%">PARTICULAR</th>
+                                <th class="text-center" width="10%">ITEM</th>
+                                <th class="text-center">DESCRIPTION</th>
+                                <th class="text-center" width="5%">QTY</th>
+                                <th class="text-center"  width="10%">RATE</th>
+                                <th class="text-center"  width="10%">AMOUNT</th>
+                                <th class="text-center" width="5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice_table">
+                            
+                        </tbody>
                         <!-- This is our clonable table line -->
                     </table>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_invoice">Add Items</button>
@@ -3431,19 +3436,25 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                     </div>
                     
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="estimate_table">
-                        <tr>
-                            <th class="text-left">#</th>
-                            <th class="text-left">PRODUCT/SERVICE</th>
-                            <th class="text-left" width="40%">DESCRIPTION</th>
-                            <th class="text-center" width="10%">QTY</th>
-                            <th class="text-left" width="15%">RATE</th>
-                            <th class="text-left" width="15%">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
+                    <table class="table table-bordered table-responsive-md  text-left font14" id="estimate_table">
+                        <thead>
+                            <tr>
+                                <th class="text-left">#</th>
+                                <th class="text-left">PRODUCT/SERVICE</th>
+                                <th class="text-left" width="40%">DESCRIPTION</th>
+                                <th class="text-center" width="10%">QTY</th>
+                                <th class="text-left" width="15%">RATE</th>
+                                <th class="text-left" width="15%">AMOUNT</th>
+                                <th class="text-center" width="5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="estimate_table_tbody">
+
+                        </tbody>
+                        
                         <!-- This is our clonable table line -->
                     </table>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_estimate">Add Items</button>
@@ -3692,8 +3703,10 @@ function getModal(Location,TTTTT,e,type,sales){
                                             $('#sales_receipttotal').attr('title',totalamount);
                                             } 											 
                                         });
+                                        
                                     }
                                     document.getElementById('setselectpickerbutton').click();
+                                    
                                 }
                             </script>
                         </div>
@@ -3952,17 +3965,23 @@ function getModal(Location,TTTTT,e,type,sales){
                             <h4 id="big_sales_receiptbalance">PHP 0.00</h4>
                         </div>
                     </div>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sales_receipt_table">
-                        <tr>
-                            <th class="text-center" width="5%">#</th>
-                            <th class="text-center"   width="10%">PARTICULARS</th>
-                            <th class="text-center"   width="10%">ITEMS</th>
-                            <th class="text-center">DESCRIPTION</th>
-                            <th class="text-center"  width="5%">QTY</th>
-                            <th class="text-center"   width="10%">RATE</th>
-                            <th class="text-center"   width="10%">AMOUNT</th>
-                            <th class="text-center" style="display:none;"></th>
-                        </tr>
+                    <table class="table table-bordered table-responsive-md  text-left font14" id="sales_receipt_table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" width="5%">#</th>
+                                <th class="text-center"   width="10%">PARTICULARS</th>
+                                <th class="text-center"   width="10%">ITEMS</th>
+                                <th class="text-center">DESCRIPTION</th>
+                                <th class="text-center"  width="5%">QTY</th>
+                                <th class="text-center"   width="10%">RATE</th>
+                                <th class="text-center"   width="10%">AMOUNT</th>
+                                <th class="text-center" style="display:none;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales_receipt_table_tbody">
+
+                        </tbody>
+                        
                         <!-- This is our clonable table line -->
                     </table>
                     
@@ -4353,19 +4372,25 @@ function getModal(Location,TTTTT,e,type,sales){
                         
                         
                     </div>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="credit_note_table">
-                        <tr>
-                            <th class="text-center">#</th>
-                            <th class="text-center">PRODUCT/SERVICE</th>
-                            <th class="text-center" width="30%">DESCRIPTION</th>
-                            <th class="text-center" width="10%">QTY</th>
-                            <th class="text-center" width="15%">RATE</th>
-                            <th class="text-center" width="15%">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
+                    <table class="table table-bordered table-responsive-md  text-left font14" id="credit_note_table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">PRODUCT/SERVICE</th>
+                                <th class="text-center" width="30%">DESCRIPTION</th>
+                                <th class="text-center" width="10%">QTY</th>
+                                <th class="text-center" width="15%">RATE</th>
+                                <th class="text-center" width="15%">AMOUNT</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="credit_note_table_tbody">
+
+                        </tbody>
+                        
                         <!-- This is our clonable table line -->
                     </table>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_credit_note">Add Items</button>
@@ -6788,6 +6813,25 @@ function addCardCreditedit(){
                             function swap2(id,type){
                                 
                                 document.getElementById(id+type).value="";
+                                var debitJhint=0;
+                                var creditJhint=0;
+                                for(var c=1;c<=journalrow;c++){
+                                    var td3 = document.getElementById("journaldebit"+c);
+                                    var td4 = document.getElementById("journalcredit"+c);
+                                    if(td3.value!=""){
+                                           
+                                        debitJhint=debitJhint+parseFloat(td3.value);
+                                        
+                                    }
+                                    if(td4.value!=""){
+                                           
+                                        creditJhint=creditJhint+parseFloat(td4.value);
+                                        
+                                    }
+                                }
+                                document.getElementById('debit_total_hitn').innerHTML=number_format(debitJhint,2);
+                                document.getElementById('credit_total_hitn').innerHTML=number_format(creditJhint,2);
+                                
                             }
                             var journalrow=2;
                             function saveJournalEntry(){
@@ -6966,6 +7010,25 @@ function addCardCreditedit(){
                                 
                             }
                             function journal_aftermath_option(journal_no){
+                                var debitJhint=0;
+                                var creditJhint=0;
+                                for(var c=1;c<=journalrow;c++){
+                                    var td3 = document.getElementById("journaldebit"+c);
+                                    var td4 = document.getElementById("journalcredit"+c);
+                                    if(td3.value!=""){
+                                           
+                                        debitJhint=debitJhint+parseFloat(td3.value);
+                                        
+                                    }
+                                    if(td4.value!=""){
+                                           
+                                        creditJhint=creditJhint+parseFloat(td4.value);
+                                        
+                                    }
+                                }
+                                document.getElementById('debit_total_hitn').innerHTML=number_format(debitJhint,2);
+                                document.getElementById('credit_total_hitn').innerHTML=number_format(creditJhint,2);
+                                
                                 console.log("swal value : "+journal_no);
                                 swal("Added Journal Entry! What do you want to do next?", {
                                 buttons: {
@@ -6979,6 +7042,9 @@ function addCardCreditedit(){
                                         
                                         case "defeat":
                                             {
+                                                console.log('print entry');
+                                                document.getElementById('addedJournalPrintChequeActionBtn').setAttribute('href','print_cheque_journal_entry?no='+journal_no);
+                                                document.getElementById('addedJournalPrintChequeActionBtn').click();
                                                 journal_aftermath_option(journal_no);
                                                 break;
                                             }
@@ -7240,9 +7306,38 @@ function addCardCreditedit(){
                                         if(debitJhint>creditJhint){
                                             var difference_credit=debitJhint-creditJhint;
                                             document.getElementById("journalcredit"+journalrow).value=difference_credit;
+                                            
                                         }
                                     }
                                 }
+                                if(creditJhint!=debitJhint){
+                                    if(creditJhint!=0){
+                                        if(creditJhint>debitJhint){
+                                            var difference_credit=creditJhint-debitJhint;
+                                            document.getElementById("journaldebit"+journalrow).value=difference_credit;
+                                            
+                                        }
+                                    }
+                                }
+
+                                var debitJhint=0;
+                                var creditJhint=0;
+                                for(var c=1;c<=journalrow;c++){
+                                    var td3 = document.getElementById("journaldebit"+c);
+                                    var td4 = document.getElementById("journalcredit"+c);
+                                    if(td3.value!=""){
+                                        
+                                        debitJhint=debitJhint+parseFloat(td3.value);
+                                        
+                                    }
+                                    if(td4.value!=""){
+                                        
+                                        creditJhint=creditJhint+parseFloat(td4.value);
+                                        
+                                    }
+                                }
+                                document.getElementById('debit_total_hitn').innerHTML=number_format(debitJhint,2);
+                                document.getElementById('credit_total_hitn').innerHTML=number_format(creditJhint,2);
                                 //jQuery('.selectpicker ').selectpicker();
                                 //$("#accjournbale"+journalrow).chosen();
                                 var deduc=journalrow-1;
@@ -12152,18 +12247,51 @@ function removeComma(str){
         
         $("#add_lines_invoice").click(function(event){
             event.preventDefault();
+            $("#main_invoice_table").dataTable().fnDestroy();
             //add_item_invoice
-            var markup = '<tr class="invoice_lines" id="invoice_line'+$('#invoice_table tr').length+'">';
-            markup=markup+'<td class="pt-3-half" id="number_tag" contenteditable="false">'+$('#invoice_table tr').length+'</td><td class="pt-3-half"><select onchange="ChangeParticularInvoice(this)" id="ParticularInvoice'+$('#invoice_table tr').length+'" data-columncount="'+$('#invoice_table tr').length+'" class="w-100 form-control invoice_particular"><option>Cost Center</option><option>Product/Service</option></select></td>';
+            var markup = '<tr class="invoice_lines" id="invoice_line'+($('#invoice_table tr').length+parseFloat(1))+'">';
+            var table = document.getElementById("main_invoice_table");
+            var txt = "";
+            var i;
+            for (i = 0; i < table.rows[0].cells.length; i++) {
+                txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                //console.log(txt);
+                if(table.rows[0].cells[i].innerHTML=="#"){
+                    markup=markup+'<td class="pt-3-half" id="number_tag" contenteditable="false">'+($('#invoice_table tr').length+parseFloat(1))+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="PARTICULAR"){
+                    markup=markup+'<td class="pt-3-half"><select onchange="ChangeParticularInvoice(this)" id="ParticularInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" data-columncount="'+($('#invoice_table tr').length+parseFloat(1))+'" class="w-100 form-control invoice_particular"><option>Cost Center</option><option>Product/Service</option></select></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="ITEM"){
+                    markup=markup+'<td class="pt-3-half">';
+                    markup=markup+'<div class="ProductServicesInvoiceItemDivClass" id="ProductServicesInvoiceItemDiv'+($('#invoice_table tr').length+parseFloat(1))+'" style="display:none;"><select style="border:0; width:100%;" class="invoice_data product_select selectpicker" data-live-search="true" id="select_product_name'+($('#invoice_table tr').length+parseFloat(1))+'"><option value=""></option>'+product_list_js+'</select></div><div id="CostCenterInvoiceItemDiv'+($('#invoice_table tr').length+parseFloat(1))+'" class="CostCenterInvoiceItemDivClass"><select required name="CostCenterInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" class="w-100 invoice_cost_center selectpicker" data-live-search="true" id="CostCenterInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" ><option value="">--Select Cost Center--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select></div></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                    markup=markup+'<td class="pt-3-half"><textarea class="form-control invoice_data product_description w-100" id="select_product_description'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;"></textarea></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="QTY"){
+                    markup=markup+'<td class="pt-3-half"><input required type="number" class="form-control invoice_data product_qty" onclick="this.select();" id="product_qty'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0; text-align:center;" min="1" value="1"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="RATE"){
+                    markup=markup+'<td class="pt-3-half">';
+                    markup=markup+'<input type="text" class="product_rate_change form-control" value="0" id="unformated_select_sales_rate'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;text-align:right;" required>';
+                    markup=markup+'<input type="hidden" class="invoice_data product_rate value="0" id="select_product_rate'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;">';
+                    markup=markup+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
+                    markup=markup+'<td class="pt-3-half product_total" id="total_amount'+($('#invoice_table tr').length+parseFloat(1))+'" title="0.00">0.00</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML==""){
+                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_product'+($('#invoice_table tr').length+parseFloat(1))+'" class="fa fa-trash delete_product"></a></td>';
+                }
+            }
+            markup=markup+'</tr>';
+            var textbox = '#unformated_select_sales_rate'+($('#invoice_table tr').length+parseFloat(1));
+            var hidden = '#select_product_rate'+($('#invoice_table tr').length+parseFloat(1));
             
-            markup=markup+'<td class="pt-3-half">';
-            markup=markup+'<div class="ProductServicesInvoiceItemDivClass" id="ProductServicesInvoiceItemDiv'+$('#invoice_table tr').length+'" style="display:none;"><select style="border:0; width:100%;" class="invoice_data product_select selectpicker" data-live-search="true" id="select_product_name'+$('#invoice_table tr').length+'"><option value=""></option>'+product_list_js+'</select></div><div id="CostCenterInvoiceItemDiv'+$('#invoice_table tr').length+'" class="CostCenterInvoiceItemDivClass"><select required name="CostCenterInvoice'+$('#invoice_table tr').length+'" class="w-100 invoice_cost_center selectpicker" data-live-search="true" id="CostCenterInvoice'+$('#invoice_table tr').length+'" ><option value="">--Select Cost Center--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select></div></td><td class="pt-3-half"><textarea class="form-control invoice_data product_description w-100" id="select_product_description'+$('#invoice_table tr').length+'" style="border:0;"></textarea></td><td class="pt-3-half"><input required type="number" class="form-control invoice_data product_qty" onclick="this.select();" id="product_qty'+$('#invoice_table tr').length+'" style="border:0; text-align:center;" min="1" value="1"></td><td class="pt-3-half">';
-            markup=markup+'<input type="text" class="product_rate_change form-control" value="0" id="unformated_select_sales_rate'+$('#invoice_table tr').length+'" style="border:0;text-align:right;" required>';
-            markup=markup+'<input type="hidden" class="invoice_data product_rate value="0" id="select_product_rate'+$('#invoice_table tr').length+'" style="border:0;">';
-            markup=markup+'</td><td class="pt-3-half product_total" id="total_amount'+$('#invoice_table tr').length+'" title="0.00">0.00</td><td class="pt-3-half"><a href="#" id="delete_product'+$('#invoice_table tr').length+'" class="fa fa-trash delete_product"></a></td></tr>';
-            var textbox = '#unformated_select_sales_rate'+$('#invoice_table tr').length;
-            var hidden = '#select_product_rate'+$('#invoice_table tr').length;
-            $("#invoice_table").append(markup);
+            if($("#invoice_table").append(markup)){
+                console.log('asdasdasqeqw');
+            }
             $(textbox).keyup(function () {
                 $(textbox).val(this.value.match(/[0-9.,-]*/));
             var num = $(textbox).val();
@@ -12182,13 +12310,20 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_debit_account'+accounttablelength+'" name="invoice_account_debit_account'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                //     if ('{{$coa->id}}'=="2"){
+                //         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                //     }else{
+                //         markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                //     }  
+                // }
+                if(""==""){
                     if ('{{$coa->id}}'=="2"){
                         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
                     }else{
                         markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
                     }  
-                }                
+                }                 
             @endforeach
             markup=markup+'</select>';
             markup=markup+'</td>';
@@ -12206,10 +12341,29 @@ function removeComma(str){
             markup=markup+'</select>';
             markup=markup+'</td>';
             markup=markup+'</tr>';
-            $("#InvoiceAccountTBody").append(markup);
-
+            if($("#InvoiceAccountTBody").append(markup)){
+                
+                var invoice_table=$("#main_invoice_table").DataTable({
+                    paging: false,
+                    "ordering": true,
+                    'dom': 'Rlfrtip',
+                    "autoWidth": false,
+                    rowReorder: true
+                });
+                
+                
+                
+                if(document.getElementById('main_invoice_table_info')){
+                    document.getElementById('main_invoice_table_info').style.display="none";
+                    document.getElementById('main_invoice_table_filter').style.display="none";
+                    
+                }
+            }
+            
             
             document.getElementById('setselectpickerbutton').click();
+            //datatable invoice
+            
         });
         $("#add_lines_invoice_journal").click(function(event){
             event.preventDefault();
@@ -12223,9 +12377,13 @@ function removeComma(str){
         
         $("#clear_lines_invoice").click(function(event){
             event.preventDefault();
+            $("#main_invoice_table").dataTable().fnDestroy();
             $('.invoice_lines').remove();
-
+            $('.invoice_acc_lines').remove();
+            
             $('#invoicetotal').html('0.00');
+            
+            
         }); 
         $("#clear_lines_invoice_journal").click(function(event){
             event.preventDefault();
@@ -12237,7 +12395,7 @@ function removeComma(str){
         
         $(document).on('click', '.delete_product', function(event){
             event.preventDefault();
-            
+            $("#main_invoice_table").dataTable().fnDestroy();
             var position = $(this).attr('id').replace(/[^0-9\.]/g, '');
             $('#invoice_line'+position).remove();
             $('#invoice_acc_line'+position).remove();
@@ -12371,6 +12529,21 @@ function removeComma(str){
 
             update_total();
             refreshpicjer();
+            var main_invoice_table=$("#main_invoice_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            
+            
+            
+            if(document.getElementById('main_invoice_table_info')){
+                document.getElementById('main_invoice_table_info').style.display="none";
+                document.getElementById('main_invoice_table_filter').style.display="none";
+                
+            }
         }); 
 
         function update_total(){
@@ -12479,15 +12652,59 @@ function removeComma(str){
 
         $("#add_lines_estimate").click(function(event){
             event.preventDefault();
-            var markup = '<tr class="estimate_lines" id="estimate_line'+$('#estimate_table tr').length+'"><td class="pt-3-half" id="number_tag_estimate" contenteditable="false">'+$('#estimate_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="estimate_data product_select_estimate selectpicker" data-live-search="true" id="select_product_name_estimate'+$('#estimate_table tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="estimate_data product_description_estimate form-control" id="select_product_description_estimate'+$('#estimate_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="estimate_data product_qty_estimate form-control" onclick="this.select();" id="product_qty_estimate'+$('#estimate_table tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control estimate_data product_rate_estimate" value="0" readonly id="select_product_rate_estimate'+$('#estimate_table tr').length+'" style="border:0;text-align:right;"></td><td class="pt-3-half product_total_estimate" id="total_amount_estimate'+$('#estimate_table tr').length+'" title="0.00">0.00</td><td class="pt-3-half"><a href="#" id="delete_product_estimate'+$('#estimate_table tr').length+'" class="fa fa-trash delete_product_estimate"></a></td></tr>';
+            $("#estimate_table").dataTable().fnDestroy();
+            var count=$('#estimate_table_tbody tr').length+parseFloat(1);
+            var markup = '<tr class="estimate_lines" id="estimate_line'+count+'">';
+            var table = document.getElementById("estimate_table");
+            var txt = "";
+            var i;
+            for (i = 0; i < table.rows[0].cells.length; i++) {
+                txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                if(table.rows[0].cells[i].innerHTML=="#"){
+                    markup=markup+'<td class="pt-3-half" id="number_tag_estimate" contenteditable="false">'+count+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="PRODUCT/SERVICE"){
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" class="estimate_data product_select_estimate selectpicker" data-live-search="true" id="select_product_name_estimate'+count+'"><option value=""></option>'+product_list_js+'</select></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                    markup=markup+'<td class="pt-3-half"><input class="estimate_data product_description_estimate form-control" id="select_product_description_estimate'+count+'" style="border:0;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="QTY"){
+                    markup=markup+'<td class="pt-3-half"><input type="number" class="estimate_data product_qty_estimate form-control" onclick="this.select();" id="product_qty_estimate'+count+'" style="border:0; text-align:center;" value="1"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="RATE"){
+                    markup=markup+'<td class="pt-3-half"><input class="form-control estimate_data product_rate_estimate" value="0" readonly id="select_product_rate_estimate'+count+'" style="border:0;text-align:right;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML==""){
+                    markup=markup+'<td class="pt-3-half product_total_estimate" id="total_amount_estimate'+count+'" title="0.00">0.00</td><td class="pt-3-half"><a href="#" id="delete_product_estimate'+count+'" class="fa fa-trash delete_product_estimate"></a></td>';
+                }
+            }
+            markup=markup+'</tr>';
             
-            $("#estimate_table").append(markup);
+            $("#estimate_table_tbody").append(markup);
 
             document.getElementById('setselectpickerbutton').click();
+            //
+            var estimate_table=$("#estimate_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            
+            
+            
+            if(document.getElementById('estimate_table_info')){
+                document.getElementById('estimate_table_info').style.display="none";
+                document.getElementById('estimate_table_filter').style.display="none";
+                
+            }
         }); 
 
         $("#clear_lines_estimate").click(function(event){
             event.preventDefault();
+            $("#estimate_table").dataTable().fnDestroy();
             $('.estimate_lines').remove();
 
             $('#estimatetotal').html('0.00');
@@ -12666,13 +12883,31 @@ function removeComma(str){
 
         $("#add_lines_sales_receipt").click(function(event){
             event.preventDefault();
-            var markup = '<tr class="sales_receipt_lines" id="sales_receipt_line'+$('#sales_receipt_table tr').length+'"><td class="pt-3-half" id="number_tag_sales_receipt" contenteditable="false">'+$('#sales_receipt_table tr').length+'</td>';
-            markup=markup+'<td class="pt-3-half"><select class="form-control" disabled onchange="ChangeParticularSalesReceipt(this)" data-columncount="'+$('#sales_receipt_table tr').length+'" id="ParticularSalesReceipt'+$('#sales_receipt_table tr').length+'"><option >Cost Center</option><option>Product/Services</option></select></td>';
-            markup=markup+'<td class="pt-3-half"><div id="CostCenterSalesReceiptDiv'+$('#sales_receipt_table tr').length+'"><input readonly type="text" id="cost_center_sales_creciept'+$('#sales_receipt_table tr').length+'" class="form-control" name="cost_center_sales_creciept'+$('#sales_receipt_table tr').length+'" list="cost_center_list_invoice"></div><div id="ProductServicesSalesReceiptDiv'+$('#sales_receipt_table tr').length+'"><select disabled style="border:0; width:100%;" class="sales_receipt_data product_select_sales_receipt form-control" id="select_product_name_sales_receipt'+$('#sales_receipt_table tr').length+'"><option value=""></option>'+product_list_js+'</select></div></td><td class="pt-3-half"><textarea class="w-100 form-control sales_receipt_data product_description_sales_receipt" readonly id="select_product_description_sales_receipt'+$('#sales_receipt_table tr').length+'" style="border:0;"></textarea></td><td class="pt-3-half"><input  type="number" class="sales_receipt_data product_qty_sales_receipt form-control" onclick="this.select();" readonly id="product_qty_sales_receipt'+$('#sales_receipt_table tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control sales_receipt_data product_rate_sales_receipt" readonly id="select_product_rate_sales_receipt'+$('#sales_receipt_table tr').length+'" style="border:0;text-align:right;"></td><td class="pt-3-half product_total_sales_receipt" style="text-align:right;padding-right:10px;" id="total_amount_sales_receipt'+$('#sales_receipt_table tr').length+'"></td><td class="pt-3-half" style="display:none;"><a href="#" style="display:none;" id="delete_product_sales_receipt'+$('#sales_receipt_table tr').length+'" class="fa fa-trash delete_product_sales_receipt"></a></td></tr>';
+            $("#sales_receipt_table").dataTable().fnDestroy();
+            var count=$('#sales_receipt_table_tbody tr').length+parseFloat(1);
+            var markup = '<tr class="sales_receipt_lines" id="sales_receipt_line'+count+'">';
+            markup=markup+'<td class="pt-3-half" id="number_tag_sales_receipt" contenteditable="false">'+count+'</td>';
+            markup=markup+'<td class="pt-3-half"><select class="form-control" disabled onchange="ChangeParticularSalesReceipt(this)" data-columncount="'+count+'" id="ParticularSalesReceipt'+count+'"><option >Cost Center</option><option>Product/Services</option></select></td>';
+            markup=markup+'<td class="pt-3-half"><div id="CostCenterSalesReceiptDiv'+count+'"><input readonly type="text" id="cost_center_sales_creciept'+count+'" class="form-control" name="cost_center_sales_creciept'+count+'" list="cost_center_list_invoice"></div><div id="ProductServicesSalesReceiptDiv'+count+'"><select disabled style="border:0; width:100%;" class="sales_receipt_data product_select_sales_receipt form-control" id="select_product_name_sales_receipt'+count+'"><option value=""></option>'+product_list_js+'</select></div></td><td class="pt-3-half"><textarea class="w-100 form-control sales_receipt_data product_description_sales_receipt" readonly id="select_product_description_sales_receipt'+count+'" style="border:0;"></textarea></td><td class="pt-3-half"><input  type="number" class="sales_receipt_data product_qty_sales_receipt form-control" onclick="this.select();" readonly id="product_qty_sales_receipt'+count+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control sales_receipt_data product_rate_sales_receipt" readonly id="select_product_rate_sales_receipt'+count+'" style="border:0;text-align:right;"></td><td class="pt-3-half product_total_sales_receipt" style="text-align:right;padding-right:10px;" id="total_amount_sales_receipt'+count+'"></td><td class="pt-3-half" style="display:none;"><a href="#" style="display:none;" id="delete_product_sales_receipt'+count+'" class="fa fa-trash delete_product_sales_receipt"></a></td></tr>';
             
             $("#sales_receipt_table").append(markup);
-
-
+            //sales_receipt_table_tbody
+            //$("#sales_receipt_table").dataTable().fnDestroy();
+            var sales_receipt_table=$("#sales_receipt_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            
+            
+            
+            if(document.getElementById('sales_receipt_table_info')){
+                document.getElementById('sales_receipt_table_info').style.display="none";
+                document.getElementById('sales_receipt_table_filter').style.display="none";
+                
+            }
         }); 
 
         $("#clear_lines_sales_receipt").click(function(event){
@@ -13328,15 +13563,62 @@ function removeComma(str){
 
         $("#add_lines_credit_note").click(function(event){
             event.preventDefault();
-            var markup = '<tr class="credit_note_lines" id="credit_note_line'+$('#credit_note_table tr').length+'"><td class="pt-3-half" id="number_tag_credit_note" contenteditable="false">'+$('#credit_note_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="form-control credit_note_data product_select_credit_note" id="select_product_name_credit_note'+$('#credit_note_table tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="form-control credit_note_data product_description_credit_note" id="select_product_description_credit_note'+$('#credit_note_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="form-control credit_note_data product_qty_credit_note" onclick="this.select();" id="product_qty_credit_note'+$('#credit_note_table tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+$('#credit_note_table tr').length+'" style="border:0;text-align:right;"></td><td class="pt-3-half product_total_credit_note" id="total_amount_credit_note'+$('#credit_note_table tr').length+'"></td><td class="pt-3-half"><a href="#" id="delete_product_credit_note'+$('#credit_note_table tr').length+'" class="fa fa-trash delete_product_credit_note"></a></td></tr>';
+            $("#credit_note_table").dataTable().fnDestroy();
+            var count=$('#credit_note_table_tbody tr').length+parseFloat(1);
+            var markup = '<tr class="credit_note_lines" id="credit_note_line'+count+'">';
+                    var table = document.getElementById("credit_note_table");
+            var txt = "";
+            var i;
+            for (i = 0; i < table.rows[0].cells.length; i++) {
+                txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                //console.log(txt);
+                if(table.rows[0].cells[i].innerHTML=="#"){
+                    markup=markup+'<td class="pt-3-half" id="number_tag_credit_note" contenteditable="false">'+count+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="PRODUCT/SERVICE"){
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" class="form-control credit_note_data product_select_credit_note" id="select_product_name_credit_note'+count+'"><option value=""></option>'+product_list_js+'</select></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_description_credit_note" id="select_product_description_credit_note'+count+'" style="border:0;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="QTY"){
+                    markup=markup+'<td class="pt-3-half"><input type="number" class="form-control credit_note_data product_qty_credit_note" onclick="this.select();" id="product_qty_credit_note'+count+'" style="border:0; text-align:center;" value="1"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="RATE"){
+                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+count+'" style="border:0;text-align:right;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
+                    markup=markup+'<td class="pt-3-half product_total_credit_note" id="total_amount_credit_note'+count+'"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML==""){
+                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_product_credit_note'+count+'" class="fa fa-trash delete_product_credit_note"></a></td>';
+                }
+            }
+            markup=markup+'</tr>';
             
             $("#credit_note_table").append(markup);
-
+            //credit_note_table_tbody
+            //$("#invoice_table").dataTable().fnDestroy();
+            var credit_note_table=$("#credit_note_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            
+            
+            
+            if(document.getElementById('credit_note_table_info')){
+                document.getElementById('credit_note_table_info').style.display="none";
+                document.getElementById('credit_note_table_filter').style.display="none";
+            }
 
         }); 
 
         $("#clear_lines_credit_note").click(function(event){
             event.preventDefault();
+            $("#credit_note_table").dataTable().fnDestroy();
             $('.credit_note_lines').remove();
 
             $('#credit_notetotal').html('0.00');
@@ -13344,6 +13626,7 @@ function removeComma(str){
 
         $(document).on('click', '.delete_product_credit_note', function(event){
             event.preventDefault();
+            $("#credit_note_table").dataTable().fnDestroy();
             var position = $(this).attr('id').replace(/[^0-9\.]/g, '');
             $('#credit_note_line'+position).remove();
             
@@ -13397,6 +13680,20 @@ function removeComma(str){
             });
 
             update_total_credit_note();
+            var credit_note_table=$("#credit_note_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            
+            
+            
+            if(document.getElementById('credit_note_table_info')){
+                document.getElementById('credit_note_table_info').style.display="none";
+                document.getElementById('credit_note_table_filter').style.display="none";
+            }
         }); 
 
         function update_total_credit_note(){
