@@ -1392,15 +1392,21 @@ function exporttoexcelnew(type,from,to,cost_center){
                         </div>
                     </div>
                     <div class="col-md-12 p-0 mt-4">
-                        <table class="table table-light">
+                        <table class="table table-light table-sm" style="margin-bottom:0px;" class="invoicetablesss">
                             <thead class="thead-light">
                                 <tr>
                                     <th colspan="3" style="vertical-align:middle;text-align:center;">Accounts</th>
                                 </tr>
+                            </thead>
+                        </table>
+                        <table class="table table-light table-sm" id="main_invoice_table_journal_account">
+                            <thead class="thead-light">
                                 <tr>
                                     <th style="vertical-align:middle;text-align:center;border-right: 1px solid #ccc;" width="5%">#</th>
-                                    <th style="vertical-align:middle;text-align:center;border-right: 1px solid #ccc;width: 45%;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;">Credit</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right: 1px solid #ccc;" width="12%">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right: 1px solid #ccc;width: 40%;">Debit</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right: 1px solid #ccc;" width="12%">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;" width="40%">Credit</th>
                                 </tr>
                             </thead>
                             <tbody id="InvoiceAccountTBody">
@@ -1408,6 +1414,52 @@ function exporttoexcelnew(type,from,to,cost_center){
                                 
                             </tbody>
                         </table>
+                        <script>
+                            function setAccount_and_Code(row){
+                                if( typeof( $(row).attr('id') ) != 'undefined' ){
+                                var position = $(row).attr('id').replace(/[^0-9\.]/g, '');
+                                var code=document.getElementById('invoice_account_debit_account_code'+position).value;
+                                document.getElementById('invoice_account_debit_account'+position).value=code;
+                                document.getElementById('setselectpickerinvoicedebitcode').setAttribute('data-value',position);
+                                document.getElementById('setselectpickerinvoicedebitcode').click();
+                                }
+                                
+
+                            }
+                            function setAccount_and_Code_code(row){
+                                if( typeof( $(row).attr('id') ) != 'undefined' ){
+                                var position = $(row).attr('id').replace(/[^0-9\.]/g, '');
+                                var code=document.getElementById('invoice_account_debit_account'+position).value;
+                                document.getElementById('invoice_account_debit_account_code'+position).value=code;
+                                document.getElementById('setselectpickerinvoicedebitcodecode').setAttribute('data-value',position);
+                                document.getElementById('setselectpickerinvoicedebitcodecode').click();
+                                }
+                                
+
+                            }
+                            function setAccount_and_Code2(row){
+                                if( typeof( $(row).attr('id') ) != 'undefined' ){
+                                var position = $(row).attr('id').replace(/[^0-9\.]/g, '');
+                                var code=document.getElementById('invoice_account_credit_account_code'+position).value;
+                                document.getElementById('invoice_account_credit_account'+position).value=code;
+                                document.getElementById('setselectpickerinvoicecreditcode').setAttribute('data-value',position);
+                                document.getElementById('setselectpickerinvoicecreditcode').click();
+                                }
+                                
+
+                            }
+                            function setAccount_and_Code_code2(row){
+                                if( typeof( $(row).attr('id') ) != 'undefined' ){
+                                var position = $(row).attr('id').replace(/[^0-9\.]/g, '');
+                                var code=document.getElementById('invoice_account_credit_account'+position).value;
+                                document.getElementById('invoice_account_credit_account_code'+position).value=code;
+                                document.getElementById('setselectpickerinvoicecreditcodecode').setAttribute('data-value',position);
+                                document.getElementById('setselectpickerinvoicecreditcodecode').click();
+                                }
+                                
+
+                            }
+                        </script>
                     </div>  
                     <div class="col-md-6 m-0 p-0 mt-3" style="display:none;">
                         <div class="d-inline-flex">
@@ -4423,43 +4475,89 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                     </div>
                     <div class="col-md-12 p-0 mt-4">
-                        <table class="table table-light">
-                            <thead class="thead-light">
+                        <table class="table table-light mb-0">
+                            <thead class="thead-light table-sm">
                                 <tr>
                                     <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
                                 </tr>
+                            </thead>
+                        </table>
+                        <button type="button" style="display:none;" data-value="" id="creditnotedebitcodebutton"></button>
+                        <button type="button" style="display:none;" data-value="" id="creditnotedebitaccountbutton"></button>
+                        <button type="button" style="display:none;" data-value="" id="creditnotecreditcodebutton"></button>
+                        <button type="button" style="display:none;" data-value="" id="creditnotecreditaccountbutton"></button>
+                        <script>
+                            function setcredit_note_debit_Code(row){
+                                var code=document.getElementById('credit_note_account_debit_account_code').value;
+                                document.getElementById('credit_note_account_debit_account').value=code;
+                                document.getElementById('creditnotedebitcodebutton').setAttribute('data-value',row);
+                                document.getElementById('creditnotedebitcodebutton').click();
+                            }
+                            function setcredit_note_debit_account(row){
+                                var code=document.getElementById('credit_note_account_debit_account').value;
+                                document.getElementById('credit_note_account_debit_account_code').value=code;
+                                document.getElementById('creditnotedebitaccountbutton').setAttribute('data-value',row);
+                                document.getElementById('creditnotedebitaccountbutton').click();
+                            }
+                            function setcredit_note_credit_Code(row){
+                                var code=document.getElementById('credit_note_account_credit_account_code').value;
+                                document.getElementById('credit_note_account_credit_account').value=code;
+                                document.getElementById('creditnotecreditcodebutton').setAttribute('data-value',row);
+                                document.getElementById('creditnotecreditcodebutton').click();
+                               
+                            }
+                            function setcredit_note_credit_account(row){
+                                var code=document.getElementById('credit_note_account_credit_account').value;
+                                document.getElementById('credit_note_account_credit_account_code').value=code;
+                                document.getElementById('creditnotecreditaccountbutton').setAttribute('data-value',row);
+                                document.getElementById('creditnotecreditaccountbutton').click();
+                            }
+                        </script>
+                        <table class="table table-light table-sm" id="credit_note_accounts_table_main">
+                            <thead class="thead-light table-sm">
                                 <tr>
-                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;">Credit</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="10%">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right:2px solid #ccc;" width="40%">Debit</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="10%">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="40%">Credit</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="credit_note_accounts_table">
                                 <tr>
                                     <td style="vertical-align:middle;" class="pl-0">
-                                        <select class="form-control" name="credit_note_account_debit_account"  id="credit_note_account_debit_account" required>
+                                        <select class="form-control selectpicker" onchange="setcredit_note_debit_Code('1')" data-live-search="true" name="credit_note_account_debit_account_code"  id="credit_note_account_debit_account_code" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option title="{{$coa->coa_title}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option {{$coa->id=='4'? 'selected':''}} value="{{$coa->id}}">{{$coa->coa_code}}</option>
                                         @endforeach
                                         </select>
-                                        <script>
-                                        $(document).ready(function(){
-                                            document.getElementById('credit_note_account_debit_account').value="4";
-                                        })
-                                        </script>
+                                    </td>   
+                                    <td style="vertical-align:middle;border-right:2px solid #ccc;" class="pl-0">
+                                        <select class="form-control selectpicker" onchange="setcredit_note_debit_account('1')" data-live-search="true" name="credit_note_account_debit_account"  id="credit_note_account_debit_account" required>
+                                        <option></option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        <option {{$coa->id=='4'? 'selected':''}}  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        @endforeach
+                                        </select>
+                                        
                                     </td>
                                     <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control" name="credit_note_account_credit_account"  id="credit_note_account_credit_account" required>
+                                        <select class="form-control selectpicker" onchange="setcredit_note_credit_Code('1')" data-live-search="true" name="credit_note_account_credit_account_code"  id="credit_note_account_credit_account_code" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option title="{{$coa->coa_title}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option {{$coa->id=='2'? 'selected':''}} value="{{$coa->id}}">{{$coa->coa_code}}</option>
                                         @endforeach
                                         </select>
-                                        <script>
-                                        $(document).ready(function(){
-                                            document.getElementById('credit_note_account_credit_account').value="2";
-                                        })
-                                        </script>
+                                       
+                                    </td>
+                                    <td style="vertical-align:middle;" class="pr-0">
+                                        <select class="form-control selectpicker" onchange="setcredit_note_credit_account('1')" data-live-search="true" name="credit_note_account_credit_account"  id="credit_note_account_credit_account" required>
+                                        <option></option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        <option {{$coa->id=='2'? 'selected':''}}  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        @endforeach
+                                        </select>
+                                        
                                     </td>
                                 </tr>
                                 
@@ -5335,11 +5433,11 @@ function getModal(Location,TTTTT,e,type,sales){
                     <table class="table table-bordered table-responsive-md table-sm text-left font14" id="bill_account_table">
                         <thead>
                             <tr>
-                                <th class="text-left">#</th>
-                                <th class="text-left" width="30%">ACCOUNT</th>
-                                <th class="text-left">DESCRIPTION</th>
-                                <th class="text-left">AMOUNT</th>
-                                <th class="text-center"></th>
+                                <th class="text-left" width="5%">#</th>
+                                <th class="text-left" width="20%">ACCOUNT</th>
+                                <th class="text-left" width="">DESCRIPTION</th>
+                                <th class="text-left" width="20%">AMOUNT</th>
+                                <th class="text-center" width="5%"></th>
                             </tr>
                         </thead>
                         <tbody id="bill_account_table_tbody">
@@ -5401,17 +5499,50 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                     </div>
                     <div class="col-md-4 p-0 mt-4">
-                        <table class="table table-light">
-                            <thead class="thead-light">
+                        <table class="table table-light  mb-0">
+                            <thead class="thead-light  table-sm">
                                 <tr>
-                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Credit</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                        </table>
+                        <button type="button" style="display:none;" id="bill_credit_account_code_button"></button>
+                        <button type="button" style="display:none;" id="bill_credit_account_account_button"></button>
+                        <script>
+                        function set_bill_account_code_account(origin,destination){
+                            var code=document.getElementById(origin).value;
+                            document.getElementById(destination).value=code;
+                            if(destination=="bill_account_credit_account"){
+                                document.getElementById('bill_credit_account_account_button').click();
+                            }else{
+                                document.getElementById('bill_credit_account_code_button').click();
+                            }
+                            
+                        }
+                        </script>
+                        <table class="table table-light table-sm" id="tableexpensebill_credit_account_table">
+                            <thead class="thead-light">
                                 <tr>
-                                    <td style="vertical-align:middle;text-align:center;">Credit</td>
+                                    <th style="vertical-align:middle;text-align:center;"width="30%">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;"width="70%">Account</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableexpensebill_credit_account_table_body">
+                                <tr>
+                                    <td style="vertical-align:middle;text-align:center;">
+                                        <select class="form-control selectpicker" onchange="set_bill_account_code_account('bill_account_credit_account_code','bill_account_credit_account')" data-live-search="true" name="bill_account_credit_account_code"  id="bill_account_credit_account_code" required>
+                                        <option value="">--Select Account--</option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        @if ($coa->id=="3")
+                                        <option  value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>  
+                                        @else
+                                        <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>   
+                                        @endif
+                                        @endforeach
+                                        </select>
+                                    </td>
                                     <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" data-live-search="true" name="bill_account_credit_account"  id="bill_account_credit_account" required>
+                                        <select class="form-control selectpicker" onchange="set_bill_account_code_account('bill_account_credit_account','bill_account_credit_account_code')" data-live-search="true" name="bill_account_credit_account"  id="bill_account_credit_account" required>
                                         <option value="">--Select Account--</option>
                                         @foreach($c_o_a_sorted as $coa)
                                         @if ($coa->id=="3")
@@ -5664,14 +5795,14 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 mb-1 mt-3">
                         <h4>Account Details</h4>
                     </div>
-                    <table class="table table-bordered table-responsive-md table-sm text-left font14" id="sc_account_table">
+                    <table class="table table-bordered table-responsive-md table-sm text-left font14 table-sm" id="sc_account_table">
                         <thead>
                             <tr>
-                                <th class="text-left" width="10%">#</th>
-                                <th class="text-left">ACCOUNT</th>
-                                <th class="text-left">DESCRIPTION</th>
-                                <th class="text-left">AMOUNT</th>
-                                <th class="text-center" width="10%"></th>
+                                <th class="text-left" width="5%">#</th>
+                                <th class="text-left" width="20%">ACCOUNT</th>
+                                <th class="text-left" width="">DESCRIPTION</th>
+                                <th class="text-left" width="20%">AMOUNT</th>
+                                <th class="text-center" width="5%"></th>
                             </tr>
                         </thead>
                         <tbody id="sc_account_table_tbody">
@@ -5734,17 +5865,51 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                     </div>
                     <div class="col-md-4 p-0 mt-4">
-                        <table class="table table-light">
+                        <table class="table table-light table-sm mb-0">
                             <thead class="thead-light">
                                 <tr>
-                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Debit</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                        </table>
+                        <button type="button" style="display:none;" id="supplier_credit_debit_account_code_button"></button>
+                        <button type="button" style="display:none;" id="supplier_credit_debit_account_account_button"></button>
+                        <script>
+                        function set_supplier_credit_account_code_account(origin,destination){
+                            var code=document.getElementById(origin).value;
+                            document.getElementById(destination).value=code;
+                            if(destination=="supplier_credit_account_debit_account"){
+                                document.getElementById('supplier_credit_debit_account_account_button').click();
+                            }else{
+                                document.getElementById('supplier_credit_debit_account_code_button').click();
+                            }
+                            
+                        }
+                        </script>
+                        <table class="table table-light table-sm" id="supplier_credit_debit_account_table">
+                            <thead class="thead-light">
                                 <tr>
-                                    <td style="vertical-align:middle;text-align:center;">Debit</td>
+                                    <th  style="vertical-align:middle;text-align:center;"width="30%">Code</th>
+                                    <th  style="vertical-align:middle;text-align:center;"width="70%">Account</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supplier_credit_debit_account_table_body">
+                                <tr>
                                     <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" data-live-search="true" name="supplier_credit_account_debit_account"  id="supplier_credit_account_debit_account" required>
+                                        <select class="form-control selectpicker" onchange="set_supplier_credit_account_code_account('supplier_credit_account_debit_account_code','supplier_credit_account_debit_account')" data-live-search="true" name="supplier_credit_account_debit_account_code"  id="supplier_credit_account_debit_account_code" required>
+                                        <option value="">--Select Account--</option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        @if ($coa->id=="3")
+                                        <option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option> 
+                                        @else
+                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>  
+                                        @endif
+                                        
+                                        @endforeach
+                                        </select>
+                                    </td>
+                                    <td style="vertical-align:middle;" class="pr-0">
+                                        <select class="form-control selectpicker" onchange="set_supplier_credit_account_code_account('supplier_credit_account_debit_account','supplier_credit_account_debit_account_code')" data-live-search="true" name="supplier_credit_account_debit_account"  id="supplier_credit_account_debit_account" required>
                                         <option value="">--Select Account--</option>
                                         @foreach($c_o_a_sorted as $coa)
                                         @if ($coa->id=="3")
@@ -5755,11 +5920,6 @@ function getModal(Location,TTTTT,e,type,sales){
                                         
                                         @endforeach
                                         </select>
-                                        <script>
-                                        $(document).ready(function(){
-                                            document.getElementById('supplier_credit_account_debit_account').value="3";
-                                        })
-                                        </script>
                                     </td>
                                 </tr>
                                 
@@ -7379,6 +7539,18 @@ function addCardCreditedit(){
                                     }else{
                                         column.visible( false );
                                     }
+                                    journalentrytable.on( 'row-reorder', function ( e, diff, edit ) {
+                                    //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                                    var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                                    
+                                    for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                                        var rowData = journalentrytable.row( diff[i].node ).data();
+                                        result += rowData;
+                                        console.log(rowData[113]);
+                                        //result += rowData[1]+' updated to be in position '+
+                                        //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                                    }
+                                    });
                                 }
                             }
                             function DeleteJournalRow(rownum){
@@ -7426,6 +7598,18 @@ function addCardCreditedit(){
                                     if(document.getElementById('journalentrytable_info')){
                                         document.getElementById('journalentrytable_info').style.display="none";
                                         document.getElementById('journalentrytable_filter').style.display="none";
+                                        journalentrytable.on( 'row-reorder', function ( e, diff, edit ) {
+                                        //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                                        var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                                        
+                                        for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                                            var rowData = journalentrytable.row( diff[i].node ).data();
+                                            result += rowData;
+                                            console.log(rowData[113]);
+                                            //result += rowData[1]+' updated to be in position '+
+                                            //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                                        }
+                                        });
                                     }
                             }
                             function DeleteAllRows(){
@@ -7457,7 +7641,19 @@ function addCardCreditedit(){
                                 }
                                 if(document.getElementById('journalentrytable_info')){
                                     document.getElementById('journalentrytable_info').style.display="none";
-                                    document.getElementById('journalentrytable_filter').style.display="none";
+                                    document.getElementById('journalentrytable_filter').style.display="none"
+                                    journalentrytable.on( 'row-reorder', function ( e, diff, edit ) {
+                                    //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                                    var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                                    
+                                    for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                                        var rowData = journalentrytable.row( diff[i].node ).data();
+                                        result += rowData;
+                                        console.log(rowData[113]);
+                                        //result += rowData[1]+' updated to be in position '+
+                                        //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                                    }
+                                    });
                                 }
                             }
                         </script>
@@ -7488,7 +7684,10 @@ function addCardCreditedit(){
                 <button type="button" style="display:none;" id="setselectpickerbutton">
                 <button type="button" style="display:none;" id="setselectpickerbuttonjournal_entry">
                 <button type="button" style="display:none;" id="setselectpickerbuttonjournal_entry_code">
-                        
+                <button type="button" style="display:none;" id="setselectpickerinvoicedebitcode">
+                <button type="button" style="display:none;" id="setselectpickerinvoicedebitcodecode">
+                <button type="button" style="display:none;" id="setselectpickerinvoicecredtitcode">
+                <button type="button" style="display:none;" id="setselectpickerinvoicecredtitcodecode">
                 <button type="button" id="canceljournalentry" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
                 <button class="btn btn-success rounded"  id="JournalEntrySaveButton" onclick="saveJournalEntry()">Save</button>
             </div>
@@ -10298,6 +10497,9 @@ function edit_journal_entries(je_no){
     var table_pay_bills_modal_tabel;
     var table_pending_bill;
     var journalentrytable;
+    var credit_note_accounts_table_main;
+    var tableexpensebill_credit_account_table_body;
+    var supplier_credit_debit_account_table;
     $(document).ready(function(){
         if(document.getElementById('customertransactiontable')){
             customertransactiontable = $('#customertransactiontable').DataTable({
@@ -10320,6 +10522,18 @@ function edit_journal_entries(je_no){
             'dom': 'Rlfrtip',
             "autoWidth": false,
             rowReorder: true
+            });
+            table_pay_bills_modal_tabel.on( 'row-reorder', function ( e, diff, edit ) {
+                //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = table_pay_bills_modal_tabel.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[0]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
             });
         }
         
@@ -10513,6 +10727,42 @@ function edit_journal_entries(je_no){
         if(document.getElementById('journalentrytable_info')){
             document.getElementById('journalentrytable_info').style.display="none";
             document.getElementById('journalentrytable_filter').style.display="none";
+        }
+        credit_note_accounts_table_main = $('#credit_note_accounts_table_main').DataTable({
+                paging: false,
+                "ordering": false,
+                'dom': 'Rlfrtip',
+                "autoWidth": false
+                
+        });
+
+        if(document.getElementById('credit_note_accounts_table_main_info')){
+            document.getElementById('credit_note_accounts_table_main_info').style.display="none";
+            document.getElementById('credit_note_accounts_table_main_filter').style.display="none";
+        }
+        tableexpensebill_credit_account_table_body = $('#tableexpensebill_credit_account_table').DataTable({
+                paging: false,
+                "ordering": false,
+                'dom': 'Rlfrtip',
+                "autoWidth": false
+                
+        });
+        
+        if(document.getElementById('tableexpensebill_credit_account_table_info')){
+            document.getElementById('tableexpensebill_credit_account_table_info').style.display="none";
+            document.getElementById('tableexpensebill_credit_account_table_filter').style.display="none";
+        }
+        supplier_credit_debit_account_table = $('#supplier_credit_debit_account_table').DataTable({
+                paging: false,
+                "ordering": false,
+                'dom': 'Rlfrtip',
+                "autoWidth": false
+                
+        });
+        
+        if(document.getElementById('supplier_credit_debit_account_table_info')){
+            document.getElementById('supplier_credit_debit_account_table_info').style.display="none";
+            document.getElementById('supplier_credit_debit_account_table_filter').style.display="none";
         }
         if(document.getElementById('jounalentrytable_info')){
             document.getElementById('jounalentrytable_info').style.display="none";
@@ -12263,6 +12513,7 @@ function removeComma(str){
         $("#add_lines_invoice").click(function(event){
             event.preventDefault();
             $("#main_invoice_table").dataTable().fnDestroy();
+            $("#main_invoice_table_journal_account").dataTable().fnDestroy();
             //add_item_invoice
             var markup = '<tr class="invoice_lines" id="invoice_line'+($('#invoice_table tr').length+parseFloat(1))+'">';
             var table = document.getElementById("main_invoice_table");
@@ -12272,32 +12523,32 @@ function removeComma(str){
                 txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
                 //console.log(txt);
                 if(table.rows[0].cells[i].innerHTML=="#"){
-                    markup=markup+'<td class="pt-3-half" id="number_tag" contenteditable="false">'+($('#invoice_table tr').length+parseFloat(1))+'</td>';
+                    markup=markup+'<td class="pt-3-half text-center" id="number_tag" contenteditable="false">'+($('#invoice_table tr').length+parseFloat(1))+'</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="PARTICULAR"){
-                    markup=markup+'<td class="pt-3-half"><select onchange="ChangeParticularInvoice(this)" id="ParticularInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" data-columncount="'+($('#invoice_table tr').length+parseFloat(1))+'" class="w-100 form-control invoice_particular"><option>Cost Center</option><option>Product/Service</option></select></td>';
+                    markup=markup+'<td class="pt-3-half"><select style="height:40px;" onchange="ChangeParticularInvoice(this)" id="ParticularInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" data-columncount="'+($('#invoice_table tr').length+parseFloat(1))+'" class="w-100  invoice_particular"><option>Cost Center</option><option>Product/Service</option></select></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="ITEM"){
                     markup=markup+'<td class="pt-3-half">';
                     markup=markup+'<div class="ProductServicesInvoiceItemDivClass" id="ProductServicesInvoiceItemDiv'+($('#invoice_table tr').length+parseFloat(1))+'" style="display:none;"><select style="border:0; width:100%;" class="invoice_data product_select selectpicker" data-live-search="true" id="select_product_name'+($('#invoice_table tr').length+parseFloat(1))+'"><option value=""></option>'+product_list_js+'</select></div><div id="CostCenterInvoiceItemDiv'+($('#invoice_table tr').length+parseFloat(1))+'" class="CostCenterInvoiceItemDivClass"><select required name="CostCenterInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" class="w-100 invoice_cost_center selectpicker" data-live-search="true" id="CostCenterInvoice'+($('#invoice_table tr').length+parseFloat(1))+'" ><option value="">--Select Cost Center--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select></div></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
-                    markup=markup+'<td class="pt-3-half"><textarea class="form-control invoice_data product_description w-100" id="select_product_description'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;"></textarea></td>';
+                    markup=markup+'<td class="pt-3-half"><textarea class=" invoice_data product_description w-100" id="select_product_description'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;"></textarea></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="QTY"){
-                    markup=markup+'<td class="pt-3-half"><input required type="number" class="form-control invoice_data product_qty" onclick="this.select();" id="product_qty'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0; text-align:center;" min="1" value="1"></td>';
+                    markup=markup+'<td class="pt-3-half"><input required type="number" class=" invoice_data product_qty" onclick="this.select();" id="product_qty'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0; text-align:center;" min="1" value="1"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="RATE"){
                     markup=markup+'<td class="pt-3-half">';
-                    markup=markup+'<input type="text" class="product_rate_change form-control" value="0" id="unformated_select_sales_rate'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;text-align:right;" required>';
+                    markup=markup+'<input type="text" class="product_rate_change " value="0" id="unformated_select_sales_rate'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;text-align:right;width:100%;padding-right:10px;" required>';
                     markup=markup+'<input type="hidden" class="invoice_data product_rate value="0" id="select_product_rate'+($('#invoice_table tr').length+parseFloat(1))+'" style="border:0;">';
                     markup=markup+'</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
-                    markup=markup+'<td class="pt-3-half product_total" id="total_amount'+($('#invoice_table tr').length+parseFloat(1))+'" title="0.00">0.00</td>';
+                    markup=markup+'<td class="pt-3-half pr-3 product_total" style="text-align:right;" id="total_amount'+($('#invoice_table tr').length+parseFloat(1))+'" title="0.00">0.00</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
-                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_product'+($('#invoice_table tr').length+parseFloat(1))+'" class="fa fa-trash delete_product"></a></td>';
+                    markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_product'+($('#invoice_table tr').length+parseFloat(1))+'" class="fa fa-trash delete_product"></a></td>';
                 }
             }
             markup=markup+'</tr>';
@@ -12322,8 +12573,29 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half" style="text-align:center;" id="number_tag_invoice_acc">';
             markup=markup+accounttablelength;
             markup=markup+'</td>';
+
             markup=markup+'<td class="pt-3-half">';
-            markup=markup+'<select id="invoice_account_debit_account'+accounttablelength+'" name="invoice_account_debit_account'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc" data-live-search="true" required>';
+            markup=markup+'<select id="invoice_account_debit_account_code'+accounttablelength+'" onchange="setAccount_and_Code(this)" name="invoice_account_debit_account_code'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc_code" data-live-search="true" required>';
+            @foreach($c_o_a_sorted as $coa)
+                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                //     if ('{{$coa->id}}'=="2"){
+                //         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                //     }else{
+                //         markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                //     }  
+                // }
+                if(""==""){
+                    if ('{{$coa->id}}'=="2"){
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>';
+                    }else{
+                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_code}}</option>';
+                    }  
+                }                 
+            @endforeach
+            markup=markup+'</select>';
+            markup=markup+'</td>';
+            markup=markup+'<td class="pt-3-half">';
+            markup=markup+'<select id="invoice_account_debit_account'+accounttablelength+'" onchange="setAccount_and_Code_code(this)" name="invoice_account_debit_account'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
                 // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
                 //     if ('{{$coa->id}}'=="2"){
@@ -12342,8 +12614,23 @@ function removeComma(str){
             @endforeach
             markup=markup+'</select>';
             markup=markup+'</td>';
+
             markup=markup+'<td class="pt-3-half">';
-            markup=markup+'<select id="invoice_account_credit_account'+accounttablelength+'" name="invoice_account_credit_account'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc" data-live-search="true" required>';
+            markup=markup+'<select id="invoice_account_credit_account_code'+accounttablelength+'" onchange="setAccount_and_Code2(this)" name="invoice_account_credit_account_code'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc_code" data-live-search="true" required>';
+            @foreach($c_o_a_sorted as $coa)
+                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                    if('{{$coa->id}}'=="4"){
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>';
+                    }else{
+                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_code}}</option>';
+                    }  
+                }                
+            @endforeach
+            markup=markup+'</select>';
+            markup=markup+'</td>';
+
+            markup=markup+'<td class="pt-3-half">';
+            markup=markup+'<select id="invoice_account_credit_account'+accounttablelength+'" onchange="setAccount_and_Code_code2(this)" name="invoice_account_credit_account'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
                 if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
                     if('{{$coa->id}}'=="4"){
@@ -12371,7 +12658,53 @@ function removeComma(str){
                 if(document.getElementById('main_invoice_table_info')){
                     document.getElementById('main_invoice_table_info').style.display="none";
                     document.getElementById('main_invoice_table_filter').style.display="none";
+                    // var column = invoice_table.column(0);
+ 
+                    // // Toggle the visibility
+                    // column.visible( false );
+                    invoice_table.on( 'row-reorder', function ( e, diff, edit ) {
+                    //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                    var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
                     
+                    for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                        var rowData = invoice_table.row( diff[i].node ).data();
+                        result += rowData;
+                        console.log(rowData[0]);
+                        //result += rowData[1]+' updated to be in position '+
+                        //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                    }
+            
+                   // console.log( 'Event result:<br>'+result );
+                } );
+                }
+                var main_invoice_table_journal_account=$("#main_invoice_table_journal_account").DataTable({
+                    paging: false,
+                    "ordering": true,
+                    'dom': 'Rlfrtip',
+                    "autoWidth": false,
+                    rowReorder: true
+                });
+                if(document.getElementById('main_invoice_table_journal_account_info')){
+                    document.getElementById('main_invoice_table_journal_account_info').style.display="none";
+                    document.getElementById('main_invoice_table_journal_account_filter').style.display="none";
+                    // var column = invoice_table.column(0);
+ 
+                    // // Toggle the visibility
+                    // column.visible( false );
+                    main_invoice_table_journal_account.on( 'row-reorder', function ( e, diff, edit ) {
+                    //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                    var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                    
+                    for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                        var rowData = main_invoice_table_journal_account.row( diff[i].node ).data();
+                        result += rowData;
+                        console.log(rowData[0]);
+                        //result += rowData[1]+' updated to be in position '+
+                        //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                    }
+            
+                   // console.log( 'Event result:<br>'+result );
+                } );
                 }
             }
             
@@ -12688,10 +13021,14 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input type="number" class="estimate_data product_qty_estimate form-control" onclick="this.select();" id="product_qty_estimate'+count+'" style="border:0; text-align:center;" value="1"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="RATE"){
-                    markup=markup+'<td class="pt-3-half"><input class="form-control estimate_data product_rate_estimate" value="0" readonly id="select_product_rate_estimate'+count+'" style="border:0;text-align:right;"></td>';
+                    markup=markup+'<td class="pt-3-half"><input class="form-control estimate_data product_rate_estimate" value="0" readonly id="select_product_rate_estimate'+count+'" style="border:0;text-align:right;background-color:white !important;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
+                    markup=markup+'<td class="pt-3-half pl-3 product_total_estimate" id="total_amount_estimate'+count+'" title="0.00">0.00</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
-                    markup=markup+'<td class="pt-3-half product_total_estimate" id="total_amount_estimate'+count+'" title="0.00">0.00</td><td class="pt-3-half"><a href="#" id="delete_product_estimate'+count+'" class="fa fa-trash delete_product_estimate"></a></td>';
+                    
+                    markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_product_estimate'+count+'" class="fa fa-trash delete_product_estimate"></a></td>';
                 }
             }
             markup=markup+'</tr>';
@@ -12713,7 +13050,18 @@ function removeComma(str){
             if(document.getElementById('estimate_table_info')){
                 document.getElementById('estimate_table_info').style.display="none";
                 document.getElementById('estimate_table_filter').style.display="none";
+                estimate_table.on( 'row-reorder', function ( e, diff, edit ) {
+                //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
                 
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = estimate_table.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[113]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
+                });
             }
         }); 
 
@@ -12728,6 +13076,7 @@ function removeComma(str){
         $(document).on('click', '.delete_product_estimate', function(event){
             event.preventDefault();
             var position = $(this).attr('id').replace(/[^0-9\.]/g, '');
+            $("#estimate_table").dataTable().fnDestroy();
             $('#estimate_line'+position).remove();
             
             var line_counter = 1;
@@ -12780,7 +13129,32 @@ function removeComma(str){
             });
 
             update_total_estimate();
+            var estimate_table=$("#estimate_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
             
+            
+            
+            if(document.getElementById('estimate_table_info')){
+                document.getElementById('estimate_table_info').style.display="none";
+                document.getElementById('estimate_table_filter').style.display="none";
+                estimate_table.on( 'row-reorder', function ( e, diff, edit ) {
+                //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = estimate_table.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[113]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
+                });
+            }
         }); 
 
         function update_total_estimate(){
@@ -12902,8 +13276,8 @@ function removeComma(str){
             var count=$('#sales_receipt_table_tbody tr').length+parseFloat(1);
             var markup = '<tr class="sales_receipt_lines" id="sales_receipt_line'+count+'">';
             markup=markup+'<td class="pt-3-half" id="number_tag_sales_receipt" contenteditable="false">'+count+'</td>';
-            markup=markup+'<td class="pt-3-half"><select class="form-control" disabled onchange="ChangeParticularSalesReceipt(this)" data-columncount="'+count+'" id="ParticularSalesReceipt'+count+'"><option >Cost Center</option><option>Product/Services</option></select></td>';
-            markup=markup+'<td class="pt-3-half"><div id="CostCenterSalesReceiptDiv'+count+'"><input readonly type="text" id="cost_center_sales_creciept'+count+'" class="form-control" name="cost_center_sales_creciept'+count+'" list="cost_center_list_invoice"></div><div id="ProductServicesSalesReceiptDiv'+count+'"><select disabled style="border:0; width:100%;" class="sales_receipt_data product_select_sales_receipt form-control" id="select_product_name_sales_receipt'+count+'"><option value=""></option>'+product_list_js+'</select></div></td><td class="pt-3-half"><textarea class="w-100 form-control sales_receipt_data product_description_sales_receipt" readonly id="select_product_description_sales_receipt'+count+'" style="border:0;"></textarea></td><td class="pt-3-half"><input  type="number" class="sales_receipt_data product_qty_sales_receipt form-control" onclick="this.select();" readonly id="product_qty_sales_receipt'+count+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control sales_receipt_data product_rate_sales_receipt" readonly id="select_product_rate_sales_receipt'+count+'" style="border:0;text-align:right;"></td><td class="pt-3-half product_total_sales_receipt" style="text-align:right;padding-right:10px;" id="total_amount_sales_receipt'+count+'"></td><td class="pt-3-half" style="display:none;"><a href="#" style="display:none;" id="delete_product_sales_receipt'+count+'" class="fa fa-trash delete_product_sales_receipt"></a></td></tr>';
+            markup=markup+'<td class="pt-3-half"><select style="background-color:white !important;" class="form-control" disabled onchange="ChangeParticularSalesReceipt(this)" data-columncount="'+count+'" id="ParticularSalesReceipt'+count+'"><option >Cost Center</option><option>Product/Services</option></select></td>';
+            markup=markup+'<td class="pt-3-half"><div id="CostCenterSalesReceiptDiv'+count+'"><input style="background-color:white !important;" readonly type="text" id="cost_center_sales_creciept'+count+'" class="form-control" name="cost_center_sales_creciept'+count+'" list="cost_center_list_invoice"></div><div id="ProductServicesSalesReceiptDiv'+count+'"><select disabled style="border:0; width:100%;background-color:white !important;" class="sales_receipt_data product_select_sales_receipt form-control" id="select_product_name_sales_receipt'+count+'"><option value=""></option>'+product_list_js+'</select></div></td><td class="pt-3-half"><input type="text" class="w-100 form-control sales_receipt_data product_description_sales_receipt" readonly id="select_product_description_sales_receipt'+count+'" style="border:0;background-color:white !important;"></td><td class="pt-3-half"><input  type="number" class="sales_receipt_data product_qty_sales_receipt form-control" onclick="this.select();" readonly id="product_qty_sales_receipt'+count+'" style="background-color:white !important;border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input class="form-control sales_receipt_data product_rate_sales_receipt" readonly id="select_product_rate_sales_receipt'+count+'" style="border:0;text-align:right;background-color:white !important;"></td><td class="pt-3-half product_total_sales_receipt" style="text-align:right;padding-right:10px;" id="total_amount_sales_receipt'+count+'"></td><td class="pt-3-half" style="display:none;"><a href="#" style="display:none;" id="delete_product_sales_receipt'+count+'" class="fa fa-trash delete_product_sales_receipt"></a></td></tr>';
             
             $("#sales_receipt_table").append(markup);
             //sales_receipt_table_tbody
@@ -13588,7 +13962,7 @@ function removeComma(str){
                 txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
                 //console.log(txt);
                 if(table.rows[0].cells[i].innerHTML=="#"){
-                    markup=markup+'<td class="pt-3-half" id="number_tag_credit_note" contenteditable="false">'+count+'</td>';
+                    markup=markup+'<td class="pt-3-half text-center" id="number_tag_credit_note" contenteditable="false">'+count+'</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="PRODUCT/SERVICE"){
                     markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" class="form-control credit_note_data product_select_credit_note" id="select_product_name_credit_note'+count+'"><option value=""></option>'+product_list_js+'</select></td>';
@@ -13600,13 +13974,13 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input type="number" class="form-control credit_note_data product_qty_credit_note" onclick="this.select();" id="product_qty_credit_note'+count+'" style="border:0; text-align:center;" value="1"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="RATE"){
-                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+count+'" style="border:0;text-align:right;"></td>';
+                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+count+'" style="border:0;text-align:right;background-color:white;"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
-                    markup=markup+'<td class="pt-3-half product_total_credit_note" id="total_amount_credit_note'+count+'"></td>';
+                    markup=markup+'<td class="pt-3-half product_total_credit_note" style="text-align:right;padding-right:10px;" id="total_amount_credit_note'+count+'"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
-                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_product_credit_note'+count+'" class="fa fa-trash delete_product_credit_note"></a></td>';
+                    markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_product_credit_note'+count+'" class="fa fa-trash delete_product_credit_note"></a></td>';
                 }
             }
             markup=markup+'</tr>';
@@ -13627,6 +14001,17 @@ function removeComma(str){
             if(document.getElementById('credit_note_table_info')){
                 document.getElementById('credit_note_table_info').style.display="none";
                 document.getElementById('credit_note_table_filter').style.display="none";
+                credit_note_table.on( 'row-reorder', function ( e, diff, edit ) {
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = credit_note_table.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[113]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
+                });
             }
 
         }); 
@@ -14358,10 +14743,10 @@ function removeComma(str){
                 txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
                 //console.log(txt);
                 if(table.rows[0].cells[i].innerHTML=="#"){
-                    markup=markup+'<td class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+count+'</td>';
+                    markup=markup+'<td class="pt-3-half text-center" id="number_tag_bill_account" contenteditable="false">'+count+'</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
-                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="form-control bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
                     markup=markup+'<td class="pt-3-half"><input class="bill_data description_select_bill form-control" id="select_description_bill'+count+'" style="border:0;"></td>';
@@ -14370,7 +14755,7 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input type="text" class="form-control" id="unformated_select_bill_amount'+count+'" style="border:0;text-align:right;" value="0.00"><input type="hidden" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+count+'" style="border:0; text-align:center;"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
-                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td>'; 
+                    markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td>'; 
                 }
             }
             markup=markup+'</tr>';
@@ -14400,6 +14785,18 @@ function removeComma(str){
             if(document.getElementById('bill_account_table_info')){
                 document.getElementById('bill_account_table_info').style.display="none";
                 document.getElementById('bill_account_table_filter').style.display="none";
+                bill_account_table.on( 'row-reorder', function ( e, diff, edit ) {
+                //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = bill_account_table.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[0]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
+                });
             }
         }); 
         
@@ -14479,10 +14876,13 @@ function removeComma(str){
             });
 
             update_total_bill();
+            
         }); 
 
         $(document).on('click', '.delete_account_bill', function(event){
             event.preventDefault();
+
+            $("#bill_account_table").dataTable().fnDestroy();
             var position = $(this).attr('id').replace(/[^0-9\.]/g, '');
             $('#bill_line_account'+position).remove();
             
@@ -14528,7 +14928,31 @@ function removeComma(str){
             });
 
             update_total_bill();
+            var bill_account_table=$("#bill_account_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            if(document.getElementById('bill_account_table_info')){
+                document.getElementById('bill_account_table_info').style.display="none";
+                document.getElementById('bill_account_table_filter').style.display="none";
+                bill_account_table.on( 'row-reorder', function ( e, diff, edit ) {
+                //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                
+                for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                    var rowData = bill_account_table.row( diff[i].node ).data();
+                    result += rowData;
+                    console.log(rowData[0]);
+                    //result += rowData[1]+' updated to be in position '+
+                    //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                }
+                });
+            }
             refreshpicjer();
+            
         }); 
 
         function update_total_bill(){
@@ -14875,10 +15299,10 @@ function removeComma(str){
                 txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
                 //console.log(txt);
                 if(table.rows[0].cells[i].innerHTML=="#"){
-                    markup=markup+'<td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+count+'</td>';
+                    markup=markup+'<td class="pt-3-half text-center" id="number_tag_sc_account" contenteditable="false">'+count+'</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
-                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker" data-live-search="true" id="select_account_sc'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" data-live-search="true" id="select_account_sc'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
                     markup=markup+'<td class="pt-3-half"><input class="sc_data description_select_sc form-control" id="select_description_sc'+count+'" style="border:0;"></td>';
@@ -14887,7 +15311,7 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input type="number" class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+count+'" style="border:0; text-align:right;"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
-                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td>';
+                    markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td>';
                 }
             }
             markup=markup+'</tr>';
@@ -14904,7 +15328,18 @@ function removeComma(str){
             if(document.getElementById('sc_account_table_info')){
                 document.getElementById('sc_account_table_info').style.display="none";
                 document.getElementById('sc_account_table_filter').style.display="none";
-                
+                invoice_table.on( 'row-reorder', function ( e, diff, edit ) {
+                    //console.log("asdasdasd->>>> "+edit.triggerRow.data());
+                    var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
+                    
+                    for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+                        var rowData = invoice_table.row( diff[i].node ).data();
+                        result += rowData;
+                        console.log(rowData[0]);
+                        //result += rowData[1]+' updated to be in position '+
+                        //    diff[i].newData+' (was '+diff[i].oldData+')<br>';
+                    }
+                });
             }
         }); 
 

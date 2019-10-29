@@ -102,6 +102,62 @@ jQuery(document).ready(function($) {
 		console.log(document.getElementById('setselectpickerbuttonjournal_entry_code').getAttribute('data-value'));
 		//refreshpicjer();
 	})
+	$('#setselectpickerinvoicedebitcode').on('click',function(event){
+		$('#invoice_account_debit_account'+document.getElementById('setselectpickerinvoicedebitcode').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerinvoicedebitcode').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#creditnotedebitcodebutton').on('click',function(event){
+		$('#credit_note_account_debit_account').selectpicker('refresh');
+		console.log(document.getElementById('creditnotedebitcodebutton').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#creditnotedebitaccountbutton').on('click',function(event){
+		$('#credit_note_account_debit_account_code').selectpicker('refresh');
+		console.log(document.getElementById('creditnotedebitaccountbutton').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#creditnotecreditcodebutton').on('click',function(event){
+		$('#credit_note_account_credit_account').selectpicker('refresh');
+		console.log(document.getElementById('creditnotecreditcodebutton').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#creditnotecreditaccountbutton').on('click',function(event){
+		$('#credit_note_account_credit_account_code').selectpicker('refresh');
+		console.log(document.getElementById('creditnotecreditaccountbutton').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#bill_credit_account_account_button').on('click',function(event){
+		
+		$('#bill_account_credit_account').selectpicker('refresh');
+	})
+	$('#bill_credit_account_code_button').on('click',function(event){
+		$('#bill_account_credit_account_code').selectpicker('refresh');
+	})
+
+	$('#supplier_credit_debit_account_account_button').on('click',function(event){
+		
+		$('#supplier_credit_account_debit_account').selectpicker('refresh');
+	})
+	$('#supplier_credit_debit_account_code_button').on('click',function(event){
+		$('#supplier_credit_account_debit_account_code').selectpicker('refresh');
+	})
+	
+	$('#setselectpickerinvoicedebitcodecode').on('click',function(event){
+		$('#invoice_account_debit_account_code'+document.getElementById('setselectpickerinvoicedebitcodecode').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerinvoicedebitcodecode').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#setselectpickerinvoicecredtitcode').on('click',function(event){
+		$('#invoice_account_credit_account'+document.getElementById('setselectpickerinvoicecredtitcode').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerinvoicecredtitcode').getAttribute('data-value'));
+		//refreshpicjer();
+	})
+	$('#setselectpickerinvoicecredtitcodecode').on('click',function(event){
+		$('#invoice_account_credit_account_code'+document.getElementById('setselectpickerinvoicecredtitcodecode').getAttribute('data-value')).selectpicker('refresh');
+		console.log(document.getElementById('setselectpickerinvoicecredtitcodecode').getAttribute('data-value'));
+		//refreshpicjer();
+	})
 	$('#setselectpickerbutton').on('click',function(event){
 		$('.selectpicker').selectpicker('refresh');
 		console.log('refresh selectpicker');
