@@ -1338,8 +1338,8 @@ function exporttoexcelnew(type,from,to,cost_center){
                     </div>
                     </div>
 
-                    <table id="main_invoice_table" class="table table-bordered table-responsive-md text-left font14">
-                        <thead>
+                    <table id="main_invoice_table" class="table table-bordered table-responsive-md text-left font14 table-sm">
+                        <thead class="thead-light">
                             <tr>
                                 <th class="text-center" width="5%">#</th>
                                 <th class="text-center" width="10%">PARTICULAR</th>
@@ -3436,8 +3436,8 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                     </div>
                     
-                    <table class="table table-bordered table-responsive-md  text-left font14" id="estimate_table">
-                        <thead>
+                    <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="estimate_table">
+                        <thead class="thead-light">
                             <tr>
                                 <th class="text-left">#</th>
                                 <th class="text-left">PRODUCT/SERVICE</th>
@@ -4372,8 +4372,8 @@ function getModal(Location,TTTTT,e,type,sales){
                         
                         
                     </div>
-                    <table class="table table-bordered table-responsive-md  text-left font14" id="credit_note_table">
-                        <thead>
+                    <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="credit_note_table">
+                        <thead class="thead-light">
                             <tr>
                                 <th class="text-center">#</th>
                                 <th class="text-center">PRODUCT/SERVICE</th>
@@ -5332,16 +5332,21 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 mb-1 mt-3">
                         <h4>Account Details</h4>
                     </div>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="bill_account_table">
-                        <tr>
-                            <th class="text-left">#</th>
-                            <th class="text-left" width="30%">ACCOUNT</th>
-                            <th class="text-left">DESCRIPTION</th>
-                            <th class="text-left">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
+                    <table class="table table-bordered table-responsive-md table-sm text-left font14" id="bill_account_table">
+                        <thead>
+                            <tr>
+                                <th class="text-left">#</th>
+                                <th class="text-left" width="30%">ACCOUNT</th>
+                                <th class="text-left">DESCRIPTION</th>
+                                <th class="text-left">AMOUNT</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="bill_account_table_tbody">
+
+                        </tbody>
                     </table>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_bill_account">Add Items</button>
@@ -5659,16 +5664,22 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 mb-1 mt-3">
                         <h4>Account Details</h4>
                     </div>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_account_table">
-                        <tr>
-                            <th class="text-left">#</th>
-                            <th class="text-left">ACCOUNT</th>
-                            <th class="text-left">DESCRIPTION</th>
-                            <th class="text-left">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
+                    <table class="table table-bordered table-responsive-md table-sm text-left font14" id="sc_account_table">
+                        <thead>
+                            <tr>
+                                <th class="text-left" width="10%">#</th>
+                                <th class="text-left">ACCOUNT</th>
+                                <th class="text-left">DESCRIPTION</th>
+                                <th class="text-left">AMOUNT</th>
+                                <th class="text-center" width="10%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="sc_account_table_tbody">
+
+                        </tbody>
+                        
                     </table>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sc_account">Add Items</button>
@@ -10304,7 +10315,11 @@ function edit_journal_entries(je_no){
         if(document.getElementById('table_pay_bills_modal_tabel')){
             table_pay_bills_modal_tabel = $('#table_pay_bills_modal_tabel').DataTable({
             order: [[ 9, "desc" ]],
-            
+            paging: false,
+            "ordering": true,
+            'dom': 'Rlfrtip',
+            "autoWidth": false,
+            rowReorder: true
             });
         }
         
@@ -14333,10 +14348,35 @@ function removeComma(str){
 
         $("#add_lines_bill_account").click(function(event){
             event.preventDefault();
-            var markup = '<tr class="bill_lines_account" id="bill_line_account'+$('#bill_account_table tr').length+'"><td class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+$('#bill_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+$('#bill_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="bill_data description_select_bill form-control" id="select_description_bill'+$('#bill_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="text" class="form-control" id="unformated_select_bill_amount'+$('#bill_account_table tr').length+'" style="border:0;text-align:right;" value="0.00"><input type="hidden" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+$('#bill_account_table tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_bill'+$('#bill_account_table tr').length+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
-            var textbox = '#unformated_select_bill_amount'+$('#bill_account_table tr').length;
-            var hidden = '#select_bill_amount'+$('#bill_account_table tr').length;
-            $("#bill_account_table").append(markup);
+            $("#bill_account_table").dataTable().fnDestroy();
+            var count=$('#bill_account_table_tbody tr').length+parseFloat(1);
+            var markup = '<tr class="bill_lines_account" id="bill_line_account'+count+'">';
+            var table = document.getElementById("bill_account_table");
+            var txt = "";
+            var i;
+            for (i = 0; i < table.rows[0].cells.length; i++) {
+                txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                //console.log(txt);
+                if(table.rows[0].cells[i].innerHTML=="#"){
+                    markup=markup+'<td class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+count+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                    markup=markup+'<td class="pt-3-half"><input class="bill_data description_select_bill form-control" id="select_description_bill'+count+'" style="border:0;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
+                    markup=markup+'<td class="pt-3-half"><input type="text" class="form-control" id="unformated_select_bill_amount'+count+'" style="border:0;text-align:right;" value="0.00"><input type="hidden" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+count+'" style="border:0; text-align:center;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML==""){
+                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td>'; 
+                }
+            }
+            markup=markup+'</tr>';
+            var textbox = '#unformated_select_bill_amount'+count;
+            var hidden = '#select_bill_amount'+count;
+            $("#bill_account_table_tbody").append(markup);
             
             $(textbox).keyup(function () {
                 $(textbox).val(this.value.match(/[0-9.,=]*/));
@@ -14348,11 +14388,25 @@ function removeComma(str){
                 $(textbox).val(numCommas);
             });
             document.getElementById('setselectpickerbutton').click();
+            //bill_account_table_tbody
+            //$("#invoice_table").dataTable().fnDestroy();
+            var bill_account_table=$("#bill_account_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            if(document.getElementById('bill_account_table_info')){
+                document.getElementById('bill_account_table_info').style.display="none";
+                document.getElementById('bill_account_table_filter').style.display="none";
+            }
         }); 
         
             
         $("#clear_lines_bill_account").click(function(event){
             event.preventDefault();
+            $("#bill_account_table").dataTable().fnDestroy();
             $('.bill_lines_account').remove();
 
             update_total_bill();
@@ -14811,14 +14865,52 @@ function removeComma(str){
         
         $("#add_lines_sc_account").click(function(event){
             event.preventDefault();
-            var markup = '<tr class="sc_lines_account" id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker" data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc form-control" id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td><td class="pt-3-half"><a href="#" id="delete_account_sc'+$('#sc_account_table tr').length+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
+            $("#sc_account_table").dataTable().fnDestroy();
+            var count=$('#sc_account_table_tbody tr').length+parseFloat(1);
+            var markup = '<tr class="sc_lines_account" id="sc_line_account'+count+'">';
+            var table = document.getElementById("sc_account_table");
+            var txt = "";
+            var i;
+            for (i = 0; i < table.rows[0].cells.length; i++) {
+                txt = txt + table.rows[0].cells[i].innerHTML + "<br>";
+                //console.log(txt);
+                if(table.rows[0].cells[i].innerHTML=="#"){
+                    markup=markup+'<td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+count+'</td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
+                    markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker" data-live-search="true" id="select_account_sc'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
+                    markup=markup+'<td class="pt-3-half"><input class="sc_data description_select_sc form-control" id="select_description_sc'+count+'" style="border:0;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
+                    markup=markup+'<td class="pt-3-half"><input type="number" class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+count+'" style="border:0; text-align:right;"></td>';
+                }
+                if(table.rows[0].cells[i].innerHTML==""){
+                    markup=markup+'<td class="pt-3-half"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td>';
+                }
+            }
+            markup=markup+'</tr>';
             
-            $("#sc_account_table").append(markup);
+            $("#sc_account_table_tbody").append(markup);
             document.getElementById('setselectpickerbutton').click();
+            var invoice_table=$("#sc_account_table").DataTable({
+                paging: false,
+                "ordering": true,
+                'dom': 'Rlfrtip',
+                "autoWidth": false,
+                rowReorder: true
+            });
+            if(document.getElementById('sc_account_table_info')){
+                document.getElementById('sc_account_table_info').style.display="none";
+                document.getElementById('sc_account_table_filter').style.display="none";
+                
+            }
         }); 
 
         $("#clear_lines_sc_account").click(function(event){
             event.preventDefault();
+            $("#sc_account_table").dataTable().fnDestroy();
             $('.sc_lines_account').remove();
 
             update_total_sc();

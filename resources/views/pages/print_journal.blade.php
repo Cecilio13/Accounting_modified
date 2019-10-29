@@ -146,24 +146,24 @@
 
 <script>
 $(document).ready(function(){
-    // html2canvas(document.querySelector("#voucher_tables_print_area")).then(function(canvas) {
-    // var canvasImg = canvas.toDataURL("image/jpg");
-    // //$('#test').html('<img src="'+canvasImg+'" alt="">');
-    // var myImage = canvas.toDataURL("image/png");
-    // var tmp = document.body.innerHTML;
-    // document.body.innerHTML = '<img style="display: block;margin-top:10%;margin-left: auto;margin-right: auto;" src="'+myImage+'" alt="" >';
-    // setTimeout(function()
-    // {
-    //     var printWindow = window.print();
-    //     document.body.innerHTML = tmp;
-    //     window.close();
-    // }, 2000);
+    html2canvas(document.querySelector("#voucher_tables_print_area")).then(function(canvas) {
+    var canvasImg = canvas.toDataURL("image/jpg");
+    //$('#test').html('<img src="'+canvasImg+'" alt="">');
+    var myImage = canvas.toDataURL("image/png");
+    var tmp = document.body.innerHTML;
+    document.body.innerHTML = '<img style="display: block;margin-top:10%;margin-left: auto;margin-right: auto;" src="'+myImage+'" alt="" >';
+    setTimeout(function()
+    {
+        var printWindow = window.print();
+        document.body.innerHTML = tmp;
+        window.close();
+    }, 2000);
 
 
-    // });
+    });
 })
 </script>
-{{-- <div class="loading" id="import_overlay">
+<div class="loading" id="import_overlay">
 Loading&#8230;
-</div> --}}
+</div>
 @endsection
