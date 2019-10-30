@@ -13974,7 +13974,7 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input type="number" class="form-control credit_note_data product_qty_credit_note" onclick="this.select();" id="product_qty_credit_note'+count+'" style="border:0; text-align:center;" value="1"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="RATE"){
-                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+count+'" style="border:0;text-align:right;background-color:white;"></td>';
+                    markup=markup+'<td class="pt-3-half"><input class="form-control credit_note_data product_rate_credit_note" readonly id="select_product_rate_credit_note'+count+'" style="border:0;text-align:right;background-color:white !important;"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
                     markup=markup+'<td class="pt-3-half product_total_credit_note" style="text-align:right;padding-right:10px;" id="total_amount_credit_note'+count+'"></td>';
