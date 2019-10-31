@@ -104,4 +104,17 @@ class GetController extends Controller
         );
         return json_encode($data);
     }
+    public function export_dat_file(){
+        $myfile = fopen("extra/export_report/dat_file.dat", "w") or die("Unable to open file!");
+        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries 
+                    JOIN chart_of_accounts ON chart_of_accounts.id=journal_entries.je_account
+                    WHERE je_credit!='' ORDER BY journal_entries.created_at ASC");
+        foreach($JournalEntry as $je){
+            $txt = $je->coa_name." , ".number_format($je->je_credit,2)."\n";
+            fwrite($myfile, $txt);
+        }
+        
+        fclose($myfile);
+        return response()->download('extra/export_report/dat_file.dat','report.dat');
+    }
 }

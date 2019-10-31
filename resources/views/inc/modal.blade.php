@@ -257,7 +257,7 @@ function exporttoexcel(table_id){
             
           
 }
-    function exporttoexceltrial_balance(){
+    function exportDAT(){
         console.log('export excel journal entries');
         var filtertemplate= document.getElementById('filtertemplate').value;
         var CostCenterFilter = document.getElementById('CostCenterFilter').value;
