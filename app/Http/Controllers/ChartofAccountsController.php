@@ -492,6 +492,167 @@ class ChartofAccountsController extends Controller
 
         })->setFilename('Journal Entry Report '.date('m-d-Y'))->download('xlsx');
     }
+    public function export_trial_balance(Request $request){
+        Excel::load('extra/export_report/export_report_template_trial_balance.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $before="WHERE st_date <='".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $before="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$before." 
+                                ORDER BY st_no ASC");
+            $SalesTransaction2= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$before." 
+                                ORDER BY st_no ASC");
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+                            //whereBetween('created_at', [$FROM, $TO])
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $COA= ChartofAccount::where('coa_active','1')->orderBy('coa_title','ASC')->get();
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+           
+            $expense_transactions= DB::table('expense_transactions')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->join('et_account_details', 'et_account_details.et_ad_no', '=', 'expense_transactions.et_no')
+                    ->get();
+            if($filtertemplate=="All"){
+                //$JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('created_at','ASC')->get();
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('et_account_details', 'et_account_details.et_ad_no', '=', 'expense_transactions.et_no')
+                    ->get();
+            }
+            $cost_center_list=CostCenter::all();
+            $AccountRecievable=0;
+            $Cash=0;
+            $Sales=0;
+            $ExpensesTotal=0;
+            
+            $coa_name_totaldebit=0;
+            $coa_name_totalcredit=0;
+            $position=3;
+            $sheet = $doc->setActiveSheetIndex(0);
+            foreach ($COA as $coa){
+                $coa_name_total=0;
+                $coa_name_totalc=0;
+                $coa_name_totald=0;
+                foreach ($JournalEntry as $JE){
+                    if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                        if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            $coa_name_totalc+=$JE->je_credit;
+                            $coa_name_total+=$JE->je_credit;
+                        }else{
+                            $coa_name_totald+=$JE->je_debit;
+                            $coa_name_total-=$JE->je_debit;
+                        }
+                    }
+                }
+                if ($coa_name_totalc!=0 || $coa_name_totald!=0){
+                    if($coa_name_totalc==$coa_name_totald){
+
+                    }else{
+                        
+                    }
+                    $debit=0;
+                    $credit=0;
+                    if($coa_name_totalc<$coa_name_totald){
+                        $debit=$coa_name_totalc-$coa_name_totald;
+                        if($debit<0){
+                            $debit*=-1;
+                        }
+                        $credit="";
+                    }else if($coa_name_totalc>$coa_name_totald){
+                        $debit="";
+                        $credit=$coa_name_totalc-$coa_name_totald;
+                        if($credit<0){
+                            $credit*=-1;
+                        }
+                    }
+                    $sheet->setCellValue('B'.$position,$coa->coa_title);
+                    $sheet->setCellValue('C'.$position,$coa->coa_name);
+                    $sheet->setCellValue('D'.$position,($debit!=""? number_format($debit,2) : ''));
+                    $sheet->setCellValue('E'.$position,($credit!=""? number_format($credit,2): ''));
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $coa_name_totaldebit+=$coa_name_totald;
+                    $coa_name_totalcredit+=$coa_name_totalc;
+                    $position++;
+                }
+                
+            }
+            
+            $sheet->setCellValue('D'.$position,number_format($coa_name_totaldebit,2));
+            $sheet->setCellValue('E'.$position,number_format($coa_name_totalcredit,2));
+            $style = array(
+                'borders' => array(
+                    'top'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    ),
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+        })->setFilename('Trial Balance Report '.date('m-d-Y'))->download('xlsx');
+    }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {
         $customers = Customers::all();

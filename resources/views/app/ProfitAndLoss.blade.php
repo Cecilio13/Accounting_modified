@@ -299,6 +299,7 @@
 <div class="row">
     <div class="col-md-12">
         <a href="reports" class="btn btn-link btn-upper-report" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
+        
     </div>
 </div>
 <!--changes filtersection-->
@@ -369,6 +370,21 @@
     <div class="col-md-2" style="text-align:right;">
         <button style="display:none;" class="btn btn-outline-dark" onclick="showcustomizationsection()">Customize</button>
         <button class="btn btn-success"  data-toggle="modal" data-target="#exampleModal">Save customization</button>
+        
+        <div class="dropdown">
+        <button class="btn btn-primary mt-2 dropdown-toggle" style="width:100%;" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Report Category
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="ProfitAndLost">Profit And Loss</a>
+            <a class="dropdown-item" href="ProfitAndLossByMonth">Profit And Loss By Month</a>
+            <a class="dropdown-item" href="ProfitAndLossByCustomer">Profit And Loss By Customer</a>
+            <a class="dropdown-item" href="ProfitAndLostComparison">Profit And Loss Comparison</a>
+            <a class="dropdown-item" href="ProfitandLossasPercentageTotal">Profit And Loss as % of total income</a>
+            <a class="dropdown-item" href="QuaarterlyProfitAndLoss">Quarterly Profit and Loss Summary</a>
+            
+        </div>
+        </div>
         
     </div>
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">

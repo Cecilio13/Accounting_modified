@@ -134,7 +134,16 @@ jQuery(document).ready(function($) {
 	$('#bill_credit_account_code_button').on('click',function(event){
 		$('#bill_account_credit_account_code').selectpicker('refresh');
 	})
-
+	$('#sales_receipt_account_debit_account_code_button').on('click',function(event){
+		$("#"+document.getElementById('sales_receipt_account_debit_account_code_button').getAttribute('data-value')).selectpicker('refresh');
+		//console.log('sr acc debit account code button');
+		console.log(document.getElementById('sales_receipt_account_debit_account_code_button').getAttribute("data-value"));
+	})
+	$('#sales_receipt_account_debit_account_button').on('click',function(event){
+		$(document.getElementById('supplier_credit_debit_account_code_button').getAttribute('data-value')).selectpicker('refresh');
+		console.log('sr acc debit account code button2');
+		console.log(document.getElementById('supplier_credit_debit_account_code_button').getAttribute('data-value')+" 123123");
+	})
 	$('#supplier_credit_debit_account_account_button').on('click',function(event){
 		
 		$('#supplier_credit_account_debit_account').selectpicker('refresh');

@@ -257,7 +257,18 @@ function exporttoexcel(table_id){
             
           
 }
-function exporttoexcelnew(type,from,to,cost_center){
+    function exporttoexceltrial_balance(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_trial_balance?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+        
+    }
+    function exporttoexcelnew(){
+        console.log('export excel journal entries');
         var filtertemplate= document.getElementById('filtertemplate').value;
         var CostCenterFilter = document.getElementById('CostCenterFilter').value;
         var FROM= document.getElementById('Fromdate').value;
@@ -1316,7 +1327,7 @@ function exporttoexcelnew(type,from,to,cost_center){
                         
                         
                     </div>
-					<div class="col-md-12 p-0 " style="margin-bottom:20px;">
+					<div class="col-md-12 p-0 ">
 					<div class="col-md-3 p-0 pr-3">
                                 <p>Email</p>
                             <input type="text" id="email" name="email" placeholder="Email (Separate emails with a comma)" class="w-100 mb-2 form-control">
@@ -1332,12 +1343,22 @@ function exporttoexcelnew(type,from,to,cost_center){
                             </div>
                             
                     </div>
-                    <div class="col-md-6 p-0 d-inline-flex justify-content-end pr-5" style="text-align:right;">
-                        <h4 class="mr-2">BALANCE DUE: </h4>
-                        <h4 id="big_invoicebalance">PHP 0.00</h4>
+                    
                     </div>
+                    <div class="col-md-12 p-0"  style="margin-bottom:20px;">
+                        <table class="table-borderless table-sm" style="margin-right:5%;float:right;"> <!--style="margin-right:5%;float:right;" -->
+                            <tr>
+                                
+                                <td style="vertical-align:middle;text-align:right;">
+                                    <div class="col-md-12 p-0 d-inline-flex justify-content-end" style="text-align:right;margin-right:5%;">
+                                        <h4 class="mr-2">BALANCE DUE: </h4>
+                                        <h4 id="big_invoicebalance">PHP 0.00</h4>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                        </table>
                     </div>
-
                     <table id="main_invoice_table" class="table table-bordered table-responsive-md text-left font14 table-sm">
                         <thead class="thead-light">
                             <tr>
@@ -1361,25 +1382,27 @@ function exporttoexcelnew(type,from,to,cost_center){
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_invoice">Add Items</button>
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_invoice">Clear All Items</button>
-                                
                             </div>
                         </div>
                         
                     </div>
-                    <div class="col-md-10 p-0">
-                    </div>
-                    <div class="col-md-2 p-0">
-                        <table class="table table-borderless table-sm">
+                    {{-- <div class="col-md-9 p-0">
+                    </div> --}}
+                    <div class="col-md-12 p-0">
+                        <table class="table-borderless table-sm" style="margin-right:5%;float:right;"> <!--style="margin-right:5%;float:right;" -->
                             <tr>
-                                <td style="vertical-align:middle;text-align:right;"><p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p></td>
-                                <td style="vertical-align:middle;text-align:right;"><p id="invoicetotal" class="mb-0 text-dark font-weight-bold">PHP 0.00</p></td>
+                                {{-- <td width="60%"></td> --}}
+                                <td style="vertical-align:middle;text-align:right;font-size:1em"><p style="font-size:1.3em !important" class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p></td>
+                                <td style="vertical-align:middle;text-align:right;font-size:1em"><p style="font-size:1.3em !important" id="invoicetotal" class="mb-0 text-dark font-weight-bold">PHP 0.00</p></td>
+                                {{-- <td class="text-center" width="5%"></td> --}}
                             </tr>
                             <tr>
-                                <td style="vertical-align:middle;text-align:right;"><p class="pr-4 text-dark font-weight-bold">BALANCE DUE</p></td>
-                                <td style="vertical-align:middle;text-align:right;"><p id="invoicebalance" class="text-dark font-weight-bold">PHP 0.00</p></td>
+                                {{-- <td width="60%"></td> --}}
+                                <td style="vertical-align:middle;text-align:right;font-size:1em"><p style="font-size:1.3em !important" class="pr-4 text-dark font-weight-bold">BALANCE DUE</p></td>
+                                <td style="vertical-align:middle;text-align:right;font-size:1em"><p style="font-size:1.3em !important" id="invoicebalance" class="text-dark font-weight-bold">PHP 0.00</p></td>
+                                {{-- <td class="text-center" width="5%"></td> --}}
                             </tr>
                         </table>
-                        
                     </div>
                     <div class="col-md-12 p-0">
                         <div class="col-md-6 pl-0">
@@ -1392,7 +1415,7 @@ function exporttoexcelnew(type,from,to,cost_center){
                         </div>
                     </div>
                     <div class="col-md-12 p-0 mt-4">
-                        <table class="table table-light table-sm" style="margin-bottom:0px;" class="invoicetablesss">
+                        <table class="table table-light table-sm bordered-top-table" style="margin-bottom:0px;">
                             <thead class="thead-light">
                                 <tr>
                                     <th colspan="3" style="vertical-align:middle;text-align:center;">Accounts</th>
@@ -3457,10 +3480,7 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="date" name="e_due_date" id="e_due_date" class="w-100 form-control" required>
                         </div>
                         
-                        <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
-                            <h4 class="mr-2">BALANCE DUE: </h4>
-                            <h3 id="big_estimatebalance">PHP 0.00</h3>
-                        </div>
+                        
                     </div>
                     <div class="my-3 p-0">
                         <div class="col-md-3 p-0 pr-3">
@@ -3487,7 +3507,20 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="text" name="e_bill_address" id="e_bill_address" class="w-100 form-control" required>
                         </div>
                     </div>
-                    
+
+                    <div class="col-md-12 p-0"  style="margin-bottom:20px;">
+                        <table class="table-borderless table-sm" style="margin-right:5%;float:right;"> <!--style="margin-right:5%;float:right;" -->
+                            <tr>
+                                <td style="vertical-align:middle;text-align:right;">
+                                    <div class="col-md-12 p-0 d-inline-flex center-content mr-1">
+                                        <h4 class="mr-2">BALANCE DUE: </h4>
+                                        <h3 id="big_estimatebalance">PHP 0.00</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                        </table>
+                    </div>
                     <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="estimate_table">
                         <thead class="thead-light">
                             <tr>
@@ -3514,18 +3547,18 @@ function getModal(Location,TTTTT,e,type,sales){
                                 
                             </div>
                         </div>
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
-                                <p class="mb-0 text-dark font-weight-bold" id="estimatetotal">PHP 0.00</p>
+                        <div class="float-right" style="margin-right:5%">
+                            <div class="d-inline-flex mr-1">
+                                <p style="font-size:1.3em !important" class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
+                                <p style="font-size:1.3em !important" class="mb-0 text-dark font-weight-bold" id="estimatetotal">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-12 p-0">
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                <p class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
-                                <p class="text-dark font-weight-bold" id="estimatebalance">PHP 0.00</p>
+                        <div class="float-right" style="margin-right:5%">
+                            <div class="d-inline-flex mr-1">
+                                <p style="font-size:1.3em !important" class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
+                                <p style="font-size:1.3em !important" class="text-dark font-weight-bold" id="estimatebalance">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
@@ -3728,10 +3761,14 @@ function getModal(Location,TTTTT,e,type,sales){
                                                     //alert(data[c-1]['st_p_debit']);
                                                     if(data[c-1]['st_p_debit']!=""){
                                                         document.getElementById('sales_receipt_account_credit_account').value=data[c-1]['st_p_debit'];
+                                                        document.getElementById('sales_receipt_account_credit_account_account').value=data[c-1]['st_p_debit'];
+                                                        document.getElementById('sales_receipt_account_credit_account_cheque_code').value=data[c-1]['st_p_debit'];
                                                         document.getElementById('sales_receipt_account_credit_account_cheque').value=data[c-1]['st_p_debit'];
                                                         
                                                     }
                                                     document.getElementById('sales_receipt_account_credit_account').disabled="true";
+                                                    document.getElementById('sales_receipt_account_credit_account_account').disabled="true";
+                                                    document.getElementById('sales_receipt_account_credit_account_cheque_code').disabled="true";
                                                     document.getElementById('sales_receipt_account_credit_account_cheque').disabled="true";
                                                     
                                                     document.getElementById('select_product_description_sales_receipt'+c).value=data[c-1]['st_i_desc'];
@@ -3826,7 +3863,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                     $("#BankChequeNoAdditionalDiv").append(markup);
                                     var markup='<tr id="AdditionalChequeTRSalesReceipt'+additionalchequecount+'">';
                                         markup=markup+'<td style="text-align:right;vertical-align:middle;">';
-                                            markup=markup+'<p class="text-dark font-weight-bold">Cheque Amount '+additionalchequecount+'</p>';
+                                            markup=markup+'<p class="text-dark font-weight-bold pr-3">Cheque Amount '+additionalchequecount+'</p>';
                                         markup=markup+'</td>';
                                         markup=markup+'<td style="vertical-align:middle;">';
                                             markup=markup+'<input class="form-control" style="text-align:right;" type="text" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" name="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" placeholder="0.00"  required>';
@@ -3855,13 +3892,29 @@ function getModal(Location,TTTTT,e,type,sales){
                                 }
                                 var AdditionalCashAccountCount=0;
                                 function GenerateAdditionalCashAccountsSalesReceipt(){
+                                    
+                                    $("#cash_account_receive_payment_table").dataTable().fnDestroy();
                                     AdditionalCashAccountCount++;
                                     document.getElementById('additional_count_cash_account').value=AdditionalCashAccountCount;
                                     var markup='<tr id="AdditionalCashTD'+AdditionalCashAccountCount+'">';
                                         
-                                        markup=markup+'<td style="vertical-align:middle;" class="pl-0">';
+                                        markup=markup+'<td style="vertical-align:middle;">';
+                                        markup=markup+'<select onchange="setsraccountdebitcode(\'additionalcashDebitAccountcode'+AdditionalCashAccountCount+'\',\'additionalcashDebitAccount'+AdditionalCashAccountCount+'\')" class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccountcode'+AdditionalCashAccountCount+'" id="additionalcashDebitAccountcode'+AdditionalCashAccountCount+'">';
+                                        @foreach($COA as $coo)
+                                            if('{{$coo->id}}'=="1"){
+                                                markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
+                                            }else{
+                                                markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
+                                            }
+                                            
+                                        @endforeach
 
-                                        markup=markup+'<select required class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccount'+AdditionalCashAccountCount+'" id="additionalcashDebitAccount'+AdditionalCashAccountCount+'">';
+                                        markup=markup+'</select>'; 
+                                            
+                                        markup=markup+'</td>';
+                                        markup=markup+'<td style="vertical-align:middle;">';
+
+                                        markup=markup+'<select required onchange="setsraccountdebitcode(\'additionalcashDebitAccount'+AdditionalCashAccountCount+'\',\'additionalcashDebitAccountcode'+AdditionalCashAccountCount+'\')" class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccount'+AdditionalCashAccountCount+'" id="additionalcashDebitAccount'+AdditionalCashAccountCount+'">';
                                         @foreach($COA as $coo)
                                             if('{{$coo->id}}'=="1"){
                                                 markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
@@ -3874,7 +3927,16 @@ function getModal(Location,TTTTT,e,type,sales){
                                         markup=markup+'</select>'; 
                                             
                                         markup=markup+'</td>';
-                                        markup=markup+'<td style="vertical-align:middle;" class="pr-0">';
+                                        markup=markup+'<td style="vertical-align:middle;">';
+                                        markup=markup+'<select disabled class="form-control" name="additionalcashCreditAccount'+AdditionalCashAccountCount+'" id="additionalcashCreditAccount'+AdditionalCashAccountCount+'">';
+                                            @foreach($COA as $coo)
+                                            markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
+                                            @endforeach
+                                        
+                                        markup=markup+'</select>';    
+                                        
+                                        markup=markup+'</td>';
+                                        markup=markup+'<td style="vertical-align:middle;">';
                                         markup=markup+'<select disabled required class="form-control" name="additionalcashCreditAccount'+AdditionalCashAccountCount+'" id="additionalcashCreditAccount'+AdditionalCashAccountCount+'">';
                                             @foreach($COA as $coo)
                                             markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
@@ -3883,27 +3945,39 @@ function getModal(Location,TTTTT,e,type,sales){
                                         markup=markup+'</select>';    
                                         
                                         markup=markup+'</td>';
-                                        markup=markup+'<td style="text-align:right;vertical-align:middle;" class="pr-0">';
+                                        markup=markup+'<td style="text-align:right;vertical-align:middle;">';
                                                 markup=markup+'<input style="text-align:right;" class="form-control" type="text" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="additionalCashAmount_mask'+AdditionalCashAccountCount+'" name="additionalCashAmount_mask'+AdditionalCashAccountCount+'" placeholder="0.00" value="0" required>';
                                                 markup=markup+'<input type="hidden" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="additionalCashAmount'+AdditionalCashAccountCount+'" name="additionalCashAmount'+AdditionalCashAccountCount+'" placeholder="0.00"  required>';
                                         markup=markup+'</td>';
                                         markup=markup+'</tr>';
-                                        $("#additionalCashSalesReceiptTbody").append(markup); 
+                                        $("#tablecashaccounttabletable").append(markup); 
                                         document.getElementById('additionalcashCreditAccount'+AdditionalCashAccountCount).value=document.getElementById('sales_receipt_account_credit_account').value;
                                         var textbox = '#additionalCashAmount_mask'+AdditionalCashAccountCount;
-                                                        var hidden = '#additionalCashAmount'+AdditionalCashAccountCount;
-                                                        
-                                                        $(textbox).keyup(function () {
-                                                            $(textbox).val(this.value.match(/[0-9.,-]*/));
-                                                        var num = $(textbox).val();
-                                                            var comma = /,/g;
-                                                            num = num.replace(comma,'');
-                                                            $(hidden).val(num);
-                                                            $(hidden).attr('title',num);
-                                                            var numCommas = addCommas(num);
-                                                            $(textbox).val(numCommas);
-                                                        });
-                                                        refreshpicjer();
+                                        var hidden = '#additionalCashAmount'+AdditionalCashAccountCount;
+                                        
+                                        $(textbox).keyup(function () {
+                                            $(textbox).val(this.value.match(/[0-9.,-]*/));
+                                        var num = $(textbox).val();
+                                            var comma = /,/g;
+                                            num = num.replace(comma,'');
+                                            $(hidden).val(num);
+                                            $(hidden).attr('title',num);
+                                            var numCommas = addCommas(num);
+                                            $(textbox).val(numCommas);
+                                        });
+                                        refreshpicjer();
+                                        var cash_account_receive_payment_table_table = $('#cash_account_receive_payment_table').DataTable({
+                                                paging: false,
+                                                "ordering": false,
+                                                'dom': 'Rlfrtip',
+                                                "autoWidth": false
+                                                
+                                        });
+                                        
+                                        if(document.getElementById('cash_account_receive_payment_table_info')){
+                                            document.getElementById('cash_account_receive_payment_table_info').style.display="none";
+                                            document.getElementById('cash_account_receive_payment_table_filter').style.display="none";
+                                        }
                                 }
                             </script>
                             <div id="NoOfChequeDivb" style="display:none;"><button type="button" onclick="GenerateFieldSalesReceipt()" class="btn btn-secondary btn-sm mt-1">Additional cheque</button></div>
@@ -4012,7 +4086,7 @@ function getModal(Location,TTTTT,e,type,sales){
                             </div>
                             
                         </div>
-                        <div class="col-md-6 p-0 d-inline-flex justify-content-end pr-5" style="text-align:right;">
+                        <div class="col-md-6 p-0 d-inline-flex justify-content-end pr-2" style="text-align:right;">
                             <h4 class="mr-2">BALANCE DUE: </h4>
                             <h4 id="big_sales_receiptbalance">PHP 0.00</h4>
                         </div>
@@ -4056,7 +4130,7 @@ function getModal(Location,TTTTT,e,type,sales){
                     </div>
                     <div class="col-md-8 p-0" style="text-align:right;">
                     </div>
-                    <div class="col-md-4" style="text-align:right;">
+                    <div class="col-md-4" style="text-align:right;padding-right:5px !important;">
                         <table class="table table-borderless table-sm">
                             <tr>
                                 <td style="vertical-align:middle;" width="80%"><p class="mb-0 pr-4 text-dark font-weight-bold">Amount Due</p></td>
@@ -4076,45 +4150,73 @@ function getModal(Location,TTTTT,e,type,sales){
                             </tr>
                         </table>
                     </div>
-                   
+                    <button style="display:none;" type="button" data-value="asd" id="sales_receipt_account_debit_account_code_button"></button>
+                    <button style="display:none;" type="button" data-value="aqwe" id="sales_receipt_account_debit_account_button"></button>
+                   <script>
+                       function setsraccountdebitcode(origin,destination){
+                        var code=document.getElementById(origin).value;
+                            document.getElementById(destination).value=code;
+                            document.getElementById('sales_receipt_account_debit_account_code_button').setAttribute('data-value',destination);
+                            document.getElementById('sales_receipt_account_debit_account_code_button').click();
+                            //console.log(document.getElementById('sales_receipt_account_debit_account_code_button').getAttribute('id'));
+                            
+                       }
+                   </script>
                     <div class="col-md-12 p-0 mt-4"  id="CashAccountDivSalesReceipt">
-                        <table class="table table-light">
+                        <table class="table table-light table-sm" style="margin-bottom:0px;">
                             <thead class="thead-light">
                                 <tr>
                                     <th colspan="3" style="vertical-align:middle;text-align:center;">Cash Accounts</th>
                                 </tr>
+                                
+                            </thead>
+                        </table>
+                        <table class="table table-light table-sm" style="margin-bottom:0px;" id="cash_account_receive_payment_table">
+                            <thead class="thead-light">
                                 <tr>
                                     
-                                    <th style="vertical-align:middle;text-align:center;width: 40%;border-right:1px solid #ccc;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 40%;border-right:1px solid #ccc;">Credit</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 3ch;border-right:1px solid #ccc;">Debit</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Credit</th>
                                     <th style="vertical-align:middle;text-align:center;width: 20%;">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tablecashaccounttabletable">
                                 <tr>
-                                    
-                                    <td style="vertical-align:middle;" class="pl-0">
-                                        <select class="form-control selectpicker" data-live-search="true" name="sales_receipt_account_debit_account"  id="sales_receipt_account_debit_account" required>
+                                    <td style="vertical-align:middle;">
+                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account_code','sales_receipt_account_debit_account')" data-live-search="true" name="sales_receipt_account_debit_account_code"  id="sales_receipt_account_debit_account_code">
+                                        @foreach($c_o_a_sorted as $coa)
+                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
+                                        @endforeach
+                                        </select>
+                                        
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account','sales_receipt_account_debit_account_code')" data-live-search="true" name="sales_receipt_account_debit_account"  id="sales_receipt_account_debit_account" required>
                                         @foreach($c_o_a_sorted as $coa)
                                         <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
                                         @endforeach
                                         </select>
                                         
                                     </td>
-                                    <td style="vertical-align:middle;" class="pr-0">
+                                    <td style="vertical-align:middle;" >
+                                        <select class="form-control" name="sales_receipt_account_credit_account_account"  id="sales_receipt_account_credit_account_account" >
+                                        <option></option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{$coa->coa_code}}</option>
+                                        @endforeach
+                                        </select>
+                                    </td>
+                                    <td style="vertical-align:middle;" >
                                         <select class="form-control" name="sales_receipt_account_credit_account"  id="sales_receipt_account_credit_account" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{$coa->coa_name}}</option>
                                         @endforeach
                                         </select>
-                                        <script>
-                                        $(document).ready(function(){
-                                            document.getElementById('sales_receipt_account_credit_account').value="4";
-                                        })
-                                        </script>
                                     </td>
-                                    <td style="vertical-align:middle;" id="CashAccountFirstTD" class="pr-0">
+                                    <td style="vertical-align:middle;" id="CashAccountFirstTD">
                                         <script>
                                             function computeoutstanding(){
                                                 var totalpayment=0;
@@ -4178,9 +4280,8 @@ function getModal(Location,TTTTT,e,type,sales){
                                 </tr>
                                 
                             </tbody>
-                            <tbody id="additionalCashSalesReceiptTbody">
-
-                            </tbody>
+                        </table>
+                        <table class="table table-light table-sm">
                             <tbody>
                                 <tr>
                                     <td colspan="3" style="vertical-align:middle;">
@@ -4189,25 +4290,52 @@ function getModal(Location,TTTTT,e,type,sales){
                                 </tr>
                             </tbody>
                         </table>
-
                     </div> 
                     <div class="col-md-12 p-0 mt-4"  id="ChequeAccountDivSalesReceipt">
-                        <table class="table table-light">
+                        <table class="table table-light table-sm" style="margin-bottom:0px;" >
                             <thead class="thead-light">
                                 <tr>
                                     <th colspan="3" style="vertical-align:middle;text-align:center;">Cheque Accounts</th>
                                 </tr>
-                                <tr>
-                                    
-                                    <th style="vertical-align:middle;text-align:center;width: 40%;border-right:1px solid #ccc;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 40%;border-right:1px solid #ccc;">Credit</th>
+                            </thead>
+                        </table>
+                        <table class="table table-light table-sm" style="margin-bottom:0px;" id="chequeaccounts_receivepayment_table">
+                            <thead class="thead-light">
+                                <tr> 
+                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Debit</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
+                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Credit</th>
                                     <th style="vertical-align:middle;text-align:center;width: 20%;">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="chequeaccounts_recievipaymenytable">
                                 <tr>
-                                    
-                                    <td style="vertical-align:middle;" class="pl-0">
+                                    <td style="vertical-align:middle;">
+                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account_cheque_code','sales_receipt_account_debit_account_cheque')" data-live-search="true" name="sales_receipt_account_debit_account_cheque_code"  id="sales_receipt_account_debit_account_cheque_code" required>
+                                        <?php
+                                        $a = 'Cash Clearing Account';
+                                        ?>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        @if (!empty($sales_setting))
+                                            @if ($coa->id==$sales_setting->sales_sales_receipt_preferred_debit_cheque_account)
+                                            <option selected value="{{$coa->id}}">{{$coa->coa_code}}</option>     
+                                            @else
+                                            <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>    
+                                            @endif
+                                        @else
+                                            @if (strpos($coa->coa_code, $a) !== false)
+                                            <option selected value="{{$coa->id}}">{{$coa->coa_code}}</option>     
+                                            @else
+                                            <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>    
+                                            @endif
+                                        
+                                        @endif
+                                        
+                                        @endforeach
+                                        </select>
+                                    </td>
+                                    <td style="vertical-align:middle;">
                                         <select class="form-control selectpicker" data-live-search="true" name="sales_receipt_account_debit_account_cheque"  id="sales_receipt_account_debit_account_cheque" required>
                                         <?php
                                         $a = 'Cash Clearing Account';
@@ -4239,30 +4367,40 @@ function getModal(Location,TTTTT,e,type,sales){
                                        
                                         $("#sales_receipt_account_debit_account_cheque").change(function() {
                                         var newVal = $(this).val();
-                                        if (!confirm("Are you sure you want to change to another Account?")) {
-                                            $(this).val(countryVal); //set back
-                                            return;                  //abort!
-                                        }
+                                        // if (!confirm("Are you sure you want to change to another Account?")) {
+                                        //     $(this).val(countryVal); //set back
+                                        //     return;                  //abort!
+                                        // }
+                                        setsraccountdebitcode('sales_receipt_account_debit_account_cheque','sales_receipt_account_debit_account_cheque_code');
                                         //destroy branches
                                         countryVal = newVal;       //store new value for next time
                                         });
                                         </script>
                                     </td>
-                                    <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control" name="sales_receipt_account_credit_account_cheque"  id="sales_receipt_account_credit_account_cheque" required>
+                                    <td style="vertical-align:middle;">
+                                        <select class="form-control" name="sales_receipt_account_credit_account_cheque_code"  id="sales_receipt_account_credit_account_cheque_code"  required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option title="{{$coa->coa_title}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
                                         @endforeach
                                         </select>
                                         
                                     </td>
-                                    <td style="vertical-align:middle;" id="ChequeAccountFirstTD" class="pr-0 pt-4">
-                                       <table  class="table table-borderless" >
+                                    <td style="vertical-align:middle;">
+                                        <select class="form-control"  name="sales_receipt_account_credit_account_cheque"  id="sales_receipt_account_credit_account_cheque" required>
+                                        <option></option>
+                                        @foreach($c_o_a_sorted as $coa)
+                                        <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        @endforeach
+                                        </select>
+                                        
+                                    </td>
+                                    <td style="vertical-align:middle;" id="ChequeAccountFirstTD">
+                                       <table  class="table table-borderless" style="margin-bottom:0px;">
                                         <tbody id="SalesReceiptAmountFromChequeDivTransferDiv" >
                                             <tr>
                                             <td style="text-align:right;vertical-align:middle;">
-                                                    <p class="text-dark font-weight-bold">Cheque Amount</p>
+                                                    <p class="text-dark font-weight-bold pr-3">Cheque Amount</p>
                                             </td>
                                             <td style="vertical-align:middle;" id="ChequeAccountFirstTDTransger">
                                                 
@@ -4272,7 +4410,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <tbody id="SalesReceiptAmountFromChequeDiv" style="display:none;">                    
                                         <tr>
                                         <td style="text-align:right;vertical-align:middle;">
-                                                <p class="text-dark font-weight-bold">Cheque Amount</p>
+                                            <p class="text-dark font-weight-bold pr-3">Cheque Amount</p>
                                         </td>
                                         <td style="vertical-align:middle;">
                                             
@@ -4380,10 +4518,7 @@ function getModal(Location,TTTTT,e,type,sales){
                             <p>Credit Note Date</p>
                             <input type="date" name="cn_date" id="cn_date" class="w-100 form-control" required>
                         </div>
-                        <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
-                            <h4 class="mr-2">BALANCE DUE: </h4>
-                            <h4 id="big_credit_notebalance">PHP 0.00</h4>
-                        </div>
+                        
                     </div>
                     <div class="my-3 p-0">
                         <div class="col-md-3 p-0 pr-3">
@@ -4415,7 +4550,7 @@ function getModal(Location,TTTTT,e,type,sales){
                         
                     </div>
                     
-                    <div class="col-md-12 p-0 " style="margin-bottom:20px;">
+                    <div class="col-md-12 p-0 ">
                         <div class="col-md-4 p-0 pr-3">
                             <p>Billing Address</p>
                             <input type="text" name="cn_bill_address" id="cn_bill_address" class="w-100 form-control" required>
@@ -4423,6 +4558,19 @@ function getModal(Location,TTTTT,e,type,sales){
                         
                         
                         
+                    </div>
+                    <div class="col-md-12 p-0"  style="margin-bottom:20px;">
+                        <table class="table-borderless table-sm" style="margin-right:3%;float:right;"> <!--style="margin-right:5%;float:right;" -->
+                            <tr>
+                                <td style="vertical-align:middle;text-align:right;">
+                                    <div class="col-md-12 p-0 d-inline-flex center-content">
+                                        <h4 class="mr-2">BALANCE DUE: </h4>
+                                        <h4 id="big_credit_notebalance">PHP 0.00</h4>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                        </table>
                     </div>
                     <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="credit_note_table">
                         <thead class="thead-light">
@@ -4433,7 +4581,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                 <th class="text-center" width="10%">QTY</th>
                                 <th class="text-center" width="15%">RATE</th>
                                 <th class="text-center" width="15%">AMOUNT</th>
-                                <th class="text-center"></th>
+                                <th class="text-center" width="3%"></th>
                             </tr>
                         </thead>
                         <tbody id="credit_note_table_tbody">
@@ -4449,18 +4597,18 @@ function getModal(Location,TTTTT,e,type,sales){
                                 <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_credit_note">Clear All Items</button>
                             </div>
                         </div>
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
-                                <p class="mb-0 text-dark font-weight-bold" id="credit_notetotal">PHP 0.00</p>
+                        <div class="float-right " style="margin-right:3%">
+                            <div class="d-inline-flex mr-1" >
+                                <p style="font-size:1.3em !important" class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
+                                <p style="font-size:1.3em !important" class="mb-0 text-dark font-weight-bold" id="credit_notetotal">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-12 p-0">
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                <p class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
-                                <p class="text-dark font-weight-bold" id="credit_notebalance">PHP 0.00</p>
+                        <div class="float-right " style="margin-right:3%">
+                            <div class="d-inline-flex mr-1" >
+                                <p style="font-size:1.3em !important" class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
+                                <p style="font-size:1.3em !important" class="text-dark font-weight-bold" id="credit_notebalance">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
@@ -5366,10 +5514,7 @@ function getModal(Location,TTTTT,e,type,sales){
                             <p>Due Date</p>
                             <input type="date" onchange="setbill_terms(this)" id="bill_due_date_bill" name="bill_due_date" class="w-100 form-control" required>
                         </div>
-                        <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
-                            <h4 class="mr-2">BALANCE DUE: </h4>
-                            <h4>PHP 0.00</h4>
-                        </div>
+                        
                     </div>
                     <div class="col-md-12 p-0">
                         
@@ -5427,7 +5572,11 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="text" name="CI_bill" id="CI_bill" placeholder="Charge Invoice" class="w-100 form-control"  required>
                         </div>
                     </div>
-                    <div class="col-md-12 mb-1 mt-3">
+                    <div class="col-md-12 p-0 d-inline-flex justify-content-end" style="float:right;margin-right:5%;">
+                        <h4 class="mr-2">BALANCE DUE: </h4>
+                        <h4 class="mr-1">PHP 0.00</h4>
+                    </div>
+                    <div class="col-md-12 mb-1 mt-3" style="padding-left:0px;">
                         <h4>Account Details</h4>
                     </div>
                     <table class="table table-bordered table-responsive-md table-sm text-left font14" id="bill_account_table">
@@ -5773,10 +5922,6 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                         <div class="col-md-3 p-0">
                         </div>
-                        <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
-                            <h4 class="mr-2">CREDIT AMOUNT: </h4>
-                            <h4>PHP 0.00</h4>
-                        </div>
                     </div>
                     <div class="col-md-12 p-0 mt-4 d-inline-flex">
                         <div class="col-md-3 p-0 pr-3">
@@ -5792,7 +5937,11 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="text" name="sc_reference_no" class="w-100 form-control">
                         </div>
                     </div>
-                    <div class="col-md-12 mb-1 mt-3">
+                    <div class="col-md-12 p-0 d-inline-flex justify-content-end" style="float:right;margin-right:5%;">
+                        <h4 class="mr-2">CREDIT AMOUNT: </h4>
+                        <h4 class="mr-3">PHP 0.00</h4>
+                    </div>
+                    <div class="col-md-12 mb-1 mt-3" style="padding-left:0px;">
                         <h4>Account Details</h4>
                     </div>
                     <table class="table table-bordered table-responsive-md table-sm text-left font14 table-sm" id="sc_account_table">
@@ -6842,10 +6991,10 @@ function addCardCreditedit(){
                         <tr style="background-color:rgb(228, 236, 247);color:#666;">
                             <th class="text-left" width="3%">#</th>
                             <th class="text-left" width="10%">CODE</th>
-                            <th class="text-left" width="9%">ACCOUNT</th>
+                            <th class="text-left" width="15%">ACCOUNT</th>
                             <th class="text-left" width="10%">COST CENTER</th>
-                            <th class="text-left" width="10%">DEBITS</th>
-                            <th class="text-left" width="10%">CREDITS</th>
+                            <th class="text-left" width="8%">DEBIT</th>
+                            <th class="text-left" width="8%">CREDIT</th>
                             <th class="text-left" width="10%">DESCRIPTION</th>
                             <th class="text-left" width="15%">PAYEE</th>
                             <th class="text-left" width="8%">CHEQUE NO</th>
@@ -6859,7 +7008,7 @@ function addCardCreditedit(){
                             
                             <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">1</td>
                             <td class="pt-3-half" contenteditable="false">
-                                <select class="selectpicker input-block-level" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
+                                <select class="selectpicker form-control input-block-level" onchange="setAccountJournalEntry('1')" required data-live-search="true"  id="accjournalcode1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
@@ -6868,7 +7017,7 @@ function addCardCreditedit(){
                                 
                             </td>
                             <td class="pt-3-half" contenteditable="false">
-                                <select class="selectpicker"onchange="setAccountCodeJournalEntry('1')" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
+                                <select class="selectpicker form-control"onchange="setAccountCodeJournalEntry('1')" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
@@ -6907,7 +7056,7 @@ function addCardCreditedit(){
                             <td class="pt-3-half" contenteditable="false" style="padding:0px 0px 0px 2px;">2</td>
                             <td class="pt-3-half" contenteditable="false">
                                 
-                                <select class="selectpicker input-block-level" onchange="setAccountJournalEntry('2')" required data-live-search="true" id="accjournalcode2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
+                                <select class="selectpicker form-control input-block-level" onchange="setAccountJournalEntry('2')" required data-live-search="true" id="accjournalcode2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_code}}</option>
@@ -6916,7 +7065,7 @@ function addCardCreditedit(){
                             </td>
                             <td class="pt-3-half" contenteditable="false">
                                 
-                                <select class="selectpicker" onchange="setAccountCodeJournalEntry('2')" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
+                                <select class="selectpicker form-control" onchange="setAccountCodeJournalEntry('2')" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
                                     <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_name}}</option>
@@ -7378,7 +7527,7 @@ function addCardCreditedit(){
                                 td7.appendChild(x72);
                                 
                                 var input = document.createElement("select");
-                                input.setAttribute("class", "selectpicker");
+                                input.setAttribute("class", "selectpicker form-control");
                                 input.setAttribute("data-live-search", "true");
                                 input.setAttribute("required", "true");
                                 
@@ -7399,7 +7548,7 @@ function addCardCreditedit(){
                                 @endforeach
 
                                 var input2 = document.createElement("select");
-                                input2.setAttribute("class", "selectpicker input-block-level");
+                                input2.setAttribute("class", "selectpicker input-block-level form-control");
                                 input2.setAttribute("data-live-search", "true");
                                 input2.setAttribute("required", "true");
                                 input2.setAttribute("id", "accjournalcode"+journalrow);
@@ -10500,6 +10649,8 @@ function edit_journal_entries(je_no){
     var credit_note_accounts_table_main;
     var tableexpensebill_credit_account_table_body;
     var supplier_credit_debit_account_table;
+    var chequeaccounts_receivepayment_table;
+    var cash_account_receive_payment_table;
     $(document).ready(function(){
         if(document.getElementById('customertransactiontable')){
             customertransactiontable = $('#customertransactiontable').DataTable({
@@ -10764,6 +10915,31 @@ function edit_journal_entries(je_no){
             document.getElementById('supplier_credit_debit_account_table_info').style.display="none";
             document.getElementById('supplier_credit_debit_account_table_filter').style.display="none";
         }
+        chequeaccounts_receivepayment_table = $('#chequeaccounts_receivepayment_table').DataTable({
+                paging: false,
+                "ordering": false,
+                'dom': 'Rlfrtip',
+                "autoWidth": false
+                
+        });
+        
+        if(document.getElementById('chequeaccounts_receivepayment_table_info')){
+            document.getElementById('chequeaccounts_receivepayment_table_info').style.display="none";
+            document.getElementById('chequeaccounts_receivepayment_table_filter').style.display="none";
+        }
+        cash_account_receive_payment_table = $('#cash_account_receive_payment_table').DataTable({
+                paging: false,
+                "ordering": false,
+                'dom': 'Rlfrtip',
+                "autoWidth": false
+                
+        });
+        
+        if(document.getElementById('cash_account_receive_payment_table_info')){
+            document.getElementById('cash_account_receive_payment_table_info').style.display="none";
+            document.getElementById('cash_account_receive_payment_table_filter').style.display="none";
+        }
+        
         if(document.getElementById('jounalentrytable_info')){
             document.getElementById('jounalentrytable_info').style.display="none";
             document.getElementById('jounalentrytable_filter').style.display="none";
@@ -12960,7 +13136,6 @@ function removeComma(str){
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 url: "get_customer_info",
-                dataType: "text",
                 data: {id:res[0],_token:'{{csrf_token()}}'},
                 success: function (customer) {
                     $('#estimatebalance').html('PHP '+number_format(customer['opening_balance'],2));
@@ -13024,7 +13199,7 @@ function removeComma(str){
                     markup=markup+'<td class="pt-3-half"><input class="form-control estimate_data product_rate_estimate" value="0" readonly id="select_product_rate_estimate'+count+'" style="border:0;text-align:right;background-color:white !important;"></td>';
                 }
                 if(table.rows[0].cells[i].innerHTML=="AMOUNT"){
-                    markup=markup+'<td class="pt-3-half pl-3 product_total_estimate" id="total_amount_estimate'+count+'" title="0.00">0.00</td>';
+                    markup=markup+'<td class="text-right pt-3-half pr-3 product_total_estimate" id="total_amount_estimate'+count+'" title="0.00">0.00</td>';
                 }
                 if(table.rows[0].cells[i].innerHTML==""){
                     

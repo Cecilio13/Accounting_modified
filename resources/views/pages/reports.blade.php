@@ -204,7 +204,7 @@
                                                             @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitandLossasPercentageTotal">Profit and Loss as % of total income</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -224,7 +224,7 @@
                                                             @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitAndLostComparison">Profit and Loss Comparison</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -271,7 +271,7 @@
                                     <div class="col-md-5">
                                         <table class="table table-hover table-sm table-report" >
                                             <tbody >
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitAndLossByCustomer">Profit and Loss by Customer</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -291,7 +291,7 @@
                                                             @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitAndLossByMonth">Profit and Loss by Month</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -331,7 +331,7 @@
                                                             @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="QuaarterlyProfitAndLoss">Quarterly Profit and Loss Summary</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -1144,7 +1144,7 @@
                                                         @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitAndLostComparison">Profit and Loss Comparison</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php
@@ -1170,7 +1170,7 @@
                                     <div class="col-md-5">
                                         <table class="table table-hover table-sm table-report" >
                                             <tbody >
-                                                <tr>
+                                                <tr style="display:none;">
                                                     <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="ProfitAndLost">Profit and Loss</a></td>
                                                     <td style="vertical-align:middle;">
                                                         <?php

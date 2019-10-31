@@ -2630,11 +2630,13 @@ table td{
   font-size:14px !important;
   padding:5px;
 }
-#invoice_table>tr>td, #InvoiceAccountTBody>tr>td, #estimate_table_tbody>tr>td, #credit_note_table_tbody>tr>td, #credit_note_accounts_table>tr>td, #sales_receipt_table_tbody>tr>td, #bill_account_table_tbody>tr>td, #tableexpensebill_credit_account_table_body>tr>td, #sc_account_table_tbody>tr>td, #supplier_credit_debit_account_table_body>tr>td{
+#invoice_table>tr>td, #InvoiceAccountTBody>tr>td, #estimate_table_tbody>tr>td, #credit_note_table_tbody>tr>td, #credit_note_accounts_table>tr>td, #sales_receipt_table_tbody>tr>td, #bill_account_table_tbody>tr>td, #tableexpensebill_credit_account_table_body>tr>td, #sc_account_table_tbody>tr>td, #supplier_credit_debit_account_table_body>tr>td, #chequeaccounts_recievipaymenytable>tr>td, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td, #SalesReceiptAmountFromChequeDiv>tr>td, #AmountFromChequeAdditional>tr>td, #tablecashaccounttabletable>tr>td, #additionalCashSalesReceiptTbody>tr>td{
   padding:0px;
   
 }
-
+#AmountFromChequeAdditional>tr>td>input, #SalesReceiptAmountFromChequeDiv>tr>td>input, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td>input,#tablecashaccounttabletable>tr>td>input{
+  border:0px solid #ccc;
+}
 #invoice_table>tr>td>select{
   border:0;
 }
@@ -2648,3 +2650,12 @@ table.dataTable td.reorder{text-align:center;cursor:move}
 table.DTCR_clonedTable.dataTable{position:absolute !important;background-color:rgba(255,255,255,0.7);
   z-index:202}
 div.DTCR_pointer{width:1px;background-color:#0259C4;z-index:201}
+table.dataTable{
+  border-top:1px solid #262626 !important;
+}
+#main_invoice_table_journal_account{
+  border-top:0px solid #262626 !important;
+}
+.bordered-top-table{
+  /* border-top:1px solid #262626 !important; */
+}
