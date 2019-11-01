@@ -257,7 +257,46 @@ function exporttoexcel(table_id){
             
           
 }
-    function exportDAT(){
+    function exporttoexcelprofitandloss(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_profitandloss?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+        
+    }
+    function exporttoexcelprofitandlossaspercent(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_profitandlossaspercent?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+        
+    }
+    function exporttoexcelprofitandlossquarterly(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_profitandlossquarterly?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+    }
+    function export_profitandlosscomparison(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="export_profitandlosscomparison?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+    }
+    
+    function exporttoexceltrial_balance(){
         console.log('export excel journal entries');
         var filtertemplate= document.getElementById('filtertemplate').value;
         var CostCenterFilter = document.getElementById('CostCenterFilter').value;
@@ -265,7 +304,6 @@ function exporttoexcel(table_id){
         var TO= document.getElementById('Todate').value;
         url="export_trial_balance?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
         location.href=url;
-        
     }
     function exporttoexcelnew(){
         console.log('export excel journal entries');
@@ -7595,10 +7633,10 @@ function addCardCreditedit(){
                                     if(table.rows[0].cells[i].innerHTML=="COST CENTER"){
                                         tr.appendChild(td9);
                                     }
-                                    if(table.rows[0].cells[i].innerHTML=="DEBITS"){
+                                    if(table.rows[0].cells[i].innerHTML=="DEBIT"){
                                         tr.appendChild(td3);
                                     }
-                                    if(table.rows[0].cells[i].innerHTML=="CREDITS"){
+                                    if(table.rows[0].cells[i].innerHTML=="CREDIT"){
                                         tr.appendChild(td4);
                                     }
                                     if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){

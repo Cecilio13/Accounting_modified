@@ -553,7 +553,7 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="export_profitandlosscomparison()"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>

@@ -492,6 +492,3056 @@ class ChartofAccountsController extends Controller
 
         })->setFilename('Journal Entry Report '.date('m-d-Y'))->download('xlsx');
     }
+    function export_profitandlossaspercent(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_as_percentage_total.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=5;
+            $sheet = $doc->setActiveSheetIndex(0);
+            $totalincomeforpercent=0;
+            foreach ($COA as $Coa){
+                if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            if ($JE->je_credit!=""){
+                                $totalincomeforpercent+=$JE->je_credit;
+                            }else{
+                                $totalincomeforpercent-=$JE->je_debit;
+                            }
+                        }
+                    }
+                }
+            }
+            $totalincomeforpercent2=0;
+            foreach ($COA as $Coa){
+                if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            if ($JE->je_credit!=""){
+                                $totalincomeforpercent2-=$JE->je_credit;
+                            }else{
+                                $totalincomeforpercent2+=$JE->je_debit;
+                            }
+                        }
+                    }
+                }
+            }
+            $totalincomeexpense=$totalincomeforpercent-$totalincomeforpercent2;
+                
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            $sheet->setCellValue('E'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    $sheet->setCellValue('E'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($GrossProfit*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    $sheet->setCellValue('E'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            $sheet->setCellValue('E'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($TotalOperatingExpense*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format((($GrossProfit-$TotalOperatingExpense)*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss as Percentage Total Report '.date('m-d-Y'))->download('xlsx');
+    }
+    function export_profitandlossquarterly(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_quarterly.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=4;
+            $sheet = $doc->setActiveSheetIndex(0);
+            $CurrentYear=date('Y',strtotime($FROM));
+            $sheet->setCellValue('D'.$position,'Jan-Mar '.$CurrentYear);
+            $sheet->setCellValue('E'.$position,'Apr-Jun '.$CurrentYear);
+            $sheet->setCellValue('F'.$position,'Jul-Sep '.$CurrentYear);
+            $sheet->setCellValue('G'.$position,'Oct-Dec '.$CurrentYear);
+
+            $position++;    
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+
+                            $individualinvoice=0;
+                            $individualinvoice2=0;
+                            $individualinvoice3=0;
+                            $individualinvoice4=0;
+                            foreach ($JournalEntry as $JE){
+                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice2+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice2-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice3+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice3-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice4+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice4-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+            $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $individualinvoice=0;
+                            $individualinvoice2=0;
+                            $individualinvoice3=0;
+                            $individualinvoice4=0;
+                            foreach ($JournalEntry as $JE){
+                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice2+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice2-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice3+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice3-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice4+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice4-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $individualinvoice=0;
+                                    $individualinvoice2=0;
+                                    $individualinvoice3=0;
+                                    $individualinvoice4=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice2-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice2+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice3-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice3+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice4-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice4+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            
+                            foreach ($COA as $Coa){
+                                $individualinvoice=0;
+                                    $individualinvoice2=0;
+                                    $individualinvoice3=0;
+                                    $individualinvoice4=0;
+                                if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice2-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice2+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice3-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice3+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice4-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice4+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                            
+                                }
+                            }
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4+=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $individualinvoice12=0;
+                    $individualinvoice22=0;
+                    $individualinvoice32=0;
+                    $individualinvoice42=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice12-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice12+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice22-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice22+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice32-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice32+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice42-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice42+=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice-$individualinvoice12,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2-$individualinvoice22,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3-$individualinvoice32,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4-$individualinvoice42,2));
+                    $sheet->setCellValue('H'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Quarterly Profit And Loss Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function export_profitandloss(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=5;
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+                
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function export_profitandlosscomparison(Request $request){
+        
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_comparison.xlsx', function($doc) use($request){
+            date_default_timezone_set('Asia/Manila');
+            $sortsetting="";
+            $sortsettingjournal="";
+            $sortsettingjournalpv="";
+            $FROM=date('Y-01-01');
+            $TO=date('Y-12-31');
+            $FROMpv=strtotime($FROM.' -1 year');
+            $TOpv=strtotime($TO.' -1 year');
+            $DateRange="Total";
+            $DateRangepy="Total(PY)";
+            $filtertemplate="Custom";
+            $CostCenterFilter="All";
+            
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingpv="";
+                $sortsettingjournal="";
+                $sortsettingjournalpv="";
+            }else{
+                $FROMpv=strtotime($FROM.' -1 year');
+                $TOpv=strtotime($TO.' -1 year');
+                $FROMpv=date('Y-m-d', $FROMpv);
+                $TOpv=date('Y-m-d', $TOpv);
+                $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+                $sortsettingpv="WHERE st_date BETWEEN '".$FROMpv."' AND '".$TOpv."'";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+                $sortsettingjournalpv="WHERE created_at BETWEEN '".$FROMpv."' AND '".$TOpv."' AND";
+                $DateRange=date('m-d-Y',strtotime($FROM))."to".date('m-d-Y',strtotime($TO));
+                $DateRangepy=date('m-d-Y',strtotime($FROMpv))."to".date('m-d-Y',strtotime($TOpv));
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+                $sortjournalpv="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+                $sortjournalpv=" je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortjournalpv="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                $sortsettingjournalpv="WHERE created_at BETWEEN '".$FROMpv."' AND '".$TOpv."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingpv="";
+                    $sortsettingjournal="";
+                    $sortsettingjournalpv="";
+                }
+            }
+            
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $SalesTransactionpv= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsettingpv." 
+                                ORDER BY st_no ASC");                   
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $JournalEntrypv= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournalpv.$sortjournalpv." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $date = date('l, d F Y h:i a \G\T\MO');
+           
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            $expense_transactionspv= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROMpv, $TOpv])
+                    ->get();
+            if($filtertemplate=="All"){
+                $expense_transactionspv= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get(); 
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();         $all_cost_center_list= CostCenter::all();
+            
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=4;
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+            $sheet->setCellValue('D'.$position,$DateRange);
+            $sheet->setCellValue('E'.$position,$DateRangepy);
+            $position++;
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $IncomeTotalpv=0;
+            $GrossProfit=0;
+            $GrossProfitpv=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv+=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv-=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                            $sheet->setCellValue('E'.$position,number_format($coa_name_totalpv,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $GrossProfitpv+=$IncomeTotalpv;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv+=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv-=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                            $sheet->setCellValue('E'.$position,number_format($coa_name_totalpv,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $GrossProfitpv+=$IncomeTotalpv;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    $TotalOperatingExpensepv=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        $IncomeTotalpv=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    $coa_name_totalpv=0;
+                                    foreach ($JournalEntrypv as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_totalpv-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_totalpv+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotalpv+=$coa_name_totalpv;
+                                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                        $TotalOperatingExpensepv+=$IncomeTotalpv;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,number_format($TotalOperatingExpensepv,2));
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,number_format($GrossProfitpv-$TotalOperatingExpensepv,2));
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss Comparison Report '.date('m-d-Y'))->download('xlsx');
+    }
     public function export_trial_balance(Request $request){
         Excel::load('extra/export_report/export_report_template_trial_balance.xlsx', function($doc) use($request){
             $FROM=$request->FROM;
@@ -567,7 +3617,7 @@ class ChartofAccountsController extends Controller
             
             $coa_name_totaldebit=0;
             $coa_name_totalcredit=0;
-            $position=3;
+            $position=5;
             $sheet = $doc->setActiveSheetIndex(0);
             foreach ($COA as $coa){
                 $coa_name_total=0;

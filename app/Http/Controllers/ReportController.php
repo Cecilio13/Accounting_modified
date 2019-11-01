@@ -17584,7 +17584,7 @@ class ReportController extends Controller
                         }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Revenue</td>';
-                        $individualinvoice=0;
+                                $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17757,7 +17757,7 @@ class ReportController extends Controller
                         }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>';
-                        $individualinvoice=0;
+                                $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17822,7 +17822,7 @@ class ReportController extends Controller
                 }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>';
-                        $individualinvoice=0;
+                                $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17974,6 +17974,7 @@ class ReportController extends Controller
                                         $individualinvoice3=0;
                                         $individualinvoice4=0;
                                         foreach ($JournalEntry as $JE){
+                                            
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
@@ -18047,45 +18048,52 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($COA as $Coa){
+                                    
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
-                                foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
-                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                            if ($JE->je_credit!=""){
-                                                $individualinvoice-=$JE->je_credit;
-                                            }else{
-                                                $individualinvoice+=$JE->je_debit;
+                                     $tablecontent.='<script>console.log("'.$Coa->id.'")</script>';  
+                                     if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice2-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice2+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice3-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice3+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice4-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice4+=$JE->je_debit;
+                                                    }
+                                                    $tablecontent.='<script>console.log(" type='.$JE->je_account.'=='.$Coa->id.' '.$JE->je_no." CR ".$JE->je_credit." DR ".$JE->je_debit.' Total :'.$individualinvoice4.'")</script>';
+                                                }
                                             }
                                         }
-                                    }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
-                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                            if ($JE->je_credit!=""){
-                                                $individualinvoice2-=$JE->je_credit;
-                                            }else{
-                                                $individualinvoice2+=$JE->je_debit;
-                                            }
-                                        }
-                                    }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
-                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                            if ($JE->je_credit!=""){
-                                                $individualinvoice3-=$JE->je_credit;
-                                            }else{
-                                                $individualinvoice3+=$JE->je_debit;
-                                            }
-                                        }
-                                    }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
-                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                            if ($JE->je_credit!=""){
-                                                $individualinvoice4-=$JE->je_credit;
-                                            }else{
-                                                $individualinvoice4+=$JE->je_debit;
-                                            }
-                                        }
-                                    }
-                                }
+                                     }
+                                
                                     }
                                 }
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
