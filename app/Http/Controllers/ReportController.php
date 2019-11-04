@@ -14488,7 +14488,7 @@ class ReportController extends Controller
         $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
                             JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
                             ".$sortsetting." 
-                            ORDER BY st_no ASC");
+                            ORDER BY display_name ASC");
                             
         $STCustomer= DB::table('sales_transaction')
                         ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
@@ -14500,7 +14500,7 @@ class ReportController extends Controller
         
         $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
         $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
-        $customers = Customers::orderBy('display_name', 'ASC')->get();
+        $customers = Customers::orderBy('display_name', 'DESC')->get();
         $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortsettingjournal.$sortjournal." 
@@ -14568,7 +14568,7 @@ class ReportController extends Controller
         
         }
         $nodup=array_unique($combinedarray);
-        $output=array_unique($combinedarray);
+        $output=$nodup;
         $STARRAY=array();
         $emptyArray = array();
 
@@ -14931,6 +14931,7 @@ class ReportController extends Controller
                             $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Gross Profit</td>';
                             foreach ($output as $ST){
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                
                                 $CustomerTotal=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Revenues"){
@@ -14991,8 +14992,10 @@ class ReportController extends Controller
                                         if ($Coa->coa_account_type==$coa->coa_account_type){
                                             $tablecontent.="<tr>";
                                             $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
-                                            foreach ($output as $ST){
+                                            foreach ($nodup as $ST){
+                                                
                                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                                
                                                 $CustomerTotal=0;
                                                 foreach ($SS as $ss){
                                                     if ($ss->st_customer_id==$ST){
@@ -15003,19 +15006,26 @@ class ReportController extends Controller
                                                                 }else{
                                                                     $CustomerTotal+=$JE->je_debit;
                                                                 }
+                                                                
                                                             }
                                                         }
                                                     }
                                                 }
                                                 foreach ($ETran as $ss){
+                                                    
                                                     if ($ss->et_customer==$ST){
+                                                        
                                                         foreach ($JournalEntry as $JE){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                                
                                                                 if ($JE->je_credit!="" ){
                                                                     $CustomerTotal-=$JE->je_credit;
+                                                                    
                                                                 }else{
                                                                     $CustomerTotal+=$JE->je_debit;
+                                                                    
                                                                 }
+                                                                
                                                             }
                                                         }
                                                     }
@@ -16423,12 +16433,12 @@ class ReportController extends Controller
             $addth="";
             
                 foreach ($customers as $cus){
-                    foreach ($nodup as $ST){
+                    foreach ($output as $ST){
                     if ($ST==$cus->customer_id){
                         if ($cus->display_name!=""){
-                            $addth.="<th>".$cus->display_name."</th>";
+                            $addth.="<th>".$cus->display_name." ".$cus->customer_id."</th>";
                         }else{
-                            $addth.="<th>".$cus->f_name." ".$cus->l_name."</th>";
+                            $addth.="<th>".$cus->f_name." ".$cus->l_name." ".$cus->customer_id."</th>";
                         }
                     }
                 }     

@@ -19,6 +19,8 @@ Route::group(['middleware'=>['auth']], function() {
     Route::get('/export_profitandlossaspercent', 'ChartofAccountsController@export_profitandlossaspercent');
     Route::get('/export_profitandlossquarterly', 'ChartofAccountsController@export_profitandlossquarterly');
     Route::get('/export_profitandlosscomparison', 'ChartofAccountsController@export_profitandlosscomparison');
+    Route::get('/exporttoexcelprofitandlossbycustomer', 'ChartofAccountsController@exporttoexcelprofitandlossbycustomer');
+    Route::get('/exporttoexcelprofitandlossbymonth', 'ChartofAccountsController@exporttoexcelprofitandlossbymonth');
     
     Route::get('/export_trial_balance', 'ChartofAccountsController@export_trial_balance');
     Route::get('/export_test', 'ChartofAccountsController@export_test');

@@ -286,6 +286,25 @@ function exporttoexcel(table_id){
         url="export_profitandlossquarterly?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
         location.href=url;
     }
+    function exporttoexcelprofitandlossbycustomer(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="exporttoexcelprofitandlossbycustomer?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+    }
+    function exporttoexcelprofitandlossbymonth(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="exporttoexcelprofitandlossbymonth?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+    }
+    
     function export_profitandlosscomparison(){
         console.log('export excel journal entries');
         var filtertemplate= document.getElementById('filtertemplate').value;
@@ -8635,7 +8654,7 @@ function edit_journal_entries(je_no){
                         </div>
                     </div>
                     <div class="col-md-12 mb-2"></div>
-                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="table_pay_bills_modal_tabel"> 
+                    <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="table_pay_bills_modal_tabel"> 
                         <thead>
                         <tr>
                             <th class="text-center"><input type="hidden" id="paybillrowcount"></th>
@@ -8653,7 +8672,7 @@ function edit_journal_entries(je_no){
                             <th class="text-left">Total Amount</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="pay_bills_table_tbody">
                             <script>
                                 function Setpaybilltotalamount(){
                                     var count=document.getElementById('paybillrowcount').value;
@@ -8704,12 +8723,12 @@ function edit_journal_entries(je_no){
                                     document.getElementById('paybillrowcount').value="{{$paybillrowcount}}";
                                 </script>
                                 <tr >
-                                    <td class="pt-3-half" contenteditable="false" style="text-align:center;"><input onchange="Setpaybilltotalamount()" type="checkbox" value="{{$et->et_no}}" id="paybillcheckbox{{$paybillrowcount}}"></td>
-                                    <td class="pt-3-half" contenteditable="false">
+                                    <td class="pt-3-half" contenteditable="false" style="text-align:center;padding-top:5px;"><input onchange="Setpaybilltotalamount()" type="checkbox" value="{{$et->et_no}}" id="paybillcheckbox{{$paybillrowcount}}"></td>
+                                    <td class="pt-3-half" contenteditable="false" style="padding-left:5px;">
                                         {{$et->et_no}}
                                     </td>
                                     <td class="pt-3-half" contenteditable="false" id="paybill_banktd{{$paybillrowcount}}">
-                                        <input type="text" readonly  id="paybill_bank_inputtext{{$paybillrowcount}}" class="w-100">
+                                        <input type="text" style="background-color:white !important;" readonly  id="paybill_bank_inputtext{{$paybillrowcount}}" class="w-100">
                                         <select style="display:none;"  id="paybill_bank_account{{$paybillrowcount}}" class="w-100" >
                                             <option value="">--Select Bank--</option>
                                             @foreach ($banks as $bank)
@@ -8722,7 +8741,7 @@ function edit_journal_entries(je_no){
                                     <td class="pt-3-half" contenteditable="false">
                                        <input type="date" name="" id="paybill_paymentdate{{$paybillrowcount}}" class="w-100">
                                     </td>
-                                        <td class="pt-3-half" contenteditable="false" id="payee_{{$paybillrowcount}}">
+                                        <td class="pt-3-half" style="padding-left:5px;" contenteditable="false" id="payee_{{$paybillrowcount}}">
                                         
                                     </td>
                                     <script>
@@ -8749,26 +8768,26 @@ function edit_journal_entries(je_no){
                                         })
                                         
                                     </script>
-                                    <td class="pt-3-half" contenteditable="false">
+                                    <td style="padding-left:5px;" class="pt-3-half" contenteditable="false">
                                        {{$et->et_shipping_address}}
                                     </td>
-                                    <td class="pt-3-half" contenteditable="false">
+                                    <td style="padding-left:5px;" class="pt-3-half" contenteditable="false">
                                         {{$et->et_shipping_to}}
                                     </td>
-                                    <td class="pt-3-half" contenteditable="false">
+                                    <td style="padding-left:5px;" class="pt-3-half" contenteditable="false">
                                         {{$et->et_shipping_via}}
                                     </td>
                                     <td class="pt-3-half" style="vertical-align:middle;" contenteditable="false">
-                                       <select name="usevoucher_question{{$paybillrowcount}}" style="width:60%;" id="usevoucher_question{{$paybillrowcount}}">
+                                       <select name="usevoucher_question{{$paybillrowcount}}" class="w-100" style="border:0!important" id="usevoucher_question{{$paybillrowcount}}">
                                            <option value="">No</option>
                                            <option value="Cash">Generate Cash Voucher</option>
                                            <option value="Cheque">Generate Cheque Voucher</option>
                                        </select>
                                     </td>
-                                    <td class="pt-3-half" contenteditable="false">{{date('m-d-Y',strtotime($et->et_due_date))}}</td>
+                                    <td class="pt-3-half"  contenteditable="false">{{date('m-d-Y',strtotime($et->et_due_date))}}</td>
                                     <?php $totalopenbalancepertransaction=$et->bill_balance; ?>
                                         
-                                    <td class="pt-3-half" contenteditable="false" style="text-align:right;" id="paybilltotalbalance{{$paybillrowcount}}" title="{{$totalopenbalancepertransaction}}">
+                                    <td class="pt-3-half" contenteditable="false" style="text-align:right;padding-right:5px;" id="paybilltotalbalance{{$paybillrowcount}}" title="{{$totalopenbalancepertransaction}}">
                                         
                                         
                                         {{number_format($totalopenbalancepertransaction,2)}}
@@ -8777,7 +8796,7 @@ function edit_journal_entries(je_no){
                                     <td class="pt-3-half" contenteditable="false" >
                                         <input type="number" class="w-100" onkeyup="Setactualamountpaymentbill()" onchange="Setactualamountpaymentbill()" id="paybillactualpaymentamount{{$paybillrowcount}}" value="0" min="0" max="{{$totalopenbalancepertransaction}}">
                                     </td>
-                                    <td class="pt-3-half" contenteditable="false" style="text-align:right;" id="paybilltotalamount{{$paybillrowcount}}">0.00</td>
+                                    <td class="pt-3-half" contenteditable="false" style="text-align:right;padding-right:5px;" id="paybilltotalamount{{$paybillrowcount}}">0.00</td>
                                 </tr>
                                 @endif
                             @endforeach
