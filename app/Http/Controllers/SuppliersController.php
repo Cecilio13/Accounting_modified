@@ -1075,7 +1075,10 @@ class SuppliersController extends Controller
                 $Costtttsasdasd=$sacxzxcasd->je_cost_center;
             }
             $totalamount=0;
-            DB::table('journal_entries')->where('other_no', $request->id)->update([
+            DB::table('journal_entries')->where([
+                ['other_no','=', $request->id],
+                ['je_transaction_type','=', $request->type]
+            ])->update([
                 'remark'=>'NULLED'
             ]);
             $et_accounteditr=DB::table('et_account_details_edits')->where([

@@ -1977,14 +1977,14 @@ function setJournalAccount(id){
                             <div class="my-3 p-0">
                                 <div class="col-md-3 p-0 pr-3">
                                     <p>Name</p>
-                                    <select type="text" name="sc_customer"  id="sc_customeredit" class="w-100">
+                                    <select type="text" name="sc_customer"  id="sc_customeredit" class="w-100 selectpicker">
                                     <option value="">--Select Name--</option>
                                     {!! $customers_list_after_foreach !!}
                                     </select>
                                 </div>
                                 <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
                                     <p>Cost Center</p>
-                                    <select name="CostCenterSupplierCreditEdit" id="CostCenterSupplierCreditEdit" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
+                                    <select name="CostCenterSupplierCreditEdit" class="selectpicker" id="CostCenterSupplierCreditEdit" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
                                         <option value="">--Select Cost Center--</option>
                                         {!! $cc_list_after_foreach !!}
                                     </select>
@@ -1999,28 +1999,33 @@ function setJournalAccount(id){
                             <div class="col-md-12 p-0 mt-4 d-inline-flex">
                                 <div class="col-md-3 p-0 pr-3">
                                     <p>Mailing Address</p>
-                                    <input type="text" name="sc_mail_address" id="sc_mail_addressedit" class="w-100">
+                                    <input type="text" name="sc_mail_address" id="sc_mail_addressedit" class="w-100 form-control">
                                 </div>
                                 <div class="col-md-2 p-0 pr-3">
                                     <p>Payment Date</p>
-                                    <input type="date"  {{$user_position->position!="CEO"? 'readonly' : ''}} id="scdateedit" name="sc_date" class="w-100">
+                                    <input type="date"  {{$user_position->position!="CEO"? 'readonly' : ''}} id="scdateedit" name="sc_date" class="w-100 form-control">
                                 </div>
                                 <div class="col-md-2 p-0 pr-3">
                                     <p>Reference No. </p>
-                                    <input type="text" id="screfnoedit" name="sc_reference_no" class="w-100">
+                                    <input type="text" id="screfnoedit" name="sc_reference_no" class="w-100 form-control">
                                 </div>
                             </div>
                             <div class="col-md-12 mb-1 mt-3">
                                 <h4>Account Details</h4>
                             </div>
-                            <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_account_tableedit">
-                                <tr>
-                                    <th class="text-left">#</th>
-                                    <th class="text-left">ACCOUNT</th>
-                                    <th class="text-left">DESCRIPTION</th>
-                                    <th class="text-left">AMOUNT</th>
-                                    <th class="text-center"></th>
-                                </tr>
+                            <table class="table table-bordered table-responsive-md table-sm text-left font14" id="sc_account_tableedit">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">#</th>
+                                        <th class="text-left">ACCOUNT</th>
+                                        <th class="text-left">DESCRIPTION</th>
+                                        <th class="text-left">AMOUNT</th>
+                                        <th class="text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sc_account_tableedit_tbody">
+
+                                </tbody>
                             </table>
                             <div class="col-md-12 p-0">
                                 <div class="float-left">
@@ -2078,17 +2083,42 @@ function setJournalAccount(id){
                             </div>
                             <div class="col-md-12 p-0 mt-4">
                                 <div class="col-md-4 p-0 mt-4">
-                                    <table class="table table-light">
+                                    <table class="table table-light table-sm" style="margin-bottom:0px;">
                                         <thead class="thead-light">
                                             <tr>
-                                                <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                                <th colspan="2" style="vertical-align:middle;text-align:center;">Debit</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <table class="table table-light table-sm">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th width="30%" style="vertical-align:middle;text-align:center;">Code</th>
+                                                <th width="70%" style="vertical-align:middle;text-align:center;">Accounts</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td style="vertical-align:middle;text-align:center;">Debit</td>
                                                 <td style="vertical-align:middle;" class="pr-0">
-                                                    <select class="form-control selectpicker" data-live-search="true" name="supplier_credit_account_debit_account_edit"  id="supplier_credit_account_debit_account_edit" required>
+                                                    <select class="form-control selectpicker" data-live-search="true" name="supplier_credit_account_debit_account_edit_code"  id="supplier_credit_account_debit_account_edit_code" onchange="setsraccountdebitcode('supplier_credit_account_debit_account_edit_code','supplier_credit_account_debit_account_edit')" required>
+                                                    <option value="">--Select Account--</option>
+                                                    @foreach($c_o_a_sorted as $coa)
+                                                    @if ($coa->id=="3")
+                                                    <option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option> 
+                                                    @else
+                                                    <option value="{{$coa->id}}">{{$coa->coa_code}}</option>  
+                                                    @endif
+                                                    
+                                                    @endforeach
+                                                    </select>
+                                                    <script>
+                                                    $(document).ready(function(){
+                                                        document.getElementById('supplier_credit_account_debit_account_edit_code').value="3";
+                                                    })
+                                                    </script>
+                                                </td>
+                                                <td style="vertical-align:middle;" class="pr-0">
+                                                    <select class="form-control selectpicker" data-live-search="true" name="supplier_credit_account_debit_account_edit"  id="supplier_credit_account_debit_account_edit" onchange="setsraccountdebitcode('supplier_credit_account_debit_account_edit','supplier_credit_account_debit_account_edit_code')" required>
                                                     <option value="">--Select Account--</option>
                                                     @foreach($c_o_a_sorted as $coa)
                                                     @if ($coa->id=="3")
@@ -2734,14 +2764,19 @@ function setJournalAccount(id){
                                 <div class="col-md-12 mb-1 mt-3">
                                     <h4>Account Details</h4>
                                 </div>
-                                <table class="table table-bordered table-responsive-md table-striped text-left font14" id="bill_account_tableedit">
-                                    <tr>
-                                        <th class="text-left">#</th>
-                                        <th class="text-left" width="30%">ACCOUNT</th>
-                                        <th class="text-left">DESCRIPTION</th>
-                                        <th class="text-left">AMOUNT</th>
-                                        <th class="text-center"></th>
-                                    </tr>
+                                <table class="table table-bordered table-responsive-md table-sm text-left font14" id="bill_account_tableedit">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">#</th>
+                                            <th class="text-left" width="30%">ACCOUNT</th>
+                                            <th class="text-left">DESCRIPTION</th>
+                                            <th class="text-left">AMOUNT</th>
+                                            <th class="text-center"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bill_account_tableedit_tbody">
+
+                                    </tbody>
                                 </table>
                                 <div class="col-md-12 p-0">
                                     <div class="float-left">
@@ -2800,17 +2835,38 @@ function setJournalAccount(id){
                                 </div>
                                 <div class="col-md-12 p-0 mt-4">
                                     <div class="col-md-4 p-0 mt-4">
-                                        <table class="table table-light">
+                                        <table class="table table-light table-sm" style="margin-bottom:0px;">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Credit</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                        </table>
+                                        <table class="table table-light table-sm" id="bill_edit_credit_account_code">
+                                            <thead class="thead-light">
                                                 <tr>
-                                                    <td style="vertical-align:middle;text-align:center;">Credit</td>
+                                                    <th width="30%" style="vertical-align:middle;text-align:center;">Code</th>
+                                                    <th width="70%" style="vertical-align:middle;text-align:center;">Account</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="bill_edit_credit_account_code_tbody">
+                                                <tr>
                                                     <td style="vertical-align:middle;" class="pr-0">
-                                                        <select class="form-control selectpicker" data-live-search="true" name="bill_account_credit_account_edit"  id="bill_account_credit_account_edit" required>
+                                                        <select class="form-control selectpicker" data-live-search="true" name="bill_account_credit_account_edit_code"  id="bill_account_credit_account_edit_code" onchange="setsraccountdebitcode('bill_account_credit_account_edit_code','bill_account_credit_account_edit')" required>
+                                                        <option value="">--Select Account--</option>
+                                                        @foreach($c_o_a_sorted as $coa)
+                                                        @if ($coa->id=="90")
+                                                        <option  value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>  
+                                                        @else
+                                                        <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>   
+                                                        @endif
+                                                        
+                                                        @endforeach
+                                                        </select>
+                                                        
+                                                    </td>
+                                                    <td style="vertical-align:middle;" class="pr-0">
+                                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('bill_account_credit_account_edit','bill_account_credit_account_edit_code')" data-live-search="true" name="bill_account_credit_account_edit"  id="bill_account_credit_account_edit" required>
                                                         <option value="">--Select Account--</option>
                                                         @foreach($c_o_a_sorted as $coa)
                                                         @if ($coa->id=="90")
@@ -2851,11 +2907,12 @@ function setJournalAccount(id){
 function ViewExpenseTransaction(id,type,modal_id){
     var question;
     var r = confirm("Are You Sure you want to Change this?\nAny Changes here will be subject for Approval");
-    if (r == true) {                           
+    if (r == true) {                        
+        //alert(type+" "+id);   
                                @foreach($expense_transactions as $et)
-                                  if(id=='{{$et->et_no}}' && type=='{{$et->et_ad_type}}'){
-                                    //alert('{{$et->et_no}}'+" "+type+" {{$et->et_ad_type}}");
-                                       if('{{$et->et_ad_type}}'=="Expense"){
+                                  if(id=='{{$et->et_no}}' && type=='{{$et->et_type}}'){
+                                    // alert('{{$et->et_no}}'+" "+type+" {{$et->et_type}}");
+                                       if('{{$et->et_type}}'=="Expense"){
                                            
                                            var tblCustomers= document.getElementById('expense_account_tableedit');
                                            var rowCount = tblCustomers.rows.length;
@@ -2903,7 +2960,7 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            @endforeach
 
                                        }
-                                       if('{{$et->et_ad_type}}'=="Credit card credit"){
+                                       if('{{$et->et_type}}'=="Credit card credit"){
                                         var tblCustomers= document.getElementById('cc_account_tableedit');
                                         var rowCount = tblCustomers.rows.length;
                                         for (var i = rowCount - 1; i > 0; i--) {
@@ -2932,11 +2989,13 @@ function ViewExpenseTransaction(id,type,modal_id){
                                         @endforeach
                                         
                                        }
-                                       if('{{$et->et_ad_type}}'=="Bill"){
+                                       if('{{$et->et_type}}'=="Bill"){
                                            var tblCustomers= document.getElementById('bill_account_tableedit');
                                            var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
+                                           console.log(rowCount+" asd");
+                                           for (var i = rowCount-1; i > 0; i--) {
                                                tblCustomers.deleteRow(i);
+                                               console.log(rowCount+" deleted");
                                            }
                                            var tblCustomers= document.getElementById('bill_item_tableedit');
                                            var rowCount = tblCustomers.rows.length;
@@ -2953,19 +3012,21 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            document.getElementById('billduedateedit').value="{{$et->et_due_date}}";
                                            document.getElementById('billbillnoedit').value="{{$et->et_bill_no}}";
                                            document.getElementById('bill_memoedit').value="{{$et->et_memo}}";
-
+                                           
                                            document.getElementById('RF_bill_edit').value="{{$et->et_shipping_address}}";
                                            document.getElementById('PO_bill_edit').value="{{$et->et_shipping_to}}";
                                            document.getElementById('CI_bill_edit').value="{{$et->et_shipping_via}}";
                                            
                                            @foreach($et_acc as $ac)
+                                            console.log('{{$ac->et_ad_type}}');
                                                if("{{$et->et_no}}"=="{{$ac->et_ad_no}}" && type=='{{$ac->et_ad_type}}'){
-                                                    var markup = '<tr class="bill_lines_account2" id="bill_line_account'+$('#bill_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+$('#bill_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+$('#bill_account_tableedit tr').length+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input value="{{$ac->et_ad_desc}}" class="form-control bill_data description_select_bill" id="select_description_bill'+$('#bill_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half">';
-                                                    markup=markup+'<input type="text" class="sssss form-control" value="{{number_format($ac->et_ad_total,2)}}" id="unformated_select_bill_rate'+$('#bill_account_tableedit tr').length+'" style="border:0;text-align:right;">';
-                                                    markup=markup+'<input step="0.01" type="hidden" value="{{$ac->et_ad_total}}" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+$('#bill_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_bill'+$('#bill_account_tableedit tr').length+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
-                                                    var textbox{{$ac->et_ad_id}} = '#unformated_select_bill_rate'+$('#bill_account_tableedit tr').length;
-						                            var hidden{{$ac->et_ad_id}} = '#select_bill_amount'+$('#bill_account_tableedit tr').length;
-                                                    $("#bill_account_tableedit").append(markup);
+                                                    var count=$('#bill_account_tableedit_tbody tr').length+parseFloat(1);
+                                                    var markup = '<tr class="bill_lines_account2" id="bill_line_account'+count+'"><td style="padding-left:5px;" class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+count+'</td><td class="pt-3-half" ><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker form-control" data-live-search="true" id="select_account_bill'+count+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input value="{{$ac->et_ad_desc}}" class="form-control bill_data description_select_bill" id="select_description_bill'+count+'" style="border:0;"></td><td class="pt-3-half">';
+                                                    markup=markup+'<input type="text" class="sssss form-control" value="{{number_format($ac->et_ad_total,2)}}" id="unformated_select_bill_rate'+count+'" style="border:0;text-align:right;">';
+                                                    markup=markup+'<input step="0.01" type="hidden" value="{{$ac->et_ad_total}}" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+count+'" style="border:0; text-align:center;"></td><td class="pt-3-half" style="padding-left:5px;"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
+                                                    var textbox{{$ac->et_ad_id}} = '#unformated_select_bill_rate'+count;
+						                            var hidden{{$ac->et_ad_id}} = '#select_bill_amount'+count;
+                                                    $("#bill_account_tableedit_tbody").append(markup);
                                                     $(textbox{{$ac->et_ad_id}}).keyup(function () {
                                                         $(textbox{{$ac->et_ad_id}}).val(this.value.match(/[0-9.,-]*/));
                                                     var num = $(textbox{{$ac->et_ad_id}}).val();
@@ -2976,12 +3037,13 @@ function ViewExpenseTransaction(id,type,modal_id){
                                                         var numCommas = addCommas(num);
                                                         $(textbox{{$ac->et_ad_id}}).val(numCommas);
                                                     });
-                                                   document.getElementById('select_account_bill'+($('#bill_account_tableedit tr').length-1)).value="{{$ac->et_ad_product}}";
+                                                    console.log(count+" count->"+'{{$ac->et_ad_type}}');
+                                                   document.getElementById('select_account_bill'+(count)).value="{{$ac->et_ad_product}}";
                                                }
                                            @endforeach
 
                                            @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" && type=='{{$it->et_ad_type}}'){
+                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" && type=='{{$it->et_type}}'){
                                                var markup = '<tr class="bill_lines_item2" id="bill_line_item'+$('#bill_item_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_bill_item" contenteditable="false">'+$('#bill_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="bill_data product_select_bill" id="select_product_name_bill'+$('#bill_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="bill_data product_description_bill" value="{{$it->et_id_desc}}" id="select_product_description_bill'+$('#bill_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$it->et_id_qty}}" class="bill_data product_qty_bill" onclick="this.select();" id="product_qty_bill'+$('#bill_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{$it->et_id_rate}}" class="bill_data product_rate_bill" id="select_product_rate_bill'+$('#bill_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_bill" id="total_amount_bill'+$('#bill_item_tableedit tr').length+'">{{$it->et_id_total}}</td><td class="pt-3-half"><a href="#" id="delete_product_bill'+$('#bill_item_tableedit tr').length+'" class="fa fa-trash delete_product_bill"></a></td></tr>';
                                                $("#bill_item_tableedit").append(markup);
                                                document.getElementById('select_product_name_bill'+($('#bill_item_tableedit tr').length-1)).value="{{$it->et_id_product}}";
@@ -2992,6 +3054,7 @@ function ViewExpenseTransaction(id,type,modal_id){
                                                if("{{$JE->other_no}}"==id && "{{$JE->je_transaction_type}}"=="Bill"){
                                                 document.getElementById('CostCenterBillEdit').value="{{$JE->je_cost_center}}";  
                                                 if("{{$JE->je_credit}}"!=""){
+                                                    document.getElementById('bill_account_credit_account_edit_code').value="{{$JE->je_account}}";
                                                     document.getElementById('bill_account_credit_account_edit').value="{{$JE->je_account}}";
                                                 }
                                                 
@@ -2999,7 +3062,7 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            @endforeach
                                            refreshpicjer();
                                        }
-                                       if('{{$et->et_ad_type}}'=="Cheque"){
+                                       if('{{$et->et_type}}'=="Cheque"){
                                            var tblCustomers= document.getElementById('cheque_account_tableedit');
                                            var rowCount = tblCustomers.rows.length;
                                            for (var i = rowCount - 1; i > 0; i--) {
@@ -3052,7 +3115,7 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            
 
                                        }
-                                       if('{{$et->et_ad_type}}'=="Supplier credit"){
+                                       if('{{$et->et_type}}'=="Supplier credit"){
                                            var tblCustomers= document.getElementById('sc_account_tableedit');
                                            var rowCount = tblCustomers.rows.length;
                                            for (var i = rowCount - 1; i > 0; i--) {
@@ -3076,18 +3139,18 @@ function ViewExpenseTransaction(id,type,modal_id){
 
                                            @foreach($et_acc as $ac)
                                                if("{{$et->et_no}}"=="{{$ac->et_ad_no}}" && type=='{{$ac->et_ad_type}}'){
-                                                   
-                                                   var markup = '<tr class="sc_lines_account2" id="sc_line_account'+$('#sc_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc" value="{{$ac->et_ad_product}}" id="select_account_sc'+$('#sc_account_tableedit tr').length+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc"  value="{{$ac->et_ad_desc}}" id="select_description_sc'+$('#sc_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input step="0.01" type="number" value="{{$ac->et_ad_total}}" class="sc_data amount_select_sc" onclick="this.select();" id="select_sc_amount'+$('#sc_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_sc'+$('#sc_account_tableedit tr').length+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
+                                                   var count=$('#sc_account_tableedit_tbody tr').length+parseFloat(1);
+                                                   var markup = '<tr class="sc_lines_account2" id="sc_line_account'+count+'"><td class="pt-3-half" style="padding-left:5px;" id="number_tag_sc_account" contenteditable="false">'+count+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" value="{{$ac->et_ad_product}}" id="select_account_sc'+count+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data form-control description_select_sc"  value="{{$ac->et_ad_desc}}" id="select_description_sc'+count+'" style="border:0;"></td><td class="pt-3-half"><input step="0.01" type="number" value="{{-$ac->et_ad_total}}" class="form-control sc_data amount_select_sc" onclick="this.select();" id="select_sc_amount'+count+'" style="border:0; text-align:right;"></td><td class="pt-3-half" style="padding-left:5px;"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
            
            
                                                    $("#sc_account_tableedit").append(markup);
                                                    
-                                                   document.getElementById('select_account_sc'+($('#sc_account_tableedit tr').length-1)).value="{{$ac->et_ad_product}}";
+                                                   document.getElementById('select_account_sc'+(count)).value="{{$ac->et_ad_product}}";
                                                }
                                            @endforeach
 
                                            @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" & type=='{{$it->et_ad_type}}'){
+                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" & type=='{{$it->et_type}}'){
                                               
                                                var markup = '<tr class="sc_lines_item2" id="sc_line_item'+$('#sc_item_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_sc_item" contenteditable="false">'+$('#sc_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="sc_data product_select_sc" id="select_product_name_sc'+$('#sc_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="sc_data product_description_sc" value="{{$it->et_id_desc}}" id="select_product_description_sc'+$('#sc_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$it->et_id_qty}}" class="sc_data product_qty_sc" onclick="this.select();" id="product_qty_sc'+$('#sc_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{$it->et_id_rate}}" class="sc_data product_rate_sc" id="select_product_rate_sc'+$('#sc_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_sc" id="total_amount_sc'+$('#sc_item_tableedit tr').length+'">{{$it->et_id_total}}</td><td class="pt-3-half"><a href="#" id="delete_product_sc'+$('#sc_item_tableedit tr').length+'" class="fa fa-trash delete_product_sc"></a></td></tr>';
            
@@ -3098,9 +3161,11 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            @endforeach
                                            @foreach($JournalEntry as $JE)
                                                if("{{$JE->other_no}}"==id && "{{$JE->je_transaction_type}}"=="Supplier Credit"){
+                                                
                                                 document.getElementById('CostCenterSupplierCreditEdit').value="{{$JE->je_cost_center}}";
                                                 if("{{$JE->je_debit}}"!=""){
-                                                   
+                                                    
+                                                    document.getElementById('supplier_credit_account_debit_account_edit_code').value="{{$JE->je_account}}";
                                                     document.getElementById('supplier_credit_account_debit_account_edit').value="{{$JE->je_account}}";
                                                 }
                                                 
@@ -3108,6 +3173,7 @@ function ViewExpenseTransaction(id,type,modal_id){
                                            @endforeach
                                            refreshpicjer();
                                        }
+                                       
                                   }
                                @endforeach
                                open_modal_dyna(modal_id);

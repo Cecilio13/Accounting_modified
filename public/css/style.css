@@ -2630,11 +2630,11 @@ table td{
   font-size:14px !important;
   padding:5px;
 }
-#invoice_table>tr>td, #InvoiceAccountTBody>tr>td, #estimate_table_tbody>tr>td, #credit_note_table_tbody>tr>td, #credit_note_accounts_table>tr>td, #sales_receipt_table_tbody>tr>td, #bill_account_table_tbody>tr>td, #tableexpensebill_credit_account_table_body>tr>td, #sc_account_table_tbody>tr>td, #supplier_credit_debit_account_table_body>tr>td, #chequeaccounts_recievipaymenytable>tr>td, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td, #SalesReceiptAmountFromChequeDiv>tr>td, #AmountFromChequeAdditional>tr>td, #tablecashaccounttabletable>tr>td, #additionalCashSalesReceiptTbody>tr>td,#pay_bills_table_tbody>tr>td{
+#invoice_table>tr>td, #InvoiceAccountTBody>tr>td, #estimate_table_tbody>tr>td, #credit_note_table_tbody>tr>td, #credit_note_accounts_table>tr>td, #sales_receipt_table_tbody>tr>td, #bill_account_table_tbody>tr>td, #tableexpensebill_credit_account_table_body>tr>td, #sc_account_table_tbody>tr>td, #supplier_credit_debit_account_table_body>tr>td, #chequeaccounts_recievipaymenytable>tr>td, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td, #SalesReceiptAmountFromChequeDiv>tr>td, #AmountFromChequeAdditional>tr>td, #tablecashaccounttabletable>tr>td, #additionalCashSalesReceiptTbody>tr>td,#pay_bills_table_tbody>tr>td, #bill_account_tableedit_tbody>tr>td, #bill_edit_credit_account_code_tbody>tr>td, #sc_account_tableedit_tbody>tr>td{
   padding:0px;
   
 }
-#AmountFromChequeAdditional>tr>td>input, #SalesReceiptAmountFromChequeDiv>tr>td>input, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td>input,#tablecashaccounttabletable>tr>td>input,#pay_bills_table_tbody>tr>td>input{
+#AmountFromChequeAdditional>tr>td>input, #SalesReceiptAmountFromChequeDiv>tr>td>input, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td>input,#tablecashaccounttabletable>tr>td>input,#pay_bills_table_tbody>tr>td>input,#bill_account_tableedit_tbody>tr>td>input , #bill_edit_credit_account_code_tbody>tr>td>input, #sc_account_tableedit_tbody>tr>td>input{
   border:0px solid #ccc;
 }
 #invoice_table>tr>td>select{
