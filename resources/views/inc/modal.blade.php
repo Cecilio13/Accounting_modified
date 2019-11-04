@@ -11127,36 +11127,49 @@ function edit_journal_entries(je_no){
                         return data;
                     }else{
                         if(full['st_type']=="Invoice"){
-                            @if($UserAccessList[0]->invoice=="1")
-                            
-                            return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                            @else
-                            return "";
+                            @if(count($UserAccessList)>0)
+                                @if( $UserAccessList[0]->invoice=="1")
+                                
+                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
+                                @else
+                                return "";
+                                @endif
                             @endif
+                            
                         }
                         else if(full['st_type']=="Sales Receipt"){
-                            @if($UserAccessList[0]->sales_receipt=="1")
-                            
-                            return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                            @else
-                            return "";
+                            @if(count($UserAccessList)>0)
+                                @if($UserAccessList[0]->sales_receipt=="1")
+                                
+                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
+                                @else
+                                return "";
+                                @endif
                             @endif
+                            
                         }
                         else if(full['st_type']=="Credit Note"){
-                            @if($UserAccessList[0]->credit_note=="1")
-                            
-                            return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                            @else
-                            return "";
+                            @if(count($UserAccessList)>0)
+                                @if($UserAccessList[0]->credit_note=="1")
+                                
+                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
+                                @else
+                                return "";
+                                @endif
                             @endif
+                            
+                            
                         }
                         else if(full['st_type']=="Estimate"){
-                            @if($UserAccessList[0]->estimate=="1")
-                            
-                            return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                            @else
-                            return "";
+                            @if(count($UserAccessList)>0)
+                                @if($UserAccessList[0]->estimate=="1")
+                                
+                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
+                                @else
+                                return "";
+                                @endif
                             @endif
+                            
                         }else{
                             return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
 

@@ -7152,15 +7152,22 @@ class ChartofAccountsController extends Controller
                         if($row->account_title!=""){
                             if($row->normal_balance!=""){
                                 if($row->account_classification!=""){
-                                    if($row->cost_center_code!=""){
+                                    // if($row->cost_center_code!=""){
                                         $cc_code_check=CostCenter::where([
                                             ['cc_name_code','=',$row->cost_center_code]
                                         ])->get();
+                                        $cc_id="";
+                                            
                                         if(count($cc_code_check)>0){
-                                            $cc_id="";
                                             foreach($cc_code_check as $ccs){
                                                 $cc_id=$ccs->cc_no;
                                             }
+                                        }else{
+                                            //not existing Cost Center Code
+                                            // $error_count++;
+                                            // $Log.="Cost Center Code not Existing on row ".$rowcount." from file.\n";
+                                        }
+                                            
                                             $Chart= New ChartofAccount;
                                             $Chart->id= ChartofAccount::count() + 1;
                                             $cccdcd=ChartofAccount::count() + 1;
@@ -7195,16 +7202,12 @@ class ChartofAccountsController extends Controller
                                                 $error_count++;
                                                 $Log.="Error Saving Data on row ".$rowcount." from file.\n";  
                                             }
-                                        }else{
-                                            //not existing Cost Center Code
-                                            $error_count++;
-                                            $Log.="Cost Center Code not Existing on row ".$rowcount." from file.\n";
-                                        }
-                                    }else{
-                                        //empty Cost Center Code
-                                        $error_count++;
-                                        $Log.="Empty Cost Center Code on row ".$rowcount." from file.\n";
-                                    }
+                                        
+                                    // }else{
+                                    //     //empty Cost Center Code
+                                    //     $error_count++;
+                                    //     $Log.="Empty Cost Center Code on row ".$rowcount." from file.\n";
+                                    // }
                                     
                                 }else{
                                     //empty Account Title

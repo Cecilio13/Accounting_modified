@@ -125,6 +125,7 @@ document.getElementById('piechart_receivable').style.display="none";
             </div>
             </div> -->
 </div>
+@if (count($UserAccessList)>0)
 @if ($UserAccessList[0]->user_approval=="1")
 <div class="content mt-3">
         
@@ -272,4 +273,6 @@ document.getElementById('piechart_receivable').style.display="none";
         </div><!-- .animated -->
     </div><!-- .content -->
     @endif
+@endif
+
 @endsection

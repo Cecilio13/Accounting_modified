@@ -30,48 +30,48 @@ class PagesController extends Controller
 {
     public function index(\Illuminate\Http\Request $request){
         
-        $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
-        $db = DB::select($query, ['consmanagementsys']);
-        if(empty($db)){
+        // $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
+        // $db = DB::select($query, ['consmanagementsys']);
+        // if(empty($db)){
 
-        }
-        else{
-            $users2 = DB::table('users')->get();
-            $users1= DB::connection('mysql2')->select("SELECT * FROM employee_info JOIN employee_email_address ON 
-            employee_info.employee_id=employee_email_address.emp_id JOIN employee_job_detail ON employee_job_detail.emp_id=employee_info.employee_id WHERE position='Fixed Asset Officer'");
-            //return $users2[0]->id;
-            $a = array();
-            if(count($users1) > 0){
-                foreach($users1 as $useri){
-                    if($useri->email!=""){
+        // }
+        // else{
+        //     $users2 = DB::table('users')->get();
+        //     $users1= DB::connection('mysql2')->select("SELECT * FROM employee_info JOIN employee_email_address ON 
+        //     employee_info.employee_id=employee_email_address.emp_id JOIN employee_job_detail ON employee_job_detail.emp_id=employee_info.employee_id WHERE position='Fixed Asset Officer'");
+        //     //return $users2[0]->id;
+        //     $a = array();
+        //     if(count($users1) > 0){
+        //         foreach($users1 as $useri){
+        //             if($useri->email!=""){
 
-                        //array_push($a,$useri->email);
-                        $dup=0;
-                        if(count($users2) > 0){
-                            foreach($users2 as $userso){
-                                if(strtolower($userso->email)==strtolower($useri->email)){
-                                    $dup=1;
+        //                 //array_push($a,$useri->email);
+        //                 $dup=0;
+        //                 if(count($users2) > 0){
+        //                     foreach($users2 as $userso){
+        //                         if(strtolower($userso->email)==strtolower($useri->email)){
+        //                             $dup=1;
                                     
-                                    break;
-                                }
-                            }
-                        }
+        //                             break;
+        //                         }
+        //                     }
+        //                 }
                         
-                        if($dup==0){
-                            $user= new User;
-                            $user->name=$useri->fname;
-                            $user->email=$useri->email;
-                            $user->position=$useri->position;
-                            $user->password=Hash::make($useri->password);
-                            $user->save();
-                        }
-                    }
+        //                 if($dup==0){
+        //                     $user= new User;
+        //                     $user->name=$useri->fname;
+        //                     $user->email=$useri->email;
+        //                     $user->position=$useri->position;
+        //                     $user->password=Hash::make($useri->password);
+        //                     $user->save();
+        //                 }
+        //             }
                 
         
-                }
+        //         }
 
-            }
-        }
+        //     }
+        // }
         
             
         //temporary login using GET
@@ -127,70 +127,70 @@ class PagesController extends Controller
         
     }
     public function import_employee(Request $request){
-        try {
+        // try {
 			
-            DB::connection('mysql_ms')->getPdo();
-            $employees_from_monitoring_system= DB::connection('mysql_ms')->select("SELECT * FROM ark_employee ");
-            foreach($employees_from_monitoring_system as $efms){
-                $customers_from_accounting = Customers::where([
-                    ['display_name','=',$efms->First_Name." ".$efms->Middle_Name." ".$efms->Last_Name]
-                ])->first();
-                if(empty($customers_from_accounting)){
-                $customer = new Customers;
-                $customer->customer_id = Customers::count() + 1;
-                $customer->f_name = $efms->First_Name;
+        //     DB::connection('mysql_ms')->getPdo();
+        //     $employees_from_monitoring_system= DB::connection('mysql_ms')->select("SELECT * FROM ark_employee ");
+        //     foreach($employees_from_monitoring_system as $efms){
+        //         $customers_from_accounting = Customers::where([
+        //             ['display_name','=',$efms->First_Name." ".$efms->Middle_Name." ".$efms->Last_Name]
+        //         ])->first();
+        //         if(empty($customers_from_accounting)){
+        //         $customer = new Customers;
+        //         $customer->customer_id = Customers::count() + 1;
+        //         $customer->f_name = $efms->First_Name;
                 
-                $customer->l_name = $efms->Last_Name;
-                $customer->email = $efms->EmailAddress;
-                $customer->company = "";
-                $customer->phone = "";
-                $customer->mobile = $efms->ContactNumber;
-                $customer->fax = "";
-                $customer->display_name = $efms->First_Name." ".$efms->Middle_Name." ".$efms->Last_Name;
-                $customer->other = "";
-                $customer->website = "";
-                $customer->street = $efms->Address;
-                $customer->city = "";
-                $customer->state = "";
-                $customer->postal_code = "";
-                $customer->country = "";
-                $customer->payment_method = "";
-                $customer->terms = "";
-                $customer->opening_balance = 0;
-                $customer->as_of_date = date('Y-m-d');
-                $customer->account_no = "";
-                $customer->business_id_no = "";
-                $customer->notes = "";
-                $customer->attachment = "";
-                $customer->tin_no=$efms->TINNo;
-                $customer->withhold_tax=12;
-                $customer->business_style="";
-                $customer->account_type="Employee";
+        //         $customer->l_name = $efms->Last_Name;
+        //         $customer->email = $efms->EmailAddress;
+        //         $customer->company = "";
+        //         $customer->phone = "";
+        //         $customer->mobile = $efms->ContactNumber;
+        //         $customer->fax = "";
+        //         $customer->display_name = $efms->First_Name." ".$efms->Middle_Name." ".$efms->Last_Name;
+        //         $customer->other = "";
+        //         $customer->website = "";
+        //         $customer->street = $efms->Address;
+        //         $customer->city = "";
+        //         $customer->state = "";
+        //         $customer->postal_code = "";
+        //         $customer->country = "";
+        //         $customer->payment_method = "";
+        //         $customer->terms = "";
+        //         $customer->opening_balance = 0;
+        //         $customer->as_of_date = date('Y-m-d');
+        //         $customer->account_no = "";
+        //         $customer->business_id_no = "";
+        //         $customer->notes = "";
+        //         $customer->attachment = "";
+        //         $customer->tin_no=$efms->TINNo;
+        //         $customer->withhold_tax=12;
+        //         $customer->business_style="";
+        //         $customer->account_type="Employee";
                 
-                $customer->save();
+        //         $customer->save();
 
-                $AuditLog= new AuditLog;
-                $AuditLogcount=AuditLog::count()+1;
-                $userid = Auth::user()->id;
-                $username = Auth::user()->name;
-                $eventlog="Imported Employee";
-                $AuditLog->log_id=$AuditLogcount;
-                $AuditLog->log_user_id=$username;
-                $AuditLog->log_event=$eventlog;
-                $AuditLog->log_name="";
-                $AuditLog->log_transaction_date="";
-                $AuditLog->log_amount="";
-                $AuditLog->save();
-                }else{
+        //         $AuditLog= new AuditLog;
+        //         $AuditLogcount=AuditLog::count()+1;
+        //         $userid = Auth::user()->id;
+        //         $username = Auth::user()->name;
+        //         $eventlog="Imported Employee";
+        //         $AuditLog->log_id=$AuditLogcount;
+        //         $AuditLog->log_user_id=$username;
+        //         $AuditLog->log_event=$eventlog;
+        //         $AuditLog->log_name="";
+        //         $AuditLog->log_transaction_date="";
+        //         $AuditLog->log_amount="";
+        //         $AuditLog->save();
+        //         }else{
                    
-                }
+        //         }
                 
-            }
-            //return "";
-        } catch (\Exception $e) {
-            //connection not established
-            //return $e;
-        }
+        //     }
+        //     //return "";
+        // } catch (\Exception $e) {
+        //     //connection not established
+        //     //return $e;
+        // }
     }
     public function dashboard(Request $request){
         

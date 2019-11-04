@@ -49,6 +49,7 @@
     <?php
     $pendingapprovals=0;
     ?>
+    @if(count($UserAccessList)>0)
     @if ($UserAccessList[0]->approval_bank=="1")
     @foreach ($BankEdits as $item)
         @if ($item->edit_status=="0")
@@ -129,56 +130,81 @@
     
     @endforeach
     @endif
+    @endif
     <div id="main-menu" class="main-menu collapse navbar-collapse">
         <ul class="nav navbar-nav">
             <li class="active"><a href="dashboard" > <i class="menu-icon fas fa-tachometer-alt"></i>Dashboard </a></li>
                 <h3 class="menu-title" style="margin-bottom:10px;">Menu</h3><!-- /.menu-title -->
                 <li><a href="banking" style="display:none;"> <i class="menu-icon fas fa-wallet width30"></i>Banking</a></li>
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->user_approval=="1")
                 <li><a href="pending_user"  style="padding:5px 0;"> <i class="menu-icon fas fa-address-book width30"></i>User Access Approvals</a></li>
                 @endif
+                @endif
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->approvals=="1")
                 <li><a href="approvals" style="padding:5px 0;"> <i class="menu-icon fas fa-check-square width30"></i>Approvals <span style="border-radius:10rem;{{$pendingapprovals>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$pendingapprovals}}</span></a></li>
                 @endif
+                @endif
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->journal_entry=="1")
                 <li><a href="journalentry" style="padding:5px 0;"> <i class="menu-icon fas fa-columns width30"></i>Journal Entry</a></li>
                 @endif
+                @endif
                 
                 {{-- <li><a href="voucher" ><i class="menu-icon fa ti-agenda width30"></i>Voucher</a></li> --}}
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->sales=="1")
                 <li><a href="sales" style="padding:5px 0;"> <i class="menu-icon fas fa-chart-area width30"></i>Sales <span style="border-radius:10rem;{{$overduesalestransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduesalestransaction}}</span></a></li>
                 @endif
+                @endif
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->expense=="1")
                 <li><a href="expenses" style="padding:5px 0;"> <i class="menu-icon fas fa-money-bill width30"></i>Expenses <span style="border-radius:10rem; {{$overduetransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduetransaction}}</span></a></li>
                 @endif
+                @endif
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->reports=="1")
                 <li><a href="reports" style="padding:5px 0;"> <i class="menu-icon far fa-file width30"></i>Reports</a></li>
                 @endif
+                @endif
                 <li><a style="display:none;" href="taxes"> <i class="menu-icon fas fa-chart-line width30"></i>Taxes</a></li>
-                
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->chart_of_accounts=="1")
                 <li><a href="accounting" style="padding:5px 0;"> <i class="menu-icon fas fa-receipt width30"></i>Accounting</a></li>
                 @endif
+                @endif
+                @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->cost_center=="1")
                 <li><a href="cost_center" style="padding:5px 0;"> <i class="menu-icon fas fa-receipt width30"></i>Cost Center</a></li>
                 @endif
+                @endif
             <h3 class="menu-title" style="margin-bottom:10px;">Create</h3><!-- /.menu-title -->
+            @if(count($UserAccessList)>0)
             @if ($UserAccessList[0]->sales=="1")
             <li class="menu-item-has-children dropdown">
                 <a href="#" style="padding:5px 0;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fas fa-user-tie width30"></i>Customers</a>
                 <ul class="sub-menu children dropdown-menu" style="right:-190px;">
+                        @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->invoice=="1")
                     <li><a style="padding:2px 0px 2px 0px;" href="invoice" data-toggle="modal" data-target="#invoicemodal"><i class="menu-icon fas fa-chart-area"></i> Invoice</a></li>
                     @endif
+                    @endif
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->estimate=="1")
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="receivepayment" data-toggle="modal" data-target="#receivepaymentmodal"><i class="menu-icon fas fa-chart-area"></i> Receive Payment</a></li>
                     <li><a style="padding:2px 0px 2px 0px;" href="estimate" data-toggle="modal" data-target="#estimatemodal"><i class="menu-icon fas fa-chart-area"></i> Estimate</a></li>
                     @endif
+                    @endif
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->credit_note=="1")
                     <li><a style="padding:2px 0px 2px 0px;" href="creditnotice" data-toggle="modal" data-target="#creditnotemodal"><i class="menu-icon fas fa-chart-area"></i> Credit Notice</a></li>
                     @endif
+                    @endif
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->sales_recipt=="1")
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="salesreceipt" data-toggle="modal" data-target="#salesreceiptmodal"><i class="menu-icon fas fa-chart-area"></i> Sales Receipt</a></li>
+                    @endif
                     @endif
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="refundreceipt" data-toggle="modal" data-target="#refundreceiptmodal"><i class="menu-icon fas fa-chart-area"></i> Refund Receipt</a></li>
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="delayedcredit" data-toggle="modal" data-target="#delayedcreditmodal"><i class="menu-icon fas fa-chart-area"></i> Delayed Credit</a></li>
@@ -186,26 +212,36 @@
                 </ul>
             </li>
             @endif
+            @endif
+            @if(count($UserAccessList)>0)
             @if ($UserAccessList[0]->expense=="1")
             <li class="menu-item-has-children dropdown">
                 <a href="#" style="padding:5px 0;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-list width30"></i>Suppliers</a>
                 <ul class="sub-menu children dropdown-menu" style="right:-190px;">
                     <li><a style="padding:2px 0px 2px 0px;display:none" href="expense" data-toggle="modal" data-target="#expensemodal"><i class="menu-icon fa fa-list-alt "></i> Expense</a></li>
                     <li><a style="padding:2px 0px 2px 0px;display:none" href="cheque" data-toggle="modal" data-target="#chequemodal"><i class="menu-icon fa fa-th-large "></i> Cheque</a></li>
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->bill=="1")
                     <li><a style="padding:2px 0px 2px 0px;" href="bill" data-toggle="modal" data-target="#billmodal"><i class="menu-icon fas fa-money-bill"></i> Bill</a></li>
                     @endif
+                    @endif
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->pay_bills=="1")
                     <li><a style="padding:2px 0px 2px 0px;" href="paybills" data-toggle="modal" data-target="#paybillsmodal"><i class="menu-icon fa fa-paperclip "></i> Pay Bills</a></li>
                     @endif
+                    @endif
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="purchaseorder" data-toggle="modal" data-target="#purchaseordermodal"> <i class="menu-icon fa fa-th-large "></i> Purchase Order</a></li>
+                    @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->supplier_credit=="1")
                     <li><a style="padding:2px 0px 2px 0px;" href="suppliercredit" data-toggle="modal" data-target="#suppliercreditmodal"> <i class="menu-icon fas fa-money-bill"></i>Supplier Credit</a></li>
+                    @endif
                     @endif
                     <li><a style="padding:2px 0px 2px 0px;display:none;" href="creditcardcredit" data-toggle="modal" data-target="#creditcardcreditmodal"><i class="menu-icon fa fa-paperclip "></i> Credit Card Credit</a></li>
                 </ul>
             </li>
             @endif
+            @endif
+            @if(count($UserAccessList)>0)
             @if ($UserAccessList[0]->fund_feeds=="1")
             <li class="menu-item-has-children dropdown">
                 <a href="#" style="padding:5px 0;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-wrench width30"></i>Fund Feeds</a>
@@ -219,6 +255,8 @@
                 </ul>
             </li>
             @endif
+            @endif
+            @if(count($UserAccessList)>0)
             @if ($UserAccessList[0]->settings=="1")
             <h3 class="menu-title" style="margin-bottom:10px;">Settings</h3><!-- /.menu-title -->
 
@@ -230,6 +268,7 @@
                     
                 </ul>
             </li>
+            @endif
             @endif
             <li class="menu-item-has-children dropdown" style="display:none;">
                 <a href="#" style="padding:5px 0;" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-list width30"></i>Lists</a>
