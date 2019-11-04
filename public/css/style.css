@@ -2627,7 +2627,11 @@ table td{
   padding:5px;
 }
 .btn-upper-report{
-  font-size:14px !important;
+  font-size:40px !important;
+  padding:5px;
+}
+.btn-upper-back{
+  font-size:20px !important;
   padding:5px;
 }
 #invoice_table>tr>td, #InvoiceAccountTBody>tr>td, #estimate_table_tbody>tr>td, #credit_note_table_tbody>tr>td, #credit_note_accounts_table>tr>td, #sales_receipt_table_tbody>tr>td, #bill_account_table_tbody>tr>td, #tableexpensebill_credit_account_table_body>tr>td, #sc_account_table_tbody>tr>td, #supplier_credit_debit_account_table_body>tr>td, #chequeaccounts_recievipaymenytable>tr>td, #SalesReceiptAmountFromChequeDivTransferDiv>tr>td, #SalesReceiptAmountFromChequeDiv>tr>td, #AmountFromChequeAdditional>tr>td, #tablecashaccounttabletable>tr>td, #additionalCashSalesReceiptTbody>tr>td,#pay_bills_table_tbody>tr>td, #bill_account_tableedit_tbody>tr>td, #bill_edit_credit_account_code_tbody>tr>td, #sc_account_tableedit_tbody>tr>td{

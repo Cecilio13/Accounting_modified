@@ -1378,8 +1378,8 @@ function exporttoexcel(table_id){
                             <input type="text" name="job_order_invoice" id="job_order_invoice" class="w-100 form-control">
                         </div>
                         <div class="col-md-2 p-0 pr-3">
-                            <p>Work No</p>
-                            <input type="text" name="work_no_invoice" id="work_no_invoice" class="w-100 form-control">
+                            <p style="display:none;">Work No</p>
+                            <input type="text" name="work_no_invoice" id="work_no_invoice" class="w-100 form-control" style="display:none;">
                         </div>
                         
                         
@@ -3946,8 +3946,8 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="text" name="job_order_sales_receipt" id="job_order_sales_receipt" class="w-100 form-control" readonly>
                         </div>
                         <div class="col-md-2 p-0 pr-3">
-                            <p>Work No</p>
-                            <input type="text" name="work_no_sales_receipt" id="work_no_sales_receipt" class="w-100 form-control" readonly>
+                            <p style="display:none;">Work No</p>
+                            <input type="text" name="work_no_sales_receipt" id="work_no_sales_receipt" class="w-100 form-control" readonly style="display:none;">
                         </div>
                         
                         
