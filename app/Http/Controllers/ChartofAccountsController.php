@@ -68,7 +68,7 @@ class ChartofAccountsController extends Controller
         if($request->input('ACCType')=="Custom"){
             $Chart->coa_account_type=$request->input('customaccounttype');
             $Chart->coa_detail_type=$request->input('customdetailtyep');
-            $Chart->coa_name=$request->input('customdetailtyep');
+            $Chart->coa_name=preg_replace( "/\r|\n/", "", $request->input('customdetailtyep') );
         }else{
             $Chart->coa_account_type=$request->input('ACCType');
             $Chart->coa_detail_type=$request->input('DetType');
@@ -260,7 +260,7 @@ class ChartofAccountsController extends Controller
         }else{
             $Chart->coa_account_type=$request->input('ACCType2');
             $Chart->coa_detail_type=$request->input('DetType2');
-            $Chart->coa_name=$request->input('DetType2');
+            $Chart->coa_name=preg_replace( "/\r|\n/", "", $request->input('DetType2') );
         }
         
         $Chart->id=$id;
@@ -6255,25 +6255,25 @@ class ChartofAccountsController extends Controller
                 //     )
                 // );
                 $cplus=$c+1;
-                $objValidation = $sheet1->getCell('D'.$cplus)->getDataValidation();
+                $objValidation = $sheet1->getCell('C'.$cplus)->getDataValidation();
                 $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
                 
                 $objValidation->setShowDropDown( true );
                 $objValidation->setFormula1('ChartofAccounts!$A:$A');
 
-                $objValidation = $sheet1->getCell('H'.$cplus)->getDataValidation();
+                $objValidation = $sheet1->getCell('G'.$cplus)->getDataValidation();
                 $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
                 
                 $objValidation->setShowDropDown( true );
                 $objValidation->setFormula1('Names!$A:$A');
 
-                $objValidation = $sheet1->getCell('B'.$cplus)->getDataValidation();
-                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                // $objValidation = $sheet1->getCell('B'.$cplus)->getDataValidation();
+                // $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
                 
-                $objValidation->setShowDropDown( true );
-                $objValidation->setFormula1('CostCenter!$A:$A');
+                // $objValidation->setShowDropDown( true );
+                // $objValidation->setFormula1('CostCenter!$A:$A');
 
-                $objValidation = $sheet1->getCell('K'.$cplus)->getDataValidation();
+                $objValidation = $sheet1->getCell('J'.$cplus)->getDataValidation();
                 $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
                 
                 $objValidation->setShowDropDown( true );
@@ -7173,7 +7173,7 @@ class ChartofAccountsController extends Controller
                                             $cccdcd=ChartofAccount::count() + 1;
                                             $Chart->coa_account_type=$row->line_item;
                                             $Chart->coa_detail_type=$row->account_title;
-                                            $Chart->coa_name=$row->account_title;
+                                            $Chart->coa_name=preg_replace( "/\r|\n/", "", $row->account_title );
                                             $Chart->coa_sub_account=$row->sub_account;
                                             $Chart->coa_description=$row->account_description;
                                             $Chart->coa_code=$row->account_code;
@@ -7470,7 +7470,7 @@ class ChartofAccountsController extends Controller
                     if($row->journal_type!=""){
                         if($row->journal_type=="Cheque Voucher" || $row->journal_type=="Journal Voucher"){
                             if($row->journal_date!=""){
-                                if($row->cost_center!=""){
+                                
                                     if($row->journal_no!=""){
                                         if($row->account!=""){
                                             if($row->debit=="" && $row->credit==""){
@@ -7498,12 +7498,7 @@ class ChartofAccountsController extends Controller
                                         //$error_count++;
                                         $Log.="Empty Journal No on row ".$rowcount." from file.\n"; 
                                      }
-                                }else{
-                                    $valid=1; 
-                                    //empty first name
-                                    //$error_count++;
-                                    $Log.="Empty Cost Center on row ".$rowcount." from file.\n"; 
-                                 }
+                                
                             }else{
                                 $valid=1; 
                                 //empty first name
@@ -7563,7 +7558,7 @@ class ChartofAccountsController extends Controller
                     }
                     $Valid_je_no = []; 
                     $valid_coa=0;
-                    $valid_cc=0;
+                    $valid_cc=1;
                     foreach($data as $row){
                         if($unique==$row->journal_no){
                             $account=$row->account;
@@ -7575,13 +7570,13 @@ class ChartofAccountsController extends Controller
                             }else{
                                 $valid_coa=1;
                             }
-                            $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
-                            if(empty($COA)){
-                                $valid_cc=0; 
-                                break;
-                            }else{
-                                $valid_cc=1;     
-                            }
+                            // $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                            // if(empty($COA)){
+                            //     $valid_cc=0; 
+                            //     break;
+                            // }else{
+                            //     $valid_cc=1;     
+                            // }
                             
                                 
 
@@ -7608,10 +7603,11 @@ class ChartofAccountsController extends Controller
                                 $date_deposited=$row->date_deposited;
                                 
                                 $type="Journal Entry";
-                                $CostCenter=$row->cost_center;
-                                $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
-        
-                                $CostCenter=$COA->cc_no;
+                                $CostCenter="";
+                                
+                                // $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                
+                                // $CostCenter=$COA->cc_no;
                                 
                                 $journal_entries = new  JournalEntry;
                                 $journal_entries->je_id = $no;//duplicate if multiple entry *for fix*
@@ -7666,7 +7662,7 @@ class ChartofAccountsController extends Controller
                 }else{
                     //empty first name
                     $error_count+=$individualjournalnocount;
-                    $Log.="Debit and Credit not Equal in Journal No ".$unique.".\n"; 
+                    $Log.="Debit and Credit not Equal in Journal No ".$unique." (".number_format($debit,2)."==".number_format($credit,2).")".".\n"; 
                 }
 
             }else{

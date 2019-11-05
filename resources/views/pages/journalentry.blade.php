@@ -148,6 +148,7 @@
                             LOG=" \n\nSkip Log : \n"+data.Error_Log;
                             }
                             alert("Total number Of Data : "+data.Total+"\nData Saved : "+data.Success+" \nData Skipped : "+data.Skiped+LOG);
+                            console.log("Total number Of Data : "+data.Total+"\nData Saved : "+data.Success+" \nData Skipped : "+data.Skiped+LOG);
                             document.getElementById("excel-upload-journal").value = "";
                             document.getElementById('import_overlay').style.display="none";
                             location.reload();

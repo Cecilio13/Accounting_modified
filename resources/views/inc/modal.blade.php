@@ -17,11 +17,11 @@ $cc_list_after_foreach.="<option  value='".$list->cc_no."'>".$list->cc_name."</o
 ?>
 @endforeach
 <script>
-
+//preg_replace( "/\r|\n/", "", $coa->coa_name )
 
 var product_list_js='@foreach($products_and_services as $product)<option value="{{$product->product_id}}">{{$product->product_name}}</option>@endforeach';
-var coa_list_js='@foreach($COA as $coa)<option value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach';
-var coa_list2_js='@foreach($COA as $coa)<option title="{{$coa->coa_account_type}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach';
+var coa_list_js='@foreach($COA as $coa)<option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>@endforeach';
+var coa_list2_js='@foreach($COA as $coa)<option title="{{$coa->coa_account_type}}" value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>@endforeach';
  function ResetBills(){
      document.getElementById('clear_lines_bill_account2').click();
  }
@@ -2122,9 +2122,9 @@ function setJournalAccount(id){
                                                     <option value="">--Select Account--</option>
                                                     @foreach($c_o_a_sorted as $coa)
                                                     @if ($coa->id=="3")
-                                                    <option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option> 
+                                                    <option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option> 
                                                     @else
-                                                    <option value="{{$coa->id}}">{{$coa->coa_name}}</option>  
+                                                    <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>  
                                                     @endif
                                                     
                                                     @endforeach
@@ -2870,9 +2870,9 @@ function setJournalAccount(id){
                                                         <option value="">--Select Account--</option>
                                                         @foreach($c_o_a_sorted as $coa)
                                                         @if ($coa->id=="90")
-                                                        <option  value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>  
+                                                        <option  value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>  
                                                         @else
-                                                        <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>   
+                                                        <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>   
                                                         @endif
                                                         
                                                         @endforeach
@@ -4040,9 +4040,9 @@ function getModal(Location,TTTTT,e,type,sales){
                                         markup=markup+'<select required onchange="setsraccountdebitcode(\'additionalcashDebitAccount'+AdditionalCashAccountCount+'\',\'additionalcashDebitAccountcode'+AdditionalCashAccountCount+'\')" class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccount'+AdditionalCashAccountCount+'" id="additionalcashDebitAccount'+AdditionalCashAccountCount+'">';
                                         @foreach($COA as $coo)
                                             if('{{$coo->id}}'=="1"){
-                                                markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
+                                                markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
                                             }else{
-                                                markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
+                                                markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
                                             }
                                             
                                         @endforeach
@@ -4062,7 +4062,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         markup=markup+'<td style="vertical-align:middle;">';
                                         markup=markup+'<select disabled required class="form-control" name="additionalcashCreditAccount'+AdditionalCashAccountCount+'" id="additionalcashCreditAccount'+AdditionalCashAccountCount+'">';
                                             @foreach($COA as $coo)
-                                            markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
+                                            markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
                                             @endforeach
                                         
                                         markup=markup+'</select>';    
@@ -4318,7 +4318,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                     <td style="vertical-align:middle;">
                                         <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account','sales_receipt_account_debit_account_code')" data-live-search="true" name="sales_receipt_account_debit_account"  id="sales_receipt_account_debit_account" required>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                         @endforeach
                                         </select>
                                         
@@ -4335,7 +4335,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <select class="form-control" name="sales_receipt_account_credit_account"  id="sales_receipt_account_credit_account" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{$coa->coa_name}}</option>
+                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                         @endforeach
                                         </select>
                                     </td>
@@ -4466,15 +4466,15 @@ function getModal(Location,TTTTT,e,type,sales){
                                         @foreach($c_o_a_sorted as $coa)
                                         @if (!empty($sales_setting))
                                             @if ($coa->id==$sales_setting->sales_sales_receipt_preferred_debit_cheque_account)
-                                            <option selected value="{{$coa->id}}">{{$coa->coa_name}}</option>     
+                                            <option selected value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>     
                                             @else
-                                            <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>    
+                                            <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>    
                                             @endif
                                         @else
-                                            @if (strpos($coa->coa_name, $a) !== false)
-                                            <option selected value="{{$coa->id}}">{{$coa->coa_name}}</option>     
+                                            @if (strpos(preg_replace( "/\r|\n/", "", $coa->coa_name ), $a) !== false)
+                                            <option selected value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>     
                                             @else
-                                            <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>    
+                                            <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>    
                                             @endif
                                         
                                         @endif
@@ -4513,7 +4513,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <select class="form-control"  name="sales_receipt_account_credit_account_cheque"  id="sales_receipt_account_credit_account_cheque" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                         @endforeach
                                         </select>
                                         
@@ -4807,7 +4807,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <select class="form-control selectpicker" onchange="setcredit_note_debit_account('1')" data-live-search="true" name="credit_note_account_debit_account"  id="credit_note_account_debit_account" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='4'? 'selected':''}}  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option {{$coa->id=='4'? 'selected':''}}  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                         @endforeach
                                         </select>
                                         
@@ -4825,7 +4825,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <select class="form-control selectpicker" onchange="setcredit_note_credit_account('1')" data-live-search="true" name="credit_note_account_credit_account"  id="credit_note_account_credit_account" required>
                                         <option></option>
                                         @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='2'? 'selected':''}}  value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                        <option {{$coa->id=='2'? 'selected':''}}  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                         @endforeach
                                         </select>
                                         
@@ -5818,9 +5818,9 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <option value="">--Select Account--</option>
                                         @foreach($c_o_a_sorted as $coa)
                                         @if ($coa->id=="3")
-                                        <option  value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>  
+                                        <option  value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>  
                                         @else
-                                        <option  value="{{$coa->id}}">{{$coa->coa_name}}</option>   
+                                        <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>   
                                         @endif
                                         
                                         @endforeach
@@ -6185,9 +6185,9 @@ function getModal(Location,TTTTT,e,type,sales){
                                         <option value="">--Select Account--</option>
                                         @foreach($c_o_a_sorted as $coa)
                                         @if ($coa->id=="3")
-                                        <option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option> 
+                                        <option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option> 
                                         @else
-                                        <option value="{{$coa->id}}">{{$coa->coa_name}}</option>  
+                                        <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>  
                                         @endif
                                         
                                         @endforeach
@@ -7143,7 +7143,7 @@ function addCardCreditedit(){
                                 <select class="selectpicker form-control"onchange="setAccountCodeJournalEntry('1')" required data-live-search="true"  id="accjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                    <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                     @endforeach
                                 </select>
                                 
@@ -7191,7 +7191,7 @@ function addCardCreditedit(){
                                 <select class="selectpicker form-control" onchange="setAccountCodeJournalEntry('2')" required data-live-search="true" id="accjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{$coa->coa_name}}</option>
+                                    <option value="{{$coa->id}}" data-costcenter="{{$coa->coa_cc}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                     @endforeach
                                 </select>    
                             </td>
@@ -7664,7 +7664,7 @@ function addCardCreditedit(){
                                 @foreach($COA as $coa)
                                 var option = document.createElement("option");
                                 option.value = "{{$coa->id}}";
-                                option.text = "{!! $coa->coa_name !!}";
+                                option.text = "{!! preg_replace( "/\r|\n/", "", $coa->coa_name ) !!}";
                                 option.setAttribute('data-costcenter','{{$coa->coa_cc}}')
                                 input.appendChild(option);
                                 
@@ -8081,7 +8081,7 @@ function edit_journal_entries(je_no){
                                 <select class="form-control selectpicker" data-live-search="true"  id="editaccjournbale1" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}} >
                                     <option value="">--Select Account--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                    <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                     @endforeach
                                 </select>
                             </td>
@@ -8102,7 +8102,7 @@ function edit_journal_entries(je_no){
                                 <select class="form-control selectpicker" data-live-search="true" id="editaccjournbale2" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : ''}}>
                                     <option value="">--Select Account--</option>
                                     @foreach($COA as $coa)
-                                    <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                    <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
                                     @endforeach
                                 </select>    
                             </td>
@@ -8352,7 +8352,7 @@ function edit_journal_entries(je_no){
                                 @foreach($COA as $coa)
                                 var option = document.createElement("option");
                                 option.value = "{{$coa->id}}";
-                                option.text = "{{$coa->coa_name}}";
+                                option.text = "{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}";
                                 input.appendChild(option);
                                 
                                 @endforeach
@@ -8710,7 +8710,7 @@ function edit_journal_entries(je_no){
                                 @foreach ($c_o_a as $co)
                                 
                                 @if($co->coa_sub_account=='Cash on Hand' || $co->coa_sub_account=='Cash on Hands')
-                                <option value="{{$co->id}}">&nbsp; {{$co->coa_name}}</option>
+                                <option value="{{$co->id}}">&nbsp; {{preg_replace( "/\r|\n/", "", $co->coa_name )}}</option>
                                 
                                 @endif
                                 
@@ -12457,11 +12457,11 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_debit_accountedit'+accounttablelength+'" name="invoice_account_debit_accountedit'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc_edit" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                     if ('{{$coa->id}}'=="2"){
-                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }else{
-                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                        markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }  
                 }                
             @endforeach
@@ -12470,11 +12470,11 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_credit_accountedit'+accounttablelength+'" name="invoice_account_credit_accountedit'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc_edit" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                     if('{{$coa->id}}'=="4"){
-                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }else{
-                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                        markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }  
                 }                
             @endforeach
@@ -12889,11 +12889,11 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_debit_account_code'+accounttablelength+'" onchange="setAccount_and_Code(this)" name="invoice_account_debit_account_code'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc_code" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                 //     if ('{{$coa->id}}'=="2"){
-                //         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                //         markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                 //     }else{
-                //         markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                //         markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                 //     }  
                 // }
                 if(""==""){
@@ -12909,18 +12909,18 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_debit_account'+accounttablelength+'" onchange="setAccount_and_Code_code(this)" name="invoice_account_debit_account'+accounttablelength+'" class="w-100 selectpicker invoice_debit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                // if('{{$coa->coa_sub_account}}'=="Receivable Accounts" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                 //     if ('{{$coa->id}}'=="2"){
-                //         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                //         markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                 //     }else{
-                //         markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                //         markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                 //     }  
                 // }
                 if(""==""){
                     if ('{{$coa->id}}'=="2"){
-                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }else{
-                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                        markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }  
                 }                 
             @endforeach
@@ -12930,7 +12930,7 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_credit_account_code'+accounttablelength+'" onchange="setAccount_and_Code2(this)" name="invoice_account_credit_account_code'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc_code" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                     if('{{$coa->id}}'=="4"){
                         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>';
                     }else{
@@ -12944,11 +12944,11 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_credit_account'+accounttablelength+'" onchange="setAccount_and_Code_code2(this)" name="invoice_account_credit_account'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{$coa->coa_name}}'=="Cash Clearing Account"){
+                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
                     if('{{$coa->id}}'=="4"){
-                        markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option>';
+                        markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }else{
-                        markup=markup+'<option  value="{{$coa->id}}">{{$coa->coa_name}}</option>';
+                        markup=markup+'<option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }  
                 }                
             @endforeach
