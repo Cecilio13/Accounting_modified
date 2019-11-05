@@ -413,9 +413,9 @@ class ChartofAccountsController extends Controller
                            
                         }
                     }
-                    if($je->je_cost_center!="null"){
+                    if($je->je_cost_center!="null" || $je->je_cost_center!=""){
                         $cost_center_list= CostCenter::find($je->je_cost_center);
-                        $sheet->setCellValue('J'.$columncount,$cost_center_list->cc_name);
+                        $sheet->setCellValue('J'.$columncount,(!empty($cost_center_list)? $cost_center_list->cc_name : ''));
                     }
                     
                     $sheet->setCellValue('K'.$columncount,$je->je_name);
