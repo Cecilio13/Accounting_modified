@@ -117,4 +117,19 @@ class GetController extends Controller
         fclose($myfile);
         return response()->download('extra/export_report/dat_file.dat','report.dat');
     }
+    function create_database(Request $request){
+        
+        //create database
+        //CREATE DATABASE database_name
+        
+        //show database table lists
+        //show tables from accounting;
+
+        //copy tables
+        //CREATE TABLE new_database.new_table LIKE old_database.old_table
+    }
+    function confirm_first_admin_account(Request $request){
+        $None="";
+        return view('account_confimation_page', compact('None'));
+    }
 }

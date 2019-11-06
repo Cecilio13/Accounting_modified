@@ -14,6 +14,7 @@ use \setasign\Fpdi\Fpdi;
 Route::group(['middleware'=>['auth']], function() {
     
     
+    
     Route::get('/export_dat_file', 'GetController@export_dat_file');
     Route::get('/export_profitandloss', 'ChartofAccountsController@export_profitandloss');
     Route::get('/export_profitandlossaspercent', 'ChartofAccountsController@export_profitandlossaspercent');
@@ -341,7 +342,7 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/syncdata', 'CompanyController@syncdata')->name('syncdata');
     
 });
-
+Route::get('/confirm_account', 'GetController@confirm_first_admin_account');
 // Route::get('/', 'PagesController@reports');
 
 
