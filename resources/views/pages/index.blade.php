@@ -136,7 +136,24 @@ document.getElementById('piechart_receivable').style.display="none";
                                 url: "create_database",
                                 data: {name:name,_token: '{{csrf_token()}}'},
                                 success: function (data) {
-                                    alert(data);
+                                    //alert(data);
+                                    if(data=="Duplicate"){
+                                        swal({title: "Error!", text:"Duplicate Client Name", type: 
+                                        "error"}).then(function(){
+                                        location.reload();                                    
+                                        });
+                                    }else if(data=="1"){
+                                        swal({title: "Done!", text:"Successfully Added Client", type: 
+                                        "success"}).then(function(){
+                                        location.reload();                                    
+                                        });
+                                    }else{
+                                        swal({title: "Error!", text:"Failed to Add Client", type: 
+                                        "error"}).then(function(){
+                                        location.reload();                                    
+                                        });  
+                                    }
+                                    
                                     
                                 },
                                 error: function (data) {

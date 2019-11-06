@@ -28,6 +28,8 @@ use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
 use App\CC_Type;
+use App\Clients;
+
 class GetController extends Controller
 {
     public function get_customer_info(Request $request){
@@ -124,23 +126,40 @@ class GetController extends Controller
         //$this->create_database();
         //create database
         //CREATE DATABASE database_name
-        DB::connection('mysql')
-        ->statement(
-            'CREATE DATABASE accounting_modified_'.$unique_db_id
-        );
-        //show database table lists
-        //show tables from accounting;
-        $tables = DB::select('SHOW TABLES from accounting');
-        $eee="";
-        foreach($tables as $table)
-        {
-            DB::connection('mysql')
-            ->statement(
-                'CREATE TABLE  accounting_modified_'.$unique_db_id.'.'.$table->Tables_in_accounting.' LIKE accounting.'.$table->Tables_in_accounting
-            );
-            $eee.=$table->Tables_in_accounting."\n";
+        $client=Clients::where([
+            ['clnt_name','=',$request->name]
+        ])->first();
+        if(!empty($client)){
+            return "Duplicate";
+        }else{
+            $data= new Clients;
+            $data->clnt_name=$request->name;
+            $data->clnt_db_name=$unique_db_id;
+            $data->clnt_status="1";
+            if($data->save()){
+                DB::connection('mysql')
+                ->statement(
+                    'CREATE DATABASE accounting_modified_'.$unique_db_id
+                );
+                //show database table lists
+                //show tables from accounting;
+                $tables = DB::select('SHOW TABLES from accounting_modified');
+                $eee="";
+                foreach($tables as $table)
+                {
+                    DB::connection('mysql')
+                    ->statement(
+                        'CREATE TABLE  accounting_modified_'.$unique_db_id.'.'.$table->Tables_in_accounting_modified.' LIKE accounting_modified.'.$table->Tables_in_accounting_modified
+                    );
+                    //$eee.=$table->Tables_in_accounting_modified."\n";
+                }
+                return "1";
+            }else{
+                return "0";
+            }
+            
         }
-        return $eee;
+        
 
         //copy tables
         //CREATE TABLE new_database.new_table LIKE old_database.old_table

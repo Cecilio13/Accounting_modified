@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Carbon\Carbon;
 use App\UserLoginLogs;
+use Auth;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+
 class LoginController extends Controller
 {
     /*
@@ -62,5 +67,6 @@ class LoginController extends Controller
             'last_login_at' => Carbon::now()->toDateTimeString(),
             'last_login_ip' => $request->ip()
         ]);
+        
     }
 }
