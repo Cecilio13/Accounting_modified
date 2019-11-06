@@ -32,13 +32,32 @@ $(window).load(function() {
 
     setTimeout(function() {
         $(".se-pre-con").fadeOut("slow");
-        Swal.fire({
-        type: 'success',
-        title: 'Success',
-        text: 'Successfully Confirm Admin Account',
-        }).then((result) => {
-            location.href="login";
-        })
+        @if($None=="1")
+            Swal.fire({
+            type: 'success',
+            title: 'Success',
+            text: 'Successfully Activated Admin Account',
+            }).then((result) => {
+                location.href="login";
+            })
+        @elseif($None=="0")
+            Swal.fire({
+            type: 'error',
+            title: 'Error',
+            text: 'Failed to Activate Admin Account, Admin Account Already Exist',
+            }).then((result) => {
+                location.href="login";
+            })
+        @elseif($None=="2")
+            Swal.fire({
+            type: 'error',
+            title: 'Error',
+            text: 'Account Not Found',
+            }).then((result) => {
+                location.href="login";
+            })
+        @endif
+        
     }, delayInMilliseconds);
     
 });

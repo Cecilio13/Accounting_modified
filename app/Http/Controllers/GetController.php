@@ -117,8 +117,8 @@ class GetController extends Controller
         fclose($myfile);
         return response()->download('extra/export_report/dat_file.dat','report.dat');
     }
-    function create_database(Request $request){
-        
+    public function create_database(Request $request){
+        //$this->create_database();
         //create database
         //CREATE DATABASE database_name
         
@@ -128,8 +128,41 @@ class GetController extends Controller
         //copy tables
         //CREATE TABLE new_database.new_table LIKE old_database.old_table
     }
-    function confirm_first_admin_account(Request $request){
-        $None="";
+    public function confirm_first_admin_account(Request $request){
+        $None="55";
+        $email=$request->email;
+        $users=User::where([
+            ['approved_status','=','1']
+        ])->get();
+        if(count($users)>0){
+            $None="0";//will not activate anymore account
+        }else{
+            $users=User::where([
+                ['email','=',$email]
+            ])->first();
+            
+            if(!empty($users)){
+                $id=$users->id;
+                $data=User::find($id);
+                $data->approved_status="1";
+                if($data->save()){
+                    $data=UserAccess::find($id);
+                    if(empty($data)){
+                        $data= new UserAccess;
+                    }
+                    $data->user_approval="1";
+                    if($data->save()){
+                        $None="1";//will activate the setted email
+                    }
+
+                }
+            }else{
+                $None="2";//account not found
+            }
+            
+            
+        }
+        
         return view('account_confimation_page', compact('None'));
     }
 }
