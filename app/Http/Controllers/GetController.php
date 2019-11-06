@@ -119,15 +119,32 @@ class GetController extends Controller
         return response()->download('extra/export_report/dat_file.dat','report.dat');
     }
     public function create_database(Request $request){
+        $unique_db_id=md5(uniqid($request->name, true));
+        
         //$this->create_database();
         //create database
         //CREATE DATABASE database_name
-        
+        DB::connection('mysql')
+        ->statement(
+            'CREATE DATABASE accounting_modified_'.$unique_db_id
+        );
         //show database table lists
         //show tables from accounting;
+        $tables = DB::select('SHOW TABLES from accounting');
+        $eee="";
+        foreach($tables as $table)
+        {
+            DB::connection('mysql')
+            ->statement(
+                'CREATE TABLE  accounting_modified_'.$unique_db_id.'.'.$table->Tables_in_accounting.' LIKE accounting.'.$table->Tables_in_accounting
+            );
+            $eee.=$table->Tables_in_accounting."\n";
+        }
+        return $eee;
 
         //copy tables
         //CREATE TABLE new_database.new_table LIKE old_database.old_table
+
     }
     public function confirm_first_admin_account(Request $request){
         $None="55";

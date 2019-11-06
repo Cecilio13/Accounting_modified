@@ -113,6 +113,54 @@ document.getElementById('piechart_receivable').style.display="none";
                 </div>
             </div>
         </div>
+        @if (count($UserAccessList)>0)
+            @if ($UserAccessList[0]->user_approval=="1")
+            <script>
+                    function add_client_button(){
+                        swal({
+                        text: 'Enter Client Name',
+                        content: "input",
+                        button: {
+                            text: "Add Client",
+                            closeModal: false,
+                        },
+                        })
+                        .then(name => {
+                            if (!name) throw null;
+                            
+                            $.ajax({
+                                method: "POST",
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                url: "create_database",
+                                data: {name:name,_token: '{{csrf_token()}}'},
+                                success: function (data) {
+                                    alert(data);
+                                    
+                                },
+                                error: function (data) {
+                                    alert(data.responseText);
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            if (err) {
+                                swal("Error!", "Please Try Again Later", "error");
+                            } else {
+                                swal.stopLoading();
+                                swal.close();
+                            }
+                        });
+                    }
+                </script>
+                <div class="col-sm-8">
+                    <div class="float-right">
+                        <button type="button" onclick="add_client_button()">Add New Client</button>
+                    </div>
+                </div> 
+            @endif
+        @endif
         <!-- <div class="col-sm-8">
             <div class="page-header float-right">
                 <div class="page-title">
