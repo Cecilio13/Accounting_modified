@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Auth;
 use Hash;
 use App\User;
+use App\UserCostCenterAccess;
 use App\Company;
 use App\Sales;
 use App\Expenses;
@@ -145,13 +146,60 @@ class GetController extends Controller
                 $id=$users->id;
                 $data=User::find($id);
                 $data->approved_status="1";
+                $data->access_company_setup="1";
+                $data->access_bulletin="1";
+                $data->access_ceo="1";
+                $data->access_hr="1";
+                $data->access_payroll="1";
+                $data->access_asset_namagement="1";
                 if($data->save()){
                     $data=UserAccess::find($id);
                     if(empty($data)){
                         $data= new UserAccess;
                     }
                     $data->user_approval="1";
+                    $data->approvals="1";
+                    $data->journal_entry="1";
+                    $data->sales="1";
+                    $data->invoice="1";
+                    $data->estimate="1";
+                    $data->credit_note="1";
+                    $data->sales_receipt="1";
+                    $data->expense="1";
+                    $data->bill="1";
+                    $data->supplier_credit="1";
+                    $data->pay_bills="1";
+                    $data->reports="1";
+                    $data->fund_feeds="1";
+                    $data->chart_of_accounts="1";
+                    $data->cost_center="1";
+                    $data->settings="1";
+                    $data->procurement_system="1";
+                    $data->procurement_sub="1";
+                    $data->approval_pending_bills="1";
+                    $data->approval_bank="1";
+                    $data->approval_coa="1";
+                    $data->approval_cc="1";
+                    $data->approval_customer="1";
+                    $data->approval_supplier="1";
+                    $data->approval_product_services="1";
+                    $data->approval_sales="1";
+                    $data->approval_expense="1";
+                    $data->approval_boq="1";
+                    $data->hr_system="1";
+                    $data->payroll_system="1";
                     if($data->save()){
+                        $data=UserCostCenterAccess::where([
+                            ['use_id','=',$id],
+                            ['cost_center_id','=','All']
+                        ])->first();
+                        if(empty($data)){
+                            $data= new UserCostCenterAccess;
+                        }
+                            $data->use_id=$id;
+                            $data->cost_center_id="All";
+                            $data->access_status="1";
+                            $data->save();
                         $None="1";//will activate the setted email
                     }
 
