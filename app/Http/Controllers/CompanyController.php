@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Company;
@@ -16,7 +18,15 @@ use Auth;
 use App\Budgets;
 class CompanyController extends Controller
 {
-    
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
 
     public function uploadlogo(Request $request){
         //return $request->file('theFile')->getClientOriginalName();

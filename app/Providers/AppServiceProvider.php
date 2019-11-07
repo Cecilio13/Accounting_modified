@@ -81,10 +81,10 @@ class AppServiceProvider extends ServiceProvider
         $client=Clients::first();
         view()->composer('*', function($view) use ($client)
         {
-            // $dbName='accounting_modified_'.$client->clnt_db_name;
+            $dbName='accounting_modified_'.$client->clnt_db_name;
             
-            // DB::disconnect('mysql');//here connection name, I used mysql for example
-            // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+            DB::disconnect('mysql');//here connection name, I used mysql for example
+            Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
             if (Auth::check()) {
                 
                 

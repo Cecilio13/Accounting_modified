@@ -322,7 +322,7 @@
     </div>
 <div class="row">
     <div class="col-md-12">
-        <h4>TAX Report</h4>
+        <h4>VAT Relief Report</h4>
     </div>
 </div>
 <div class="row">
@@ -481,7 +481,7 @@
             reportsettings['ReportID']=document.getElementById('InputReportID').value;
             reportsettings['ReportHeader']=document.getElementById('report_employee_companynameheader').innerHTML;
             reportsettings['ReportTitle']=document.getElementById('report_employee_companynameheader').innerHTML;
-            reportsettings['ReportType']="TAX";
+            reportsettings['ReportType']="VAT Relief";
             reportsettings['noteShow']=noteshow;
             reportsettings['noteContent']=document.getElementById('employeecontactnote').value;
             reportsettings['ReportSortBy']=document.getElementById('Sortbyselect').value;
@@ -608,7 +608,8 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="export_dat_file" class="btn-link btn-upper-report" title="Export to DAT" ><span class="fa fa-file"></a>
+                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcelTaxRelief()"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
@@ -620,7 +621,7 @@
                         <td id="report_employee_companynameheader" colspan="2" style="vertical-align:middle;font-size:22px;text-align:center;padding-top:30px;" contenteditable="true" >ECC</td>
                     </tr>
                     <tr>
-                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >TAX</td>
+                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >VAT Relief</td>
                     </tr>
                     <tr>
                         <td colspan="2" style="vertical-align:middle;" >
@@ -687,174 +688,19 @@
                             <table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">
                                 <thead>
                                 <tr >
-                                    <th>#</th>
-                                    <th>Type</th>
-                                    <th>Date</th>
+                                    <th>TIN</th>
+                                    <th>Company Name</th>
+                                    <th>Address</th>
                                     
-                                    <th>Description</th>
-                                    <th>Qty</th>
-                                    <th>Rate</th>
-                                    <th>Amount</th>
-                                    <th>VAT</th>
-                                    <th>Total</th>
-                                    <th>Withhold Tax</th>
-                                    <th>Net Amount</th>
+                                    <th>Gross Amount</th>
+                                    <th>Date</th>
+                                    <th>Reference No.</th>
+                                    <th>OR No.</th>
                                 </tr>
                                 
                                 </thead>
                                 <tbody>
-                                    <?php
-                                    $totaltaxall=0;
-                                    $withheldtotal=0;
-                                    $netamounttotal=0;
-                                    ?>
-                                @foreach ($SalesTransaction as $st)
-                                @if($st->st_type=="Sales Receipts Null and Void")
-                                @foreach ($st_sales_receipts as $sr)
-                                @if($sr->st_s_no==$st->st_no)
-                                <tr>
-                                <td style="vertical-align:middle;">{{$st->st_no}}</td>
-                                <td style="vertical-align:middle;">{{$st->st_type}}</td>
-                                <td style="vertical-align:middle;">{{date('m-d-Y',strtotime($st->st_date))}}</td>
-                                
-                                <td style="vertical-align:middle;">{{$sr->st_s_desc}}</td>
-                                <td style="vertical-align:middle;">{{$sr->st_s_qty}}</td>
-                                <td style="vertical-align:middle;">{{number_format($sr->st_s_rate,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format($sr->st_s_total,2)}}</td>
-                                <?php
-                                $withhold=0;
-                                ?>
-                                @foreach ($customers as $cus)
-                                @foreach ($SalesTransaction as $ss)
-                                @if($cus->customer_id==$ss->st_customer_id)
-                                <?php
-                                $withhold=$cus->withhold_tax;
-                                ?>
-                                @endif   
-                                @endforeach
-                                @endforeach
-                                <?php
-                                $taxxxx=$sr->st_s_total*0.12; 
-                                $totaltaxall+=$taxxxx;
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format($taxxxx,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format($sr->st_s_total-$taxxxx,2)}}</td>
-                                <?php
-                                $Gross=$sr->st_s_total-$taxxxx;
-                                $withheldtotal+=$Gross;
-                                $withoud=$sr->st_s_total*($withhold/100);
-                                $netamounttotal+=$Gross-$withoud;
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format($withoud,2)}}</td>
-                                <td style="vertical-align:middle;font-weight:bold;">{{number_format($Gross-$withoud,2)}}</td>
-                                </tr>
-                                @endif
-                                   
-                                @endforeach
-                                
-                                @elseif($st->st_type=="Invoice")
-                                @foreach ($st_invoice as $si)
-                                @if($si->st_i_no==$st->st_no)
-                                <tr>
-                                <td style="vertical-align:middle;">{{$st->st_no}}</td>
-                                <td style="vertical-align:middle;">{{$st->st_type}}</td>
-                                <td style="vertical-align:middle;">{{date('m-d-Y',strtotime($st->st_date))}}</td>
-                                
-                                <td style="vertical-align:middle;">{{$si->st_i_desc}}</td>
-                                <td style="vertical-align:middle;">{{$si->st_i_qty}}</td>
-                                <td style="vertical-align:middle;">{{number_format($si->st_i_rate,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format($si->st_i_total,2)}}</td>
-                                <?php
-                                $withhold=0;
-                                ?>
-                                @foreach ($customers as $cus)
-                                @foreach ($SalesTransaction as $ss)
-                                @if($cus->customer_id==$ss->st_customer_id)
-                                <?php
-                                $withhold=$cus->withhold_tax;
-                                ?>
-                                @endif   
-                                @endforeach
-                                @endforeach
-                                <?php
-                                $taxxxx=$si->st_i_total*0.12;  
-                                $totaltaxall+=$taxxxx;
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format($taxxxx,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format($si->st_i_total-$taxxxx,2)}}</td>
-                                <?php
-                                $Gross=$si->st_i_total-$taxxxx;
-                                $withheldtotal+=$Gross;
-                                $withoud=$si->st_i_total*($withhold/100);
-                                $netamounttotal+=$Gross-$withoud;
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format($withoud,2)}}</td>
-                                <td style="vertical-align:middle;font-weight:bold;">{{number_format($Gross-$withoud,2)}}</td>
-
-                                </tr>
-                                @endif
-
-                                @endforeach
-
-                                @elseif($st->st_type=="Credit Note")
-                                @foreach ($st_credit_notes as $si)
-                                @if($si->st_cn_no==$st->st_no)
-                                <tr>
-                                <td style="vertical-align:middle;">{{$st->st_no}}</td>
-                                <td style="vertical-align:middle;">{{$st->st_type}}</td>
-                                <td style="vertical-align:middle;">{{date('m-d-Y',strtotime($st->st_date))}}</td>
-                                
-                                <td style="vertical-align:middle;">{{$si->st_cn_desc}}</td>
-                                <td style="vertical-align:middle;">{{$si->st_cn_qty}}</td>
-                                <td style="vertical-align:middle;">{{number_format("-".$si->st_cn_rate,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format("-".$si->st_cn_total,2)}}</td>
-                                <?php
-                                $withhold=0;
-                                ?>
-                                @foreach ($customers as $cus)
-                                @foreach ($SalesTransaction as $ss)
-                                @if($cus->customer_id==$ss->st_customer_id)
-                                <?php
-                                $withhold=$cus->withhold_tax;
-                                
-                                ?>
-                                @endif   
-                                @endforeach
-                                @endforeach
-                                <?php
-                                $taxxxx=$si->st_cn_total*0.12;
-                                $totaltaxall-=$taxxxx;  
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format("-".$taxxxx,2)}}</td>
-                                <td style="vertical-align:middle;">{{number_format("-".$si->st_cn_total-$taxxxx,2)}}</td>
-                                <?php
-                                $Gross=$si->st_cn_total-$taxxxx;
-                                $withheldtotal-=$Gross;
-                                $withoud=$si->st_cn_total*($withhold/100);
-                                $netamounttotal-=$Gross-$withoud;
-                                ?>
-                                <td style="vertical-align:middle;">{{number_format("-".$withoud,2)}}</td>
-                                <td style="vertical-align:middle;font-weight:bold;">{{number_format("-".$Gross-$withoud,2)}}</td>
-
-                                </tr>
-                                @endif
-
-                                @endforeach
-
-                                @endif
-                                
-                                
-                                @endforeach
-                                <tr><td colspan="12" style="border-bottom:2px dotted #ccc;"></td></tr>
-                                <tr>
-                                <td colspan="5"></td>
-                                <td colspan="1" style="vertical-align:middle;font-weight:bold;">Total VAT</td>
-                                <td colspan="1" style="vertical-align:middle;">{{number_format($totaltaxall,2)}}</td>
-                                <td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Withholding</td>
-                                <td colspan="1" style="vertical-align:middle;">{{number_format($withheldtotal,2)}}</td>
-                                <td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Net</td>
-                                <td colspan="1" style="vertical-align:middle;">{{number_format($netamounttotal,2)}}</td>
-                                </tr>
+                                    
                                 </tbody>
                             </table>
                         </td>

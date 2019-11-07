@@ -743,7 +743,7 @@
     </div>
     </div>
                     <div class="col-md-12 mb-5 p-0 mt-3">
-                        <a href="#" class="btn btn-success"data-target='#supplierModal' data-toggle="modal">New Supplier</a>
+                        <a href="#" class="btn btn-success"data-target='#supplierModal' onclick="document.getElementById('hidden_add_customer_status').value='ExpensePage'" data-toggle="modal">New Supplier</a>
                         <a href="#" class="btn btn-success"data-target='#ImportSupplierModal' data-toggle="modal">Import Supplier</a>
                         
                     </div>

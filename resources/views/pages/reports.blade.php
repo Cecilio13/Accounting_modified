@@ -660,26 +660,7 @@
                                                         @endif
                                                     </td>
                                                 </tr>
-                                                <tr>
-                                                    <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="VAT_List">TAX</a></td>
-                                                    <td style="vertical-align:middle;">
-                                                        <?php
-                                                        $report_status=0;
-                                                        ?>
-                                                        @foreach ($favorite_report as $fv)
-                                                            @if($fv->report_name=="TAX" && $fv->report_status=='1')
-                                                            <?php
-                                                            $report_status=1;
-                                                            ?>
-                                                            @endif
-                                                        @endforeach
-                                                        @if($report_status==1)
-                                                        <button class="btn btn-link btn-sm" data-report-name="TAX" onclick="favorite(this,1,'VAT_List')"><i class="fas fa-star"></i></button>
-                                                        @else
-                                                        <button class="btn btn-link btn-sm" data-report-name="TAX" onclick="favorite(this,0,'VAT_List')"><i class="far fa-star"></i></button>
-                                                        @endif
-                                                    </td>
-                                                </tr>
+                                                
                                             </tbody>
                                         </table>
                                     </div>
@@ -1317,6 +1298,26 @@
                                                             <button class="btn btn-link btn-sm" data-report-name="Movements in Equity" onclick="favorite(this,0,'Movements_in_Equity')"><i class="far fa-star"></i></button>
                                                         @endif
                                                         
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="vertical-align:middle;" colspan="1"><a class="btn btn-link" href="VAT_List">VAT Relief</a></td>
+                                                    <td style="vertical-align:middle;">
+                                                        <?php
+                                                        $report_status=0;
+                                                        ?>
+                                                        @foreach ($favorite_report as $fv)
+                                                            @if($fv->report_name=="TAX" && $fv->report_status=='1')
+                                                            <?php
+                                                            $report_status=1;
+                                                            ?>
+                                                            @endif
+                                                        @endforeach
+                                                        @if($report_status==1)
+                                                        <button class="btn btn-link btn-sm" data-report-name="VAT Relief" onclick="favorite(this,1,'VAT_List')"><i class="fas fa-star"></i></button>
+                                                        @else
+                                                        <button class="btn btn-link btn-sm" data-report-name="VAT Relief" onclick="favorite(this,0,'VAT_List')"><i class="far fa-star"></i></button>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             </tbody>

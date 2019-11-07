@@ -10,8 +10,20 @@ use App\UserAccess;
 use App\User;
 use App\CostCenter;
 use App\UserCostCenterAccess;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 class PdfController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function generate()
     {
 

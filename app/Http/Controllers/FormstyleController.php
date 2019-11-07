@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Formstyle;
@@ -26,6 +28,15 @@ use App\CostCenter;
 
 class FormstyleController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function add_form_style(Request $request)
     {
         $message="Successfully added new form style template";

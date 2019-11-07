@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Auth;
@@ -25,6 +27,15 @@ use PHPExcel;
 use PHPExcel_IOFactory;
 class ChartofAccountsController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     /**
      * Display a listing of the resource.
      *
@@ -6132,6 +6143,100 @@ class ChartofAccountsController extends Controller
             $sheet->getStyle('D'.$position.'')->applyFromArray($style);
             $sheet->getStyle('E'.$position.'')->applyFromArray($style);
         })->setFilename('Trial Balance Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function exporttoexcelTaxRelief(Request $request){
+        Excel::load('extra/export_report/export_report_template_tax_relief.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $filtertemplate=$request->filtertemplate;
+            $sortsetting="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $st_credit_notes= DB::connection('mysql')->select("SELECT * FROM st_credit_notes");
+            $st_estimates= DB::connection('mysql')->select("SELECT * FROM st_estimates");
+            $st_delayed_charges= DB::connection('mysql')->select("SELECT * FROM st_delayed_charges");
+            $st_delayed_credit= DB::connection('mysql')->select("SELECT * FROM st_delayed_credits");
+            $st_refund_receipts= DB::connection('mysql')->select("SELECT * FROM st_refund_receipts");
+            $st_sales_receipts= DB::connection('mysql')->select("SELECT * FROM st_sales_receipts");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            if($filtertemplate=="All"){
+                $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->get();
+            }
+            $cost_center_list=CostCenter::all();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $tablecontent="";
+            
+            $totaltaxall=0;
+            $withheldtotal=0;
+            $netamounttotal=0;
+            $columncount=3;
+            $sheet = $doc->setActiveSheetIndex(0);
+            foreach($expense_transactions as $et){
+                $sheet->setCellValue('B'.$columncount,$et->tin_no);
+                $sheet->setCellValue('C'.$columncount,($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ));
+                $sheet->setCellValue('D'.$columncount,$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country);
+                $sheet->setCellValue('E'.$columncount,number_format($et->et_ad_total,2));
+                $sheet->setCellValue('F'.$columncount,date('m-d-Y',strtotime($et->et_date)));
+                $sheet->setCellValue('G'.$columncount,$et->et_no);
+                $sheet->setCellValue('H'.$columncount,"");
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                    )
+                );
+                $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_LEFT,
+                    )
+                );
+                $sheet->getStyle('B'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('G'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+                $columncount++;
+            }
+        
+        })->setFilename('Tax Relief Report '.date('m-d-Y'))->download('xlsx');
     }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {

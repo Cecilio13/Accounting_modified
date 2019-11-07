@@ -555,8 +555,8 @@
                     <td style="vertical-align:middle;text-align:right;">
                         {{-- onclick="exporttoexcelnew('tablemain')" --}}
                         {{-- <a href="export_test" class="btn-link btn-upper-report" title="Export to Excel" ><span class="fa fa-table"></a> --}}
-                        <a href="export_dat_file" class="btn-link btn-upper-report" title="Export to DAT" ><span class="fa fa-file"></a>
-                            <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcelnew()"><span class="fa fa-table"></a>
+                        
+                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcelnew()"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>

@@ -8,11 +8,22 @@ use App\VoucherTransaction;
 use App\VoucherJournalEntry;
 use Auth;
 use Illuminate\Http\Request;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\CostCenter;
 
 class JournalEntryController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function getJournalEntryInfo(Request $request){
         $journal_entries =JournalEntry::where([
             ['je_no','=',$request->je_no],

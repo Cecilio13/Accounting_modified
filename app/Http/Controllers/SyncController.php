@@ -1,11 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Budgets;
 class SyncController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function sample_sync(Request $request){
         $journal_entries= DB::connection('mysql')->select("SELECT * FROM journal_entries");
             $journal_entries2= DB::connection('mysql3')->select("SELECT * FROM journal_entries");

@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -36,6 +38,15 @@ use App\SalesTransactionEdit;
 use App\StCreditNoteEdit;
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function favorite_report(Request $request){
         $favorite_report = DB::table('favorite_report')
                     ->where('report_name',$request->report_name)
@@ -587,7 +598,7 @@ class ReportController extends Controller
         $filtertemplate=$request->filtertemplate;
         $CostCenterFilter=$request->CostCenterFilter;
         $filtertemplate=$request->filtertemplate;
-        $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+        $sortsetting="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."'";
         $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
         if($filtertemplate=="All"){
             $sortsetting="";
@@ -629,6 +640,12 @@ class ReportController extends Controller
             ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
             ->whereBetween('et_date', [$FROM, $TO])
             ->get();
+        if($filtertemplate=="All"){
+            $expense_transactions = DB::table('expense_transactions')
+            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+            ->get();
+        }
         $cost_center_list=CostCenter::all();
         $COA= ChartofAccount::where('coa_active','1')->get();
         $tablecontent="";
@@ -638,199 +655,17 @@ class ReportController extends Controller
         $netamounttotal=0;
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
             if($CostCenterFilter=="All"){
-                foreach ($SalesTransaction as $st){
-                    if($st->st_type=="Sales Receipts Null and Void"){
-                            foreach ($st_sales_receipts as $sr){
-                                if($sr->st_s_no==$st->st_no){
-                    $tablecontent.='<tr>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_no;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_type;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                    $tablecontent.='</td>';        
-                    
-                    $product_name="";
-                    foreach ($products_and_services as $prod){
-                        if($sr->st_s_product==$prod->product_id){
-                            $product_name=$prod->product_name;
-                        }
-                    }
-                    
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_s_desc;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_s_qty;
-                    $tablecontent.='</td>'; 
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_s_rate,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_s_total,2);
-                    $tablecontent.='</td>';
-                    $withhold=0;
-                    foreach ($customers as $cus){
-                        foreach ($SalesTransaction as $ss){
-                            if($cus->customer_id==$ss->st_customer_id){
-                                $withhold=$cus->withhold_tax;
-                            }
-                        }
-                    }
-                    $taxxxx=$sr->st_s_total*0.12;
-                    $totaltaxall+=$taxxxx;
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($taxxxx,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
-                    $tablecontent.='</td>';
-                    $Gross=$sr->st_s_total-$taxxxx;
-                    $withoud=$sr->st_s_total*($withhold/100);
-                    $withheldtotal+=$Gross;
-                    $netamounttotal+=$Gross-$withoud;
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($Gross-$withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='</tr>';
-                                }
-                            }
-                        
-        
-                    }
-                    else if($st->st_type=="Invoice"){
-                        foreach ($st_invoice as $sr){
-                            if($sr->st_i_no==$st->st_no){
-                    $tablecontent.='<tr>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_no;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_type;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                    $tablecontent.='</td>';        
-                    
-                    $product_name="";
-                    foreach ($products_and_services as $prod){
-                        if($sr->st_i_product==$prod->product_id){
-                            $product_name=$prod->product_name;
-                        }
-                    }
-                    
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_i_desc;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_i_qty;
-                    $tablecontent.='</td>'; 
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_i_rate,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_i_total,2);
-                    $tablecontent.='</td>';
-                    $withhold=0;
-                    foreach ($customers as $cus){
-                        foreach ($SalesTransaction as $ss){
-                            if($cus->customer_id==$ss->st_customer_id){
-                                $withhold=$cus->withhold_tax;
-                            }
-                        }
-                    }
-                    $taxxxx=$sr->st_i_total*0.12;
-                    $totaltaxall+=$taxxxx;
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($taxxxx,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
-                    $tablecontent.='</td>';
-                    $Gross=$sr->st_i_total-$taxxxx;
-                    $withoud=$sr->st_i_total*($withhold/100);
-                    $withheldtotal+=$Gross;
-                    $netamounttotal+=$Gross-$withoud;
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($Gross-$withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='</tr>';
-                                }
-                            }
-                    }
-                    else if($st->st_type=="Credit Note"){
-                        foreach ($st_credit_notes as $sr){
-                            if($sr->st_cn_no==$st->st_no){
-                    $tablecontent.='<tr>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_no;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$st->st_type;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                    $tablecontent.='</td>';        
-                    
-                    $product_name="";
-                    foreach ($products_and_services as $prod){
-                        if($sr->st_cn_product==$prod->product_id){
-                            $product_name=$prod->product_name;
-                        }
-                    }
-                    
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_cn_desc;
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=$sr->st_cn_qty;
-                    $tablecontent.='</td>'; 
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_cn_rate,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format($sr->st_cn_total,2);
-                    $tablecontent.='</td>';
-                    $withhold=0;
-                    foreach ($customers as $cus){
-                        foreach ($SalesTransaction as $ss){
-                            if($cus->customer_id==$ss->st_customer_id){
-                                $withhold=$cus->withhold_tax;
-                            }
-                        }
-                    }
-                    $taxxxx=$sr->st_cn_total*0.12;
-                    $totaltaxall-=$taxxxx; 
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format("-".$taxxxx,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
-                    $tablecontent.='</td>';
-                    $Gross=$sr->st_cn_total-$taxxxx;
-                    $withoud=$sr->st_cn_total*($withhold/100);
-                    $withheldtotal-=$Gross;
-                    $netamounttotal-=$Gross-$withoud;
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format("-".$withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">';
-                    $tablecontent.=number_format("-".$Gross-$withoud,2);
-                    $tablecontent.='</td>';
-                    $tablecontent.='</tr>';
-                                }
-                            }
-                    }
-        
+                
+                foreach($expense_transactions as $et){
+                    $tablecontent.="<tr>";
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
+                    $tablecontent.="</tr>";
                 }
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
@@ -855,11 +690,11 @@ class ReportController extends Controller
                         $tablecontent.="<tr>";
                         $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                         $tablecontent.="</tr>";
-                        foreach ($SalesTransaction as $st){
+                        foreach($expense_transactions as $et){
                             $go=0;
                             foreach($JournalEntry as $JJJJ){
                                 if($JJJJ->je_cost_center==$ccl->cc_no){
-                                    if($JJJJ->other_no==$st->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                                    if($JJJJ->other_no==$et->et_no){
                                     $go=1;
                                     }
                                     
@@ -867,198 +702,16 @@ class ReportController extends Controller
                                 
                             }
                             if($go==1){
-
-                                if($st->st_type=="Sales Receipts Null and Void"){
-                                        foreach ($st_sales_receipts as $sr){
-                                            if($sr->st_s_no==$st->st_no){
-                                        $tablecontent.='<tr>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_no;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_type;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                                        $tablecontent.='</td>';        
-                                        
-                                        $product_name="";
-                                        foreach ($products_and_services as $prod){
-                                            if($sr->st_s_product==$prod->product_id){
-                                                $product_name=$prod->product_name;
-                                            }
-                                        }
-                                        
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_s_desc;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_s_qty;
-                                        $tablecontent.='</td>'; 
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_s_rate,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_s_total,2);
-                                        $tablecontent.='</td>';
-                                        $withhold=0;
-                                        foreach ($customers as $cus){
-                                            foreach ($SalesTransaction as $ss){
-                                                if($cus->customer_id==$ss->st_customer_id){
-                                                    $withhold=$cus->withhold_tax;
-                                                }
-                                            }
-                                        }
-                                        $taxxxx=$sr->st_s_total*0.12;
-                                        $totaltaxall+=$taxxxx;
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $Gross=$sr->st_s_total-$taxxxx;
-                                        $withoud=$sr->st_s_total*($withhold/100);
-                                        $withheldtotal+=$Gross;
-                                        $netamounttotal+=$Gross-$withoud;
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($Gross-$withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='</tr>';
-                                                    }
-                                                }
-                                            
-                            
-                                }
-                                else if($st->st_type=="Invoice"){
-                                            foreach ($st_invoice as $sr){
-                                                if($sr->st_i_no==$st->st_no){
-                                        $tablecontent.='<tr>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_no;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_type;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                                        $tablecontent.='</td>';        
-                                        
-                                        $product_name="";
-                                        foreach ($products_and_services as $prod){
-                                            if($sr->st_i_product==$prod->product_id){
-                                                $product_name=$prod->product_name;
-                                            }
-                                        }
-                                        
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_i_desc;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_i_qty;
-                                        $tablecontent.='</td>'; 
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_i_rate,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_i_total,2);
-                                        $tablecontent.='</td>';
-                                        $withhold=0;
-                                        foreach ($customers as $cus){
-                                            foreach ($SalesTransaction as $ss){
-                                                if($cus->customer_id==$ss->st_customer_id){
-                                                    $withhold=$cus->withhold_tax;
-                                                }
-                                            }
-                                        }
-                                        $taxxxx=$sr->st_i_total*0.12;
-                                        $totaltaxall+=$taxxxx;
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $Gross=$sr->st_i_total-$taxxxx;
-                                        $withoud=$sr->st_i_total*($withhold/100);
-                                        $withheldtotal+=$Gross;
-                                        $netamounttotal+=$Gross-$withoud;
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($Gross-$withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='</tr>';
-                                                    }
-                                                }
-                                }
-                                else if($st->st_type=="Credit Note"){
-                                            foreach ($st_credit_notes as $sr){
-                                                if($sr->st_cn_no==$st->st_no){
-                                        $tablecontent.='<tr>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_no;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$st->st_type;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                                        $tablecontent.='</td>';        
-                                        
-                                        $product_name="";
-                                        foreach ($products_and_services as $prod){
-                                            if($sr->st_cn_product==$prod->product_id){
-                                                $product_name=$prod->product_name;
-                                            }
-                                        }
-                                        
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_cn_desc;
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=$sr->st_cn_qty;
-                                        $tablecontent.='</td>'; 
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_cn_rate,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format($sr->st_cn_total,2);
-                                        $tablecontent.='</td>';
-                                        $withhold=0;
-                                        foreach ($customers as $cus){
-                                            foreach ($SalesTransaction as $ss){
-                                                if($cus->customer_id==$ss->st_customer_id){
-                                                    $withhold=$cus->withhold_tax;
-                                                }
-                                            }
-                                        }
-                                        $taxxxx=$sr->st_cn_total*0.12;
-                                        $totaltaxall-=$taxxxx; 
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format("-".$taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
-                                        $tablecontent.='</td>';
-                                        $Gross=$sr->st_cn_total-$taxxxx;
-                                        $withoud=$sr->st_cn_total*($withhold/100);
-                                        $withheldtotal-=$Gross;
-                                        $netamounttotal-=$Gross-$withoud;
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format("-".$withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='<td style="vertical-align:middle;">';
-                                        $tablecontent.=number_format("-".$Gross-$withoud,2);
-                                        $tablecontent.='</td>';
-                                        $tablecontent.='</tr>';
-                                                    }
-                                                }
-                                }
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
+                                $tablecontent.="</tr>";
+                                
                             }
                         }
                     }
@@ -1080,11 +733,11 @@ class ReportController extends Controller
             $tablecontent.="<tr>";
             $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
             $tablecontent.="</tr>";
-            foreach ($SalesTransaction as $st){
+            foreach($expense_transactions as $et){
                 $go=0;
                 foreach($JournalEntry as $JJJJ){
                     if($JJJJ->je_cost_center==$CostCenterFilter){
-                        if($JJJJ->other_no==$st->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                        if($JJJJ->other_no==$et->et_no ){
 						$go=1;
 						}
 						
@@ -1092,221 +745,23 @@ class ReportController extends Controller
 					
                 }
                 if($go==1){
-
-                    if($st->st_type=="Sales Receipts Null and Void"){
-                            foreach ($st_sales_receipts as $sr){
-                                if($sr->st_s_no==$st->st_no){
-                            $tablecontent.='<tr>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_no;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_type;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                            $tablecontent.='</td>';        
-                            
-                            $product_name="";
-                            foreach ($products_and_services as $prod){
-                                if($sr->st_s_product==$prod->product_id){
-                                    $product_name=$prod->product_name;
-                                }
-                            }
-                            
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_s_desc;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_s_qty;
-                            $tablecontent.='</td>'; 
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_s_rate,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_s_total,2);
-                            $tablecontent.='</td>';
-                            $withhold=0;
-                            foreach ($customers as $cus){
-                                foreach ($SalesTransaction as $ss){
-                                    if($cus->customer_id==$ss->st_customer_id){
-                                        $withhold=$cus->withhold_tax;
-                                    }
-                                }
-                            }
-                            $taxxxx=$sr->st_s_total*0.12;
-                            $totaltaxall+=$taxxxx;
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($taxxxx,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
-                            $tablecontent.='</td>';
-                            $Gross=$sr->st_s_total-$taxxxx;
-                            $withoud=$sr->st_s_total*($withhold/100);
-                            $withheldtotal+=$Gross;
-                            $netamounttotal+=$Gross-$withoud;
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($Gross-$withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='</tr>';
-                                        }
-                                    }
-                                
-                
-                    }
-                    else if($st->st_type=="Invoice"){
-                                foreach ($st_invoice as $sr){
-                                    if($sr->st_i_no==$st->st_no){
-                            $tablecontent.='<tr>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_no;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_type;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                            $tablecontent.='</td>';        
-                            
-                            $product_name="";
-                            foreach ($products_and_services as $prod){
-                                if($sr->st_i_product==$prod->product_id){
-                                    $product_name=$prod->product_name;
-                                }
-                            }
-                            
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_i_desc;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_i_qty;
-                            $tablecontent.='</td>'; 
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_i_rate,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_i_total,2);
-                            $tablecontent.='</td>';
-                            $withhold=0;
-                            foreach ($customers as $cus){
-                                foreach ($SalesTransaction as $ss){
-                                    if($cus->customer_id==$ss->st_customer_id){
-                                        $withhold=$cus->withhold_tax;
-                                    }
-                                }
-                            }
-                            $taxxxx=$sr->st_i_total*0.12;
-                            $totaltaxall+=$taxxxx;
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($taxxxx,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
-                            $tablecontent.='</td>';
-                            $Gross=$sr->st_i_total-$taxxxx;
-                            $withoud=$sr->st_i_total*($withhold/100);
-                            $withheldtotal+=$Gross;
-                            $netamounttotal+=$Gross-$withoud;
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($Gross-$withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='</tr>';
-                                        }
-                                    }
-                    }
-                    else if($st->st_type=="Credit Note"){
-                                foreach ($st_credit_notes as $sr){
-                                    if($sr->st_cn_no==$st->st_no){
-                            $tablecontent.='<tr>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_no;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$st->st_type;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
-                            $tablecontent.='</td>';        
-                            
-                            $product_name="";
-                            foreach ($products_and_services as $prod){
-                                if($sr->st_cn_product==$prod->product_id){
-                                    $product_name=$prod->product_name;
-                                }
-                            }
-                            
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_cn_desc;
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=$sr->st_cn_qty;
-                            $tablecontent.='</td>'; 
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_cn_rate,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($sr->st_cn_total,2);
-                            $tablecontent.='</td>';
-                            $withhold=0;
-                            foreach ($customers as $cus){
-                                foreach ($SalesTransaction as $ss){
-                                    if($cus->customer_id==$ss->st_customer_id){
-                                        $withhold=$cus->withhold_tax;
-                                    }
-                                }
-                            }
-                            $taxxxx=$sr->st_cn_total*0.12;
-                            $totaltaxall-=$taxxxx; 
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format("-".$taxxxx,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
-                            $tablecontent.='</td>';
-                            $Gross=$sr->st_cn_total-$taxxxx;
-                            $withoud=$sr->st_cn_total*($withhold/100);
-                            $withheldtotal-=$Gross;
-                            $netamounttotal-=$Gross-$withoud;
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format("-".$withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format("-".$Gross-$withoud,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='</tr>';
-                                        }
-                                    }
-                    }
+                    $tablecontent.="<tr>";
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
+                    $tablecontent.="</tr>";
                 }
             }
         }
 
-        
-        $tablecontent.='<tr>';
-        $tablecontent.='<td colspan="12" style="border-bottom:2px dotted #ccc;"></td>';
-        $tablecontent.='</tr>';
-
-        $tablecontent.='<tr>';
-        $tablecontent.='<td colspan="5" style="vertical-align:middle;"></td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total VAT</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($totaltaxall,2).'</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Withhoding</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($withheldtotal,2).'</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Net</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($netamounttotal,2).'</td>';
-        $tablecontent.='</tr>';
 
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th>#</th><th>Type</th><th>Date</th><th>Description</th><th>Qty</th><th>Rate</th>
-                <th>Amount</th><th>Less:Tax</th><th>Total</th><th>Withhold Tax</th><th>Net Amount</th>'
+                .'<tr ><th>TIN</th><th>Company Name</th><th>Address</th><th>Gross Amount</th><th>Date</th><th>Reference No.</th><th>OR No.</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent

@@ -25,9 +25,21 @@ use App\CostCenter;
 use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 
 class PagesController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
+    
     public function index(\Illuminate\Http\Request $request){
         
         // $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
@@ -1190,6 +1202,7 @@ class PagesController extends Controller
     public function journalentry(Request $request){
         // $JournalEntry = JournalEntry::where([['remark','!=','Cancelled']])->get();
         //     return $JournalEntry;
+        
         $JournalNoSelected=0;
         $keyword="";
         if($request->no){

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Auth;
@@ -28,10 +30,17 @@ use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
 use App\CC_Type;
-use App\Clients;
-
 class GetController extends Controller
 {
+    public function __construct()
+    {
+        // $client=Clients::first();
+        // $dbName='accounting_modified_'.$client->clnt_db_name;
+            
+        // DB::disconnect('mysql');//here connection name, I used mysql for example
+        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
+
+    }
     public function get_customer_info(Request $request){
         $customers=Customers::find($request->id);
         return $customers;
@@ -109,11 +118,14 @@ class GetController extends Controller
     }
     public function export_dat_file(){
         $myfile = fopen("extra/export_report/dat_file.dat", "w") or die("Unable to open file!");
-        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries 
-                    JOIN chart_of_accounts ON chart_of_accounts.id=journal_entries.je_account
-                    WHERE je_credit!='' ORDER BY journal_entries.created_at ASC");
-        foreach($JournalEntry as $je){
-            $txt = $je->coa_name." , ".number_format($je->je_credit,2)."\n";
+        
+        $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->join('chart_of_accounts','chart_of_accounts.id','=','et_account_details.et_ad_product')
+                ->get();
+        foreach($expense_transactions as $et){
+            $txt = $et->coa_name." , ".number_format($et->et_ad_total,2)."\n";
             fwrite($myfile, $txt);
         }
         

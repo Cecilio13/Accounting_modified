@@ -423,13 +423,13 @@
                                 <th width="5%" class="text-center">JOURNAL TYPE</th>
                                 <th width="5%" class="text-center">ACCOUNT CODE</th>
                                 <th width="5%" class="text-center">JOURNAL NO</th>
-                                <th width="20%" class="text-center">ACCOUNT</th>
-                                <th class="text-center">DEBIT</th>
-                                <th class="text-center">CREDIT</th>
-                                <th class="text-center">DESCRIPTION</th>
-                                <th class="text-center">NAME</th>
-                                <th class="text-center">MEMO</th>
-                                <th class="text-center"></th>
+                                <th width="15%" class="text-center">ACCOUNT</th>
+                                <th width="8%" class="text-center">DEBIT</th>
+                                <th width="8%" class="text-center">CREDIT</th>
+                                <th width="15%" class="text-center">DESCRIPTION</th>
+                                <th width="10" class="text-center">NAME</th>
+                                <th width="15%" class="text-center">MEMO</th>
+                                <th width="3%" class="text-center"></th>
                                 
                             </tr>
                         </thead>

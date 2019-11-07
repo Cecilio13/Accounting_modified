@@ -324,6 +324,15 @@ function exporttoexcel(table_id){
         url="export_trial_balance?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
         location.href=url;
     }
+    function exporttoexcelTaxRelief(){
+        console.log('export excel journal entries');
+        var filtertemplate= document.getElementById('filtertemplate').value;
+        var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+        var FROM= document.getElementById('Fromdate').value;
+        var TO= document.getElementById('Todate').value;
+        url="exporttoexcelTaxRelief?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO;
+        location.href=url;
+    }
     function exporttoexcelnew(){
         console.log('export excel journal entries');
         var filtertemplate= document.getElementById('filtertemplate').value;
@@ -892,7 +901,12 @@ function exporttoexcel(table_id){
 						console.log(data);
                         swal("Done!", "Added Supplier", "success");
                         $('#add_supplier_form')[0].reset();
-                        SaveInformation();
+                        if(document.getElementById('hidden_add_customer_status').value=="ExpensePage"){
+                            location.reload();
+                        }else{
+                            SaveInformation();
+                        }
+                        
                     },
                     error: function (data) {
                         alert(data.responseText);
@@ -905,7 +919,7 @@ function exporttoexcel(table_id){
         </script>
         <form  autocomplete="off" id="add_supplier_form" >
                 {{ csrf_field() }}
-            
+                <input type="hidden" id="hidden_add_customer_status" name="hidden_add_customer_status" value="">
             <div class="modal-body">
                 <div class="col-md-6">
                     <div class="col-md-6 p-0">
@@ -8528,6 +8542,7 @@ function edit_journal_entries(je_no){
                     }
                 </script>
                 
+                <button style="display:none;" data-toggle="modal" id="enterjournalentry" data-target="#journalentrymodal"></button>
                 <button style="display:none;" data-toggle="modal" id="suppliiermodaladd" data-target="#supplierModal"></button>
                 <button style="display:none;" data-toggle="modal" id="customerssasdmodaladd" data-target="#addcustomermodal"></button>
                 <form action="#" id="AddCustomerSupplierForm" onsubmit="return false,SaveInformation()">
@@ -15003,6 +15018,7 @@ function removeComma(str){
                         $('#bill_billing_address').val($('#bill_billing_address').val().replace(' null',''));
                         $('#bill_billing_address').val($('#bill_billing_address').val().replace(' null',''));
                         $('#bill_billing_address').val($('#bill_billing_address').val().replace(' null',''));
+                        $('#bill_billing_address').val($('#bill_billing_address').val().replace('null',''));
                         $('#bill_payment_method').val(customer['payment_method']);
                         $('#bill_email').val(customer['email']);
                         $('#bill_terms').val(customer['terms']);
