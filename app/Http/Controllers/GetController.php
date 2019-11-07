@@ -125,7 +125,7 @@ class GetController extends Controller
                 ->join('chart_of_accounts','chart_of_accounts.id','=','et_account_details.et_ad_product')
                 ->get();
         foreach($expense_transactions as $et){
-            $txt = $et->coa_name." , ".number_format($et->et_ad_total,2)."\n";
+            $txt = $et->tin_no." , ".($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name )." , ".$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country." , ".$et->coa_name." , ".number_format($et->et_ad_total,2)."\n";
             fwrite($myfile, $txt);
         }
         
