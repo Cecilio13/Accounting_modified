@@ -1168,8 +1168,8 @@
 
 <script>
 $(document).ready(function () {
-    $('select').prop('disabled', true);
-    $('input').prop('readonly', true);
+    $('#right-panel select').prop('disabled', true);
+    $('#right-panel input').prop('readonly', true);
     console.log('input enabling');
     $("#add_bank_form :input").prop("readonly", false);
     $("#add_bank_form :input").prop("disabled", false);
