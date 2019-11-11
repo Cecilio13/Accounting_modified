@@ -419,17 +419,17 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th width="8%" class="text-center">JOURNAL DATE</th>
-                                <th width="5%" class="text-center">JOURNAL TYPE</th>
-                                <th width="5%" class="text-center">ACCOUNT CODE</th>
-                                <th width="5%" class="text-center">JOURNAL NO</th>
-                                <th width="15%" class="text-center">ACCOUNT</th>
-                                <th width="8%" class="text-center">DEBIT</th>
-                                <th width="8%" class="text-center">CREDIT</th>
-                                <th width="15%" class="text-center">DESCRIPTION</th>
-                                <th width="10" class="text-center">NAME</th>
-                                <th width="15%" class="text-center">MEMO</th>
-                                <th width="3%" class="text-center"></th>
+                                <th style="vertical-align:middle;" width="5%" class="text-center">JOURNAL DATE</th>
+                                <th style="vertical-align:middle;" width="5%" class="text-center">JOURNAL TYPE</th>
+                                <th style="vertical-align:middle;" width="5%" class="text-center">ACCOUNT CODE</th>
+                                <th style="vertical-align:middle;" width="5%" class="text-center">JOURNAL NO</th>
+                                <th style="vertical-align:middle;" width="15%" class="text-center">ACCOUNT</th>
+                                <th style="vertical-align:middle;" width="8%" class="text-center">DEBIT</th>
+                                <th style="vertical-align:middle;" width="8%" class="text-center">CREDIT</th>
+                                <th style="vertical-align:middle;" width="15%" class="text-center">DESCRIPTION</th>
+                                <th style="vertical-align:middle;" width="13%" class="text-center">NAME</th>
+                                <th style="vertical-align:middle;" width="13%" class="text-center">MEMO</th>
+                                <th style="vertical-align:middle;" width="3%" class="text-center"></th>
                                 
                             </tr>
                         </thead>
