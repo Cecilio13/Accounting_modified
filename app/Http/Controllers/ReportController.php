@@ -7492,7 +7492,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -8027,7 +8027,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
-                            $IncomeTotal+=$coa_name_total;
+                            $IncomeTotal-=$coa_name_total;
                             $tablecontent.=number_format($coa_name_total,2);
                             $tablecontent.='</td>';
                             $tablecontent.='</tr>'; 
@@ -8571,7 +8571,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -9496,7 +9496,8 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 $TotalEquityOtherspv=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type=="Retained Earnings" || $Coa->coa_detail_type=="Retained Earning")){
+                        
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
                         $tablecontent.='<tr>';
                         $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                         $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
@@ -9512,7 +9513,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -9526,7 +9527,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotalpv+=$coa_name_totalpv;
+                        $IncomeTotalpv-=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -10304,7 +10305,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -10318,7 +10319,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotalpv+=$coa_name_totalpv;
+                        $IncomeTotalpv-=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -11096,7 +11097,7 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 $TotalEquityOtherspv=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type=="Retained Earnings" || $Coa->coa_detail_type=="Retained Earning")){
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
                         $tablecontent.='<tr>';
                         $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                         $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
@@ -11112,7 +11113,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -11126,7 +11127,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotalpv+=$coa_name_totalpv;
+                        $IncomeTotalpv-=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -12108,7 +12109,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -12922,7 +12923,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
@@ -13747,7 +13748,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotal+=$coa_name_total;
+                        $IncomeTotal-=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>'; 
