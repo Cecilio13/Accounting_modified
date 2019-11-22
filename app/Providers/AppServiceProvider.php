@@ -91,7 +91,7 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('user_position', Auth::user());
                 $view->with('UserAccessList', UserAccess::where('user_id',Auth::user()->id)->get());
                 $view->with('UserAccessCostCenterList', UserCostCenterAccess::where('use_id',Auth::user()->id)->get());
-                $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->get());
+                $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->groupBy('cc_type')->get());
                 // //View::share('user', \Auth::user());
                 $view->with('EXNew', ExpenseTransactionNew::where([
                     ['et_status','=',NULL]
