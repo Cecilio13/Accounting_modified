@@ -640,74 +640,7 @@
                                 </thead>
                                 
                                 <tbody>
-                                        <?php
-                                        $coa_name_totaldebit=0;
-                                        $coa_name_totalcredit=0;
-                                        ?>
-                                        @foreach ($COA as $coa)
-                                        <?php
-                                        $coa_name_total=0;
-                                        $coa_name_totalc=0;
-                                        $coa_name_totald=0;
-                                        ?>
-                                        @foreach ($JournalEntry as $JE)
-                                        @if ($JE->je_account==$coa->id && $JE->remark!='Cancelled')
-                                        @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                        <?php
-                                        $coa_name_totalc+=$JE->je_credit;
-                                        $coa_name_total+=$JE->je_credit;
-                                        ?>  
-                                        @else
-                                        <?php
-                                        $coa_name_totald+=$JE->je_debit;
-                                        $coa_name_total-=$JE->je_debit;
-                                        ?>
-                                        @endif
                                         
-                                        @endif
-                                        
-                                        @endforeach
-                                        
-                                       @if ($coa_name_totalc!=0 || $coa_name_totald!=0)
-                                       @foreach ($JournalEntry as $JE)
-                                       @if ($JE->je_account==$coa->id && $JE->remark!='Cancelled')
-                                       @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                       <tr>
-                                           <td style="vertical-align:middle;padding-left:20px;">{{date('m-d-Y',strtotime($JE->created_at))}}</td>
-                                           <td style="vertical-align:middle;text-align:right;"></td>
-                                           <td style="vertical-align:middle;text-align:right;">{{number_format($JE->je_credit,2)}}</td>
-                                       </tr> 
-                                       @else
-                                       <tr>
-                                           <td style="vertical-align:middle;padding-left:20px;">{{date('m-d-Y',strtotime($JE->created_at))}}</td>
-                                           <td style="vertical-align:middle;text-align:right;">{{number_format($JE->je_debit,2)}}</td>
-                                           <td style="vertical-align:middle;text-align:right;"></td>
-                                       </tr> 
-                                       @endif
-                                       
-                                       @endif
-                                       
-                                       @endforeach    
-                                       <tr style="border-bottom:1px solid #ccc;">
-                                            <td style="vertical-align:middle;font-weight:bold;">
-                                                <a class="btn btn-link" title="view sub Ledger" href="sub_ledger?chart_of_accounts={{$coa->id}}">{{$coa->coa_name." (".$coa->coa_code.")"}}</a>
-                                                
-                                                </td>
-                                            <td style="vertical-align:middle;text-align:right;font-weight:bold;">{{number_format($coa_name_totald,2)}}</td>
-                                            <td style="vertical-align:middle;text-align:right;font-weight:bold;">{{number_format($coa_name_totalc,2)}}</td>
-                                       </tr> 
-                                       @endif
-                                       <?php
-                                        $coa_name_totaldebit+=$coa_name_totald;
-                                        $coa_name_totalcredit+=$coa_name_totalc;
-                                        ?>
-                                    @endforeach
-                                    <tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">
-                                        <td style="vertical-align:middle;">Total</td>
-                                        <td style="vertical-align:middle;text-align:right;">{{number_format($coa_name_totaldebit,2)}}</td>
-                                        <td style="vertical-align:middle;text-align:right;">{{number_format($coa_name_totalcredit,2)}}</td>
-                                        
-                                    </tr> 
                                 </tbody>
                             </table>
                         </td>

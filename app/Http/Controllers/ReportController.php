@@ -47,6 +47,7 @@ class ReportController extends Controller
         // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
 
     }
+    
     public function favorite_report(Request $request){
         $favorite_report = DB::table('favorite_report')
                     ->where('report_name',$request->report_name)
@@ -598,7 +599,7 @@ class ReportController extends Controller
         $filtertemplate=$request->filtertemplate;
         $CostCenterFilter=$request->CostCenterFilter;
         $filtertemplate=$request->filtertemplate;
-        $sortsetting="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."'";
+        $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
         $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
         if($filtertemplate=="All"){
             $sortsetting="";
@@ -640,12 +641,6 @@ class ReportController extends Controller
             ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
             ->whereBetween('et_date', [$FROM, $TO])
             ->get();
-        if($filtertemplate=="All"){
-            $expense_transactions = DB::table('expense_transactions')
-            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
-            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
-            ->get();
-        }
         $cost_center_list=CostCenter::all();
         $COA= ChartofAccount::where('coa_active','1')->get();
         $tablecontent="";
@@ -655,17 +650,199 @@ class ReportController extends Controller
         $netamounttotal=0;
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
             if($CostCenterFilter=="All"){
-                
-                foreach($expense_transactions as $et){
-                    $tablecontent.="<tr>";
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
-                    $tablecontent.="</tr>";
+                foreach ($SalesTransaction as $st){
+                    if($st->st_type=="Sales Receipts Null and Void"){
+                            foreach ($st_sales_receipts as $sr){
+                                if($sr->st_s_no==$st->st_no){
+                    $tablecontent.='<tr>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_no;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_type;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                    $tablecontent.='</td>';        
+                    
+                    $product_name="";
+                    foreach ($products_and_services as $prod){
+                        if($sr->st_s_product==$prod->product_id){
+                            $product_name=$prod->product_name;
+                        }
+                    }
+                    
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_s_desc;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_s_qty;
+                    $tablecontent.='</td>'; 
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_s_rate,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_s_total,2);
+                    $tablecontent.='</td>';
+                    $withhold=0;
+                    foreach ($customers as $cus){
+                        foreach ($SalesTransaction as $ss){
+                            if($cus->customer_id==$ss->st_customer_id){
+                                $withhold=$cus->withhold_tax;
+                            }
+                        }
+                    }
+                    $taxxxx=$sr->st_s_total*0.12;
+                    $totaltaxall+=$taxxxx;
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($taxxxx,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
+                    $tablecontent.='</td>';
+                    $Gross=$sr->st_s_total-$taxxxx;
+                    $withoud=$sr->st_s_total*($withhold/100);
+                    $withheldtotal+=$Gross;
+                    $netamounttotal+=$Gross-$withoud;
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($Gross-$withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='</tr>';
+                                }
+                            }
+                        
+        
+                    }
+                    else if($st->st_type=="Invoice"){
+                        foreach ($st_invoice as $sr){
+                            if($sr->st_i_no==$st->st_no){
+                    $tablecontent.='<tr>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_no;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_type;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                    $tablecontent.='</td>';        
+                    
+                    $product_name="";
+                    foreach ($products_and_services as $prod){
+                        if($sr->st_i_product==$prod->product_id){
+                            $product_name=$prod->product_name;
+                        }
+                    }
+                    
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_i_desc;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_i_qty;
+                    $tablecontent.='</td>'; 
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_i_rate,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_i_total,2);
+                    $tablecontent.='</td>';
+                    $withhold=0;
+                    foreach ($customers as $cus){
+                        foreach ($SalesTransaction as $ss){
+                            if($cus->customer_id==$ss->st_customer_id){
+                                $withhold=$cus->withhold_tax;
+                            }
+                        }
+                    }
+                    $taxxxx=$sr->st_i_total*0.12;
+                    $totaltaxall+=$taxxxx;
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($taxxxx,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
+                    $tablecontent.='</td>';
+                    $Gross=$sr->st_i_total-$taxxxx;
+                    $withoud=$sr->st_i_total*($withhold/100);
+                    $withheldtotal+=$Gross;
+                    $netamounttotal+=$Gross-$withoud;
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($Gross-$withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='</tr>';
+                                }
+                            }
+                    }
+                    else if($st->st_type=="Credit Note"){
+                        foreach ($st_credit_notes as $sr){
+                            if($sr->st_cn_no==$st->st_no){
+                    $tablecontent.='<tr>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_no;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$st->st_type;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                    $tablecontent.='</td>';        
+                    
+                    $product_name="";
+                    foreach ($products_and_services as $prod){
+                        if($sr->st_cn_product==$prod->product_id){
+                            $product_name=$prod->product_name;
+                        }
+                    }
+                    
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_cn_desc;
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=$sr->st_cn_qty;
+                    $tablecontent.='</td>'; 
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_cn_rate,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format($sr->st_cn_total,2);
+                    $tablecontent.='</td>';
+                    $withhold=0;
+                    foreach ($customers as $cus){
+                        foreach ($SalesTransaction as $ss){
+                            if($cus->customer_id==$ss->st_customer_id){
+                                $withhold=$cus->withhold_tax;
+                            }
+                        }
+                    }
+                    $taxxxx=$sr->st_cn_total*0.12;
+                    $totaltaxall-=$taxxxx; 
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format("-".$taxxxx,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
+                    $tablecontent.='</td>';
+                    $Gross=$sr->st_cn_total-$taxxxx;
+                    $withoud=$sr->st_cn_total*($withhold/100);
+                    $withheldtotal-=$Gross;
+                    $netamounttotal-=$Gross-$withoud;
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format("-".$withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='<td style="vertical-align:middle;">';
+                    $tablecontent.=number_format("-".$Gross-$withoud,2);
+                    $tablecontent.='</td>';
+                    $tablecontent.='</tr>';
+                                }
+                            }
+                    }
+        
                 }
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
@@ -690,11 +867,11 @@ class ReportController extends Controller
                         $tablecontent.="<tr>";
                         $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                         $tablecontent.="</tr>";
-                        foreach($expense_transactions as $et){
+                        foreach ($SalesTransaction as $st){
                             $go=0;
                             foreach($JournalEntry as $JJJJ){
                                 if($JJJJ->je_cost_center==$ccl->cc_no){
-                                    if($JJJJ->other_no==$et->et_no){
+                                    if($JJJJ->other_no==$st->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
                                     $go=1;
                                     }
                                     
@@ -702,16 +879,198 @@ class ReportController extends Controller
                                 
                             }
                             if($go==1){
-                                $tablecontent.="<tr>";
-                                $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
-                                $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
-                                $tablecontent.="</tr>";
-                                
+
+                                if($st->st_type=="Sales Receipts Null and Void"){
+                                        foreach ($st_sales_receipts as $sr){
+                                            if($sr->st_s_no==$st->st_no){
+                                        $tablecontent.='<tr>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_no;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_type;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                                        $tablecontent.='</td>';        
+                                        
+                                        $product_name="";
+                                        foreach ($products_and_services as $prod){
+                                            if($sr->st_s_product==$prod->product_id){
+                                                $product_name=$prod->product_name;
+                                            }
+                                        }
+                                        
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_s_desc;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_s_qty;
+                                        $tablecontent.='</td>'; 
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_s_rate,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_s_total,2);
+                                        $tablecontent.='</td>';
+                                        $withhold=0;
+                                        foreach ($customers as $cus){
+                                            foreach ($SalesTransaction as $ss){
+                                                if($cus->customer_id==$ss->st_customer_id){
+                                                    $withhold=$cus->withhold_tax;
+                                                }
+                                            }
+                                        }
+                                        $taxxxx=$sr->st_s_total*0.12;
+                                        $totaltaxall+=$taxxxx;
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $Gross=$sr->st_s_total-$taxxxx;
+                                        $withoud=$sr->st_s_total*($withhold/100);
+                                        $withheldtotal+=$Gross;
+                                        $netamounttotal+=$Gross-$withoud;
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($Gross-$withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='</tr>';
+                                                    }
+                                                }
+                                            
+                            
+                                }
+                                else if($st->st_type=="Invoice"){
+                                            foreach ($st_invoice as $sr){
+                                                if($sr->st_i_no==$st->st_no){
+                                        $tablecontent.='<tr>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_no;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_type;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                                        $tablecontent.='</td>';        
+                                        
+                                        $product_name="";
+                                        foreach ($products_and_services as $prod){
+                                            if($sr->st_i_product==$prod->product_id){
+                                                $product_name=$prod->product_name;
+                                            }
+                                        }
+                                        
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_i_desc;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_i_qty;
+                                        $tablecontent.='</td>'; 
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_i_rate,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_i_total,2);
+                                        $tablecontent.='</td>';
+                                        $withhold=0;
+                                        foreach ($customers as $cus){
+                                            foreach ($SalesTransaction as $ss){
+                                                if($cus->customer_id==$ss->st_customer_id){
+                                                    $withhold=$cus->withhold_tax;
+                                                }
+                                            }
+                                        }
+                                        $taxxxx=$sr->st_i_total*0.12;
+                                        $totaltaxall+=$taxxxx;
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $Gross=$sr->st_i_total-$taxxxx;
+                                        $withoud=$sr->st_i_total*($withhold/100);
+                                        $withheldtotal+=$Gross;
+                                        $netamounttotal+=$Gross-$withoud;
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($Gross-$withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='</tr>';
+                                                    }
+                                                }
+                                }
+                                else if($st->st_type=="Credit Note"){
+                                            foreach ($st_credit_notes as $sr){
+                                                if($sr->st_cn_no==$st->st_no){
+                                        $tablecontent.='<tr>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_no;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$st->st_type;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                                        $tablecontent.='</td>';        
+                                        
+                                        $product_name="";
+                                        foreach ($products_and_services as $prod){
+                                            if($sr->st_cn_product==$prod->product_id){
+                                                $product_name=$prod->product_name;
+                                            }
+                                        }
+                                        
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_cn_desc;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$sr->st_cn_qty;
+                                        $tablecontent.='</td>'; 
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_cn_rate,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format($sr->st_cn_total,2);
+                                        $tablecontent.='</td>';
+                                        $withhold=0;
+                                        foreach ($customers as $cus){
+                                            foreach ($SalesTransaction as $ss){
+                                                if($cus->customer_id==$ss->st_customer_id){
+                                                    $withhold=$cus->withhold_tax;
+                                                }
+                                            }
+                                        }
+                                        $taxxxx=$sr->st_cn_total*0.12;
+                                        $totaltaxall-=$taxxxx; 
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format("-".$taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
+                                        $tablecontent.='</td>';
+                                        $Gross=$sr->st_cn_total-$taxxxx;
+                                        $withoud=$sr->st_cn_total*($withhold/100);
+                                        $withheldtotal-=$Gross;
+                                        $netamounttotal-=$Gross-$withoud;
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format("-".$withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=number_format("-".$Gross-$withoud,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='</tr>';
+                                                    }
+                                                }
+                                }
                             }
                         }
                     }
@@ -733,11 +1092,11 @@ class ReportController extends Controller
             $tablecontent.="<tr>";
             $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
             $tablecontent.="</tr>";
-            foreach($expense_transactions as $et){
+            foreach ($SalesTransaction as $st){
                 $go=0;
                 foreach($JournalEntry as $JJJJ){
                     if($JJJJ->je_cost_center==$CostCenterFilter){
-                        if($JJJJ->other_no==$et->et_no ){
+                        if($JJJJ->other_no==$st->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
 						$go=1;
 						}
 						
@@ -745,23 +1104,221 @@ class ReportController extends Controller
 					
                 }
                 if($go==1){
-                    $tablecontent.="<tr>";
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->tin_no.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($et->et_ad_total,2).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.date('m-d-Y',strtotime($et->et_date)).'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'.$et->et_no.'</td>';
-                    $tablecontent.='<td style="vertical-align:middle;">'."".'</td>';
-                    $tablecontent.="</tr>";
+
+                    if($st->st_type=="Sales Receipts Null and Void"){
+                            foreach ($st_sales_receipts as $sr){
+                                if($sr->st_s_no==$st->st_no){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_no;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_type;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                            $tablecontent.='</td>';        
+                            
+                            $product_name="";
+                            foreach ($products_and_services as $prod){
+                                if($sr->st_s_product==$prod->product_id){
+                                    $product_name=$prod->product_name;
+                                }
+                            }
+                            
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_s_desc;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_s_qty;
+                            $tablecontent.='</td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_s_rate,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_s_total,2);
+                            $tablecontent.='</td>';
+                            $withhold=0;
+                            foreach ($customers as $cus){
+                                foreach ($SalesTransaction as $ss){
+                                    if($cus->customer_id==$ss->st_customer_id){
+                                        $withhold=$cus->withhold_tax;
+                                    }
+                                }
+                            }
+                            $taxxxx=$sr->st_s_total*0.12;
+                            $totaltaxall+=$taxxxx;
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($taxxxx,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_s_total-$taxxxx,2);
+                            $tablecontent.='</td>';
+                            $Gross=$sr->st_s_total-$taxxxx;
+                            $withoud=$sr->st_s_total*($withhold/100);
+                            $withheldtotal+=$Gross;
+                            $netamounttotal+=$Gross-$withoud;
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($Gross-$withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                                        }
+                                    }
+                                
+                
+                    }
+                    else if($st->st_type=="Invoice"){
+                                foreach ($st_invoice as $sr){
+                                    if($sr->st_i_no==$st->st_no){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_no;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_type;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                            $tablecontent.='</td>';        
+                            
+                            $product_name="";
+                            foreach ($products_and_services as $prod){
+                                if($sr->st_i_product==$prod->product_id){
+                                    $product_name=$prod->product_name;
+                                }
+                            }
+                            
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_i_desc;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_i_qty;
+                            $tablecontent.='</td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_i_rate,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_i_total,2);
+                            $tablecontent.='</td>';
+                            $withhold=0;
+                            foreach ($customers as $cus){
+                                foreach ($SalesTransaction as $ss){
+                                    if($cus->customer_id==$ss->st_customer_id){
+                                        $withhold=$cus->withhold_tax;
+                                    }
+                                }
+                            }
+                            $taxxxx=$sr->st_i_total*0.12;
+                            $totaltaxall+=$taxxxx;
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($taxxxx,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_i_total-$taxxxx,2);
+                            $tablecontent.='</td>';
+                            $Gross=$sr->st_i_total-$taxxxx;
+                            $withoud=$sr->st_i_total*($withhold/100);
+                            $withheldtotal+=$Gross;
+                            $netamounttotal+=$Gross-$withoud;
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($Gross-$withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                                        }
+                                    }
+                    }
+                    else if($st->st_type=="Credit Note"){
+                                foreach ($st_credit_notes as $sr){
+                                    if($sr->st_cn_no==$st->st_no){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_no;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$st->st_type;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=date('m-d-Y',strtotime($st->st_date));
+                            $tablecontent.='</td>';        
+                            
+                            $product_name="";
+                            foreach ($products_and_services as $prod){
+                                if($sr->st_cn_product==$prod->product_id){
+                                    $product_name=$prod->product_name;
+                                }
+                            }
+                            
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_cn_desc;
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=$sr->st_cn_qty;
+                            $tablecontent.='</td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_cn_rate,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format($sr->st_cn_total,2);
+                            $tablecontent.='</td>';
+                            $withhold=0;
+                            foreach ($customers as $cus){
+                                foreach ($SalesTransaction as $ss){
+                                    if($cus->customer_id==$ss->st_customer_id){
+                                        $withhold=$cus->withhold_tax;
+                                    }
+                                }
+                            }
+                            $taxxxx=$sr->st_cn_total*0.12;
+                            $totaltaxall-=$taxxxx; 
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format("-".$taxxxx,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format("-".$sr->st_cn_total-$taxxxx,2);
+                            $tablecontent.='</td>';
+                            $Gross=$sr->st_cn_total-$taxxxx;
+                            $withoud=$sr->st_cn_total*($withhold/100);
+                            $withheldtotal-=$Gross;
+                            $netamounttotal-=$Gross-$withoud;
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format("-".$withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td style="vertical-align:middle;">';
+                            $tablecontent.=number_format("-".$Gross-$withoud,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                                        }
+                                    }
+                    }
                 }
             }
         }
 
+        
+        $tablecontent.='<tr>';
+        $tablecontent.='<td colspan="12" style="border-bottom:2px dotted #ccc;"></td>';
+        $tablecontent.='</tr>';
+
+        $tablecontent.='<tr>';
+        $tablecontent.='<td colspan="5" style="vertical-align:middle;"></td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total VAT</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($totaltaxall,2).'</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Withhoding</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($withheldtotal,2).'</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;">Total Net</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;">'.number_format($netamounttotal,2).'</td>';
+        $tablecontent.='</tr>';
 
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<tr ><th>TIN</th><th>Company Name</th><th>Address</th><th>Gross Amount</th><th>Date</th><th>Reference No.</th><th>OR No.</th>'
+                .'<th>#</th><th>Type</th><th>Date</th><th>Description</th><th>Qty</th><th>Rate</th>
+                <th>Amount</th><th>Less:Tax</th><th>Total</th><th>Withhold Tax</th><th>Net Amount</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent
@@ -7013,6 +7570,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -7056,6 +7614,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -7099,6 +7658,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -7142,6 +7702,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -7185,6 +7746,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -7235,6 +7797,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -7273,6 +7836,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -7318,6 +7882,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -7357,6 +7922,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -7389,6 +7955,7 @@ class ReportController extends Controller
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalRE=0;
                 foreach ($COA as $coa){
+                    
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -7399,11 +7966,45 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                     }
+                    
                 }
                 $CustomerTotal2RE=0;
                 $RetainedEarningsSubs=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotalRE-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotalRE-=$coa->coa_balance;
+                    }
+                   
                     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -7431,6 +8032,7 @@ class ReportController extends Controller
                                 
                             }
                         }
+                        
                     }
                 }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotalRE-$CustomerTotal2RE),2);
@@ -7454,6 +8056,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                       
                     }
                 }
                 $CustomerTotal2=0;
@@ -7468,6 +8071,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                     }
                 }
                 $tablecontent.=number_format($CustomerTotal-$CustomerTotal2,2);
@@ -7567,6 +8171,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
+                                    $coa_name_total+=$Coa->coa_balance;
                                     $IncomeTotal+=$coa_name_total;
                                     $tablecontent.=number_format($coa_name_total,2);
                                     $tablecontent.='</td>';
@@ -7610,6 +8215,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
+                                    $coa_name_total+=$Coa->coa_balance;
                                     $IncomeTotal+=$coa_name_total;
                                     $tablecontent.=number_format($coa_name_total,2);
                                     $tablecontent.='</td>';
@@ -7653,6 +8259,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
+                                    $coa_name_total+=$Coa->coa_balance;
                                     $IncomeTotal+=$coa_name_total;
                                     $tablecontent.=number_format($coa_name_total,2);
                                     $tablecontent.='</td>';
@@ -7696,6 +8303,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
+                                    $coa_name_total+=$Coa->coa_balance;
                                     $IncomeTotal+=$coa_name_total;
                                     $tablecontent.=number_format($coa_name_total,2);
                                     $tablecontent.='</td>';
@@ -7739,6 +8347,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
+                                    $coa_name_total+=$Coa->coa_balance;
                                     $IncomeTotal+=$coa_name_total;
                                     $tablecontent.=number_format($coa_name_total,2);
                                     $tablecontent.='</td>';
@@ -7789,6 +8398,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_total+=$Coa->coa_balance;
                             $IncomeTotal+=$coa_name_total;
                             $tablecontent.=number_format($coa_name_total,2);
                             $tablecontent.='</td>';
@@ -7827,6 +8437,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_total+=$Coa->coa_balance;
                             $IncomeTotal+=$coa_name_total;
                             $tablecontent.=number_format($coa_name_total,2);
                             $tablecontent.='</td>';
@@ -7872,6 +8483,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_total+=$Coa->coa_balance;
                             $IncomeTotal+=$coa_name_total;
                             $tablecontent.=number_format($coa_name_total,2);
                             $tablecontent.='</td>';
@@ -7911,6 +8523,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_total+=$Coa->coa_balance;
                             $IncomeTotal+=$coa_name_total;
                             $tablecontent.=number_format($coa_name_total,2);
                             $tablecontent.='</td>';
@@ -7943,6 +8556,37 @@ class ReportController extends Controller
                     $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                     $CustomerTotalRE=0;
                     foreach ($COA as $coa){
+                        //experimental retained earning
+                        if ($coa->coa_sub_account=="Bank"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        if ($coa->coa_sub_account=="Cash on Hand"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        if ($coa->coa_sub_account=="Receivable Accounts"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        if ($coa->coa_sub_account=="Inventories"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        
+                        if ($coa->coa_sub_account=="Prepayments"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        
+                        }
+                        if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                            $CustomerTotalRE+=$coa->coa_balance;
+                        }
+                        
+                        if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                            $CustomerTotalRE-=$coa->coa_balance;
+                        }
+                        if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                            $CustomerTotalRE-=$coa->coa_balance;
+                        }
                         if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                             foreach ($JournalEntryformpast as $JE){
                                 if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -7957,6 +8601,7 @@ class ReportController extends Controller
                     }
                     $CustomerTotal2RE=0;
                     foreach ($COA as $coa){
+                        
                         if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
                             foreach ($JournalEntryformpast as $JE){
                                 if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -8033,7 +8678,7 @@ class ReportController extends Controller
                             $tablecontent.='</tr>'; 
                         }
                     }
-                    $TotalEquityOthers+=$IncomeTotal;
+                    $TotalEquityOthers-=$IncomeTotal;
                     $tablecontent.='<tr style="background-color: #eaf0f7;border-top:2px solid #ccc;border-bottom:2px solid #ccc;">';
                     $tablecontent.='<td colspan="3" style="vertical-align:middle;font-weight:bold;font-size:14px;">Total Equity</td>';
                     $tablecontent.='<td style="vertical-align:middle;font-size:11px;text-align:right;font-weight:bold;">'.number_format($RetainedEarnings+($CustomerTotal-$CustomerTotal2)+$TotalEquityOthers,2).'</td>';
@@ -8089,6 +8734,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8132,6 +8778,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8175,6 +8822,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8218,6 +8866,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8261,6 +8910,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8311,6 +8961,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -8349,6 +9000,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -8394,6 +9046,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -8433,6 +9086,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -8465,6 +9119,37 @@ class ReportController extends Controller
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalRE=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotalRE+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotalRE-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotalRE-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -8785,6 +9470,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8801,6 +9487,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -8847,6 +9534,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8861,6 +9549,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -8907,6 +9596,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8921,6 +9611,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -8967,6 +9658,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -8981,6 +9673,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9026,6 +9719,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9040,6 +9734,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9095,6 +9790,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -9109,6 +9805,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -9151,6 +9848,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -9165,6 +9863,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -9215,6 +9914,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -9229,6 +9929,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -9271,6 +9972,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -9285,6 +9987,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -9325,6 +10028,37 @@ class ReportController extends Controller
                 $RetainedEarningsSubs=0;
                 $RetainedEarningsSubspv=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -9614,6 +10348,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9676,6 +10411,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9736,6 +10472,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9796,6 +10533,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9855,6 +10593,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -9924,6 +10663,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -9980,6 +10720,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10044,6 +10785,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10100,6 +10842,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10152,6 +10895,37 @@ class ReportController extends Controller
                 $RetainedEarnings=0;
                 $RetainedEarningspv=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
@@ -10386,6 +11160,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -10448,6 +11223,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -10508,6 +11284,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -10568,6 +11345,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -10627,6 +11405,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -10696,6 +11475,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10752,6 +11532,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10816,6 +11597,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10872,6 +11654,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -10926,6 +11709,37 @@ class ReportController extends Controller
                 $RetainedEarningsSubspv=0;
                 $RetainedEarningspv=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
@@ -11349,6 +12163,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -11423,6 +12238,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -11497,6 +12313,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -11571,6 +12388,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -11645,6 +12463,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -11726,6 +12545,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -11795,6 +12615,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -11871,6 +12692,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -11941,6 +12763,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -12006,6 +12829,37 @@ class ReportController extends Controller
                 $RetainedEarnings=0;
                 $RetainedEarningsSubs=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -12180,6 +13034,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -12254,6 +13109,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -12328,6 +13184,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -12402,6 +13259,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -12476,6 +13334,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -12557,6 +13416,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -12626,6 +13486,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -12702,6 +13563,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -12772,6 +13634,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -12837,6 +13700,37 @@ class ReportController extends Controller
                 $RetainedEarnings=0;
 
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
@@ -12988,6 +13882,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -13062,6 +13957,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -13136,6 +14032,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -13210,6 +14107,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -13284,6 +14182,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_total+=$Coa->coa_balance;
                                 $IncomeTotal+=$coa_name_total;
                                 $tablecontent.=number_format($coa_name_total,2);
                                 $tablecontent.='</td>';
@@ -13365,6 +14264,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -13434,6 +14334,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -13510,6 +14411,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -13580,6 +14482,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_total+=$Coa->coa_balance;
                         $IncomeTotal+=$coa_name_total;
                         $tablecontent.=number_format($coa_name_total,2);
                         $tablecontent.='</td>';
@@ -13645,6 +14548,37 @@ class ReportController extends Controller
                 $RetainedEarnings=0;
                 $RetainedEarningsSubs=0;
                 foreach ($COA as $coa){
+                    //experimental retained earning
+                    if ($coa->coa_sub_account=="Bank"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Cash on Hand"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Receivable Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ($coa->coa_sub_account=="Inventories"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_sub_account=="Prepayments"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    
+                    }
+                    if ( $coa->coa_account_type=="Fixed Assets" || $coa->coa_account_type=="Fixed Asset" || $coa->coa_account_type=="Land, Building and Improvements" || $coa->coa_account_type=="Equipment and Improvements" || $coa->coa_account_type=="Asset Contra Accounts"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    if ( $coa->coa_account_type=="Non Current Assets" || $coa->coa_account_type=="Non Current Asset" || $coa->coa_account_type=="Improvements"){
+                        $CustomerTotal+=$coa->coa_balance;
+                    }
+                    
+                    if ($coa->coa_account_type=="Current Liabilities" || $coa->coa_account_type=="Current Liability" || $coa->coa_account_type=="Payable Accounts"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
+                    if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
+                        $CustomerTotal-=$coa->coa_balance;
+                    }
                     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
                         foreach ($JournalEntryformpast as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
@@ -13944,7 +14878,7 @@ class ReportController extends Controller
         $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
                             JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
                             ".$sortsetting." 
-                            ORDER BY display_name ASC");
+                            ORDER BY st_no ASC");
                             
         $STCustomer= DB::table('sales_transaction')
                         ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
@@ -13956,7 +14890,7 @@ class ReportController extends Controller
         
         $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
         $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
-        $customers = Customers::orderBy('display_name', 'DESC')->get();
+        $customers = Customers::orderBy('display_name', 'ASC')->get();
         $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortsettingjournal.$sortjournal." 
@@ -14024,7 +14958,7 @@ class ReportController extends Controller
         
         }
         $nodup=array_unique($combinedarray);
-        $output=$nodup;
+        $output=array_unique($combinedarray);
         $STARRAY=array();
         $emptyArray = array();
 
@@ -14387,7 +15321,6 @@ class ReportController extends Controller
                             $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Gross Profit</td>';
                             foreach ($output as $ST){
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
-                                
                                 $CustomerTotal=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Revenues"){
@@ -14448,10 +15381,8 @@ class ReportController extends Controller
                                         if ($Coa->coa_account_type==$coa->coa_account_type){
                                             $tablecontent.="<tr>";
                                             $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
-                                            foreach ($nodup as $ST){
-                                                
+                                            foreach ($output as $ST){
                                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
-                                                
                                                 $CustomerTotal=0;
                                                 foreach ($SS as $ss){
                                                     if ($ss->st_customer_id==$ST){
@@ -14462,26 +15393,19 @@ class ReportController extends Controller
                                                                 }else{
                                                                     $CustomerTotal+=$JE->je_debit;
                                                                 }
-                                                                
                                                             }
                                                         }
                                                     }
                                                 }
                                                 foreach ($ETran as $ss){
-                                                    
                                                     if ($ss->et_customer==$ST){
-                                                        
                                                         foreach ($JournalEntry as $JE){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
-                                                                
                                                                 if ($JE->je_credit!="" ){
                                                                     $CustomerTotal-=$JE->je_credit;
-                                                                    
                                                                 }else{
                                                                     $CustomerTotal+=$JE->je_debit;
-                                                                    
                                                                 }
-                                                                
                                                             }
                                                         }
                                                     }
@@ -15889,12 +16813,12 @@ class ReportController extends Controller
             $addth="";
             
                 foreach ($customers as $cus){
-                    foreach ($output as $ST){
+                    foreach ($nodup as $ST){
                     if ($ST==$cus->customer_id){
                         if ($cus->display_name!=""){
-                            $addth.="<th>".$cus->display_name." ".$cus->customer_id."</th>";
+                            $addth.="<th>".$cus->display_name."</th>";
                         }else{
-                            $addth.="<th>".$cus->f_name." ".$cus->l_name." ".$cus->customer_id."</th>";
+                            $addth.="<th>".$cus->f_name." ".$cus->l_name."</th>";
                         }
                     }
                 }     
@@ -17050,7 +17974,7 @@ class ReportController extends Controller
                         }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Revenue</td>';
-                                $individualinvoice=0;
+                        $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17223,7 +18147,7 @@ class ReportController extends Controller
                         }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>';
-                                $individualinvoice=0;
+                        $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17288,7 +18212,7 @@ class ReportController extends Controller
                 }
                         $tablecontent.="<tr>";
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>';
-                                $individualinvoice=0;
+                        $individualinvoice=0;
                                 $individualinvoice2=0;
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
@@ -17440,7 +18364,6 @@ class ReportController extends Controller
                                         $individualinvoice3=0;
                                         $individualinvoice4=0;
                                         foreach ($JournalEntry as $JE){
-                                            
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
@@ -17514,52 +18437,45 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($COA as $Coa){
-                                    
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
-                                     $tablecontent.='<script>console.log("'.$Coa->id.'")</script>';  
-                                     if ($Coa->coa_account_type==$coa->coa_account_type){
-                                        foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
-                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                                    if ($JE->je_credit!=""){
-                                                        $individualinvoice-=$JE->je_credit;
-                                                    }else{
-                                                        $individualinvoice+=$JE->je_debit;
-                                                    }
-                                                }
-                                            }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
-                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                                    if ($JE->je_credit!=""){
-                                                        $individualinvoice2-=$JE->je_credit;
-                                                    }else{
-                                                        $individualinvoice2+=$JE->je_debit;
-                                                    }
-                                                }
-                                            }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
-                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                                    if ($JE->je_credit!=""){
-                                                        $individualinvoice3-=$JE->je_credit;
-                                                    }else{
-                                                        $individualinvoice3+=$JE->je_debit;
-                                                    }
-                                                }
-                                            }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
-                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                                    
-                                                    if ($JE->je_credit!=""){
-                                                        $individualinvoice4-=$JE->je_credit;
-                                                    }else{
-                                                        $individualinvoice4+=$JE->je_debit;
-                                                    }
-                                                    $tablecontent.='<script>console.log(" type='.$JE->je_account.'=='.$Coa->id.' '.$JE->je_no." CR ".$JE->je_credit." DR ".$JE->je_debit.' Total :'.$individualinvoice4.'")</script>';
-                                                }
+                                foreach ($JournalEntry as $JE){
+                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $individualinvoice-=$JE->je_credit;
+                                            }else{
+                                                $individualinvoice+=$JE->je_debit;
                                             }
                                         }
-                                     }
-                                
+                                    }
+                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $individualinvoice2-=$JE->je_credit;
+                                            }else{
+                                                $individualinvoice2+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $individualinvoice3-=$JE->je_credit;
+                                            }else{
+                                                $individualinvoice3+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $individualinvoice4-=$JE->je_credit;
+                                            }else{
+                                                $individualinvoice4+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                }
                                     }
                                 }
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
@@ -25846,6 +26762,14 @@ class ReportController extends Controller
                         }
                     }
                     if ($coa_name_totalc!=0 || $coa_name_totald!=0){
+                        $tablecontent.='<tr >';  
+                                         
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">'.$coa->coa_name.'\'s Beginning Balance</td>';  
+                        
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa->coa_balance,2).'</td>';  
+                        $tablecontent.='</tr>';  
                         foreach ($JournalEntry as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -25855,6 +26779,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_credit,2).'</td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
                                     $tablecontent.='</tr>'; 
                                 }else{
                                     $tablecontent.='<tr>';  
@@ -25863,17 +26788,28 @@ class ReportController extends Controller
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
                                     $tablecontent.='</tr>'; 
                                 }
                             }
                         }
-                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
+                        $tablecontent.='<tr >';  
                                          
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3"><a class="btn btn-link" title="view sub Ledger" href="sub_ledger?chart_of_accounts='.$coa->id.'">'.$coa->coa_name." (".$coa->coa_code.")".'</a></td>';  
                         
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totald,2).'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totalc,2).'</td>';  
-                        $tablecontent.='</tr>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc),2).'</td>';  
+                        $tablecontent.='</tr>'; 
+                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
+                                         
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">Retained Earnings</td>';  
+                        
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc)+$coa->coa_balance,2).'</td>';  
+                        $tablecontent.='</tr>'; 
+                        
                     }
                     $coa_name_totaldebit+=$coa_name_totald;
                     $coa_name_totalcredit+=$coa_name_totalc;
@@ -25882,6 +26818,7 @@ class ReportController extends Controller
                 $tablecontent.='<td style="vertical-align:middle;" colspan="3">Total</td>'; 
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
                 $tablecontent.='</tr>';  
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
@@ -25899,15 +26836,15 @@ class ReportController extends Controller
                         
             
                     $tablecontent.="<tr>";
-                    $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                    $tablecontent.='<td colspan="9" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                     $tablecontent.="</tr>";
                     $tablecontent.="<tr>";
-                    $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
+                    $tablecontent.='<td colspan="9" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
                             $tablecontent.=$ccl->cc_name;
                     $tablecontent.='</td>';
                     $tablecontent.="</tr>";
                     $tablecontent.="<tr>";
-                    $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                    $tablecontent.='<td colspan="9" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                     $tablecontent.="</tr>";
                     $coa_name_totaldebit=0;
                     $coa_name_totalcredit=0;
@@ -25927,6 +26864,14 @@ class ReportController extends Controller
                             }
                         }
                         if ($coa_name_totalc!=0 || $coa_name_totald!=0){
+                            $tablecontent.='<tr >';  
+                                         
+                            $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">'.$coa->coa_name.'\'s Beginning Balance</td>';  
+                            
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa->coa_balance,2).'</td>';  
+                            $tablecontent.='</tr>'; 
                             foreach ($JournalEntry as $JE){
                                 if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                     if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -25935,7 +26880,8 @@ class ReportController extends Controller
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
-                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_credit,2).'</td>';  
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_credit,2).'</td>'; 
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>'; 
                                         $tablecontent.='</tr>'; 
                                     }else{
                                         $tablecontent.='<tr>';  
@@ -25944,14 +26890,26 @@ class ReportController extends Controller
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';
                                         $tablecontent.='</tr>'; 
                                     }
                                 }
                             }
-                            $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
-                            $tablecontent.='<td colspan="3" style="vertical-align:middle;font-weight:bold;"><a class="btn btn-link" title="view sub Ledger" href="sub_ledger?chart_of_accounts='.$coa->id.'">'.$coa->coa_name." (".$coa->coa_code.")".'</a></td>';  
+                            $tablecontent.='<tr >';  
+                                         
+                            $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3"><a class="btn btn-link" title="view sub Ledger" href="sub_ledger?chart_of_accounts='.$coa->id.'">'.$coa->coa_name." (".$coa->coa_code.")".'</a></td>';  
+                            
                             $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totald,2).'</td>';  
                             $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totalc,2).'</td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc),2).'</td>';  
+                            $tablecontent.='</tr>'; 
+                            $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
+                                            
+                            $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">Retained Earnings</td>';  
+                            
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc)+$coa->coa_balance,2).'</td>';  
                             $tablecontent.='</tr>';  
                         }
                         $coa_name_totaldebit+=$coa_name_totald;
@@ -25961,6 +26919,7 @@ class ReportController extends Controller
                     $tablecontent.='<td style="vertical-align:middle;" colspan="3">Total</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';
                     $tablecontent.='</tr>';  
                     }
             }
@@ -26000,6 +26959,14 @@ class ReportController extends Controller
                         }
                     }
                     if ($coa_name_totalc!=0 || $coa_name_totald!=0){
+                        $tablecontent.='<tr >';  
+                                         
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">'.$coa->coa_name.'\'s Beginning Balance</td>';  
+                        
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa->coa_balance,2).'</td>';  
+                        $tablecontent.='</tr>'; 
                         foreach ($JournalEntry as $JE){
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                 if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -26009,6 +26976,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_credit,2).'</td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';
                                     $tablecontent.='</tr>'; 
                                 }else{
                                     $tablecontent.='<tr>';  
@@ -26017,14 +26985,26 @@ class ReportController extends Controller
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';
                                     $tablecontent.='</tr>'; 
                                 }
                             }
                         }
-                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
+                        $tablecontent.='<tr >';  
+                                         
                         $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3"><a class="btn btn-link" title="view sub Ledger" href="sub_ledger?chart_of_accounts='.$coa->id.'">'.$coa->coa_name." (".$coa->coa_code.")".'</a></td>';  
+                        
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totald,2).'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format($coa_name_totalc,2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc),2).'</td>';  
+                        $tablecontent.='</tr>'; 
+                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';  
+                                         
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;" colspan="3">Retained Earnings</td>';  
+                        
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($coa_name_totald-$coa_name_totalc)+$coa->coa_balance,2).'</td>';  
                         $tablecontent.='</tr>';  
                     }
                     $coa_name_totaldebit+=$coa_name_totald;
@@ -26034,13 +27014,14 @@ class ReportController extends Controller
                 $tablecontent.='<td style="vertical-align:middle;" colspan="3">Total</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';
                 $tablecontent.='</tr>';    
         }
         
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
                 .'<th width="20%">Account Title</th><th width="20%" >Ref No</th><th width="20%" >Description</th>
-                <th width="20%" style="text-align:right;">Debit</th><th width="20%" style="text-align:right;">Credit</th>'
+                <th width="20%" style="text-align:right;">Debit</th><th width="20%" style="text-align:right;">Credit</th><th width="20%" style="text-align:right;"></th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent
@@ -26502,12 +27483,16 @@ class ReportController extends Controller
                                 $credit*=-1;
                             }
                         }
+                        $credit_validated=$credit!=""? $credit : 0;
+                        $debit_validated=$debit!=""? $debit : 0;
                         $tablecontent.='<tr>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
                         $tablecontent.='</tr>';  
                     }
                     $coa_name_totaldebit+=$coa_name_totald;
@@ -26517,6 +27502,8 @@ class ReportController extends Controller
                 $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
                 $tablecontent.='</tr>';  
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
@@ -26566,12 +27553,16 @@ class ReportController extends Controller
                                         $credit*=-1;
                                     }
                                 }
+                                $credit_validated=$credit!=""? $credit : 0;
+                                $debit_validated=$debit!=""? $debit : 0;
                                 $tablecontent.='<tr>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
                                 $tablecontent.='</tr>';  
                             }
                             $coa_name_totaldebit+=$coa_name_totald;
@@ -26581,6 +27572,8 @@ class ReportController extends Controller
                         $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
                         $tablecontent.='</tr>';    
                     }
             }
@@ -26635,12 +27628,16 @@ class ReportController extends Controller
                             $credit*=-1;
                         }
                     }
+                    $credit_validated=$credit!=""? $credit : 0;
+                    $debit_validated=$debit!=""? $debit : 0;
                     $tablecontent.='<tr>';  
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
                     $tablecontent.='</tr>';  
                 }
                 $coa_name_totaldebit+=$coa_name_totald;
@@ -26650,12 +27647,14 @@ class ReportController extends Controller
             $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
             $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
             $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
             $tablecontent.='</tr>';     
         }
         
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th >Account Code</th><th >Account Title</th><th >Account Account Type</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
+                .'<th >Account Code</th><th >Account Title</th><th >Account Account Type</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Beginning Balance</th><th style="text-align:right;">Retained Earnings</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent
@@ -27525,22 +28524,21 @@ class ReportController extends Controller
         }                  
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortjournal." 
-                            ORDER BY je_no DESC");
+                            ORDER BY created_at ASC");
         
         $COA= ChartofAccount::where('coa_active','1')->get();
         $tablecontent="";
-        // $tablecontent.="<script>";
+        $tablecontent.="<script>";
         
-        // $tablecontent.="var totaldebit=0;";
-        // $tablecontent.="var totalcredit=0;";
-        // $tablecontent.="$(document).ready(function(){";
-        // $tablecontent.="document.getElementById('TotalDebit').innerHTML=(totaldebit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
-        // $tablecontent.="document.getElementById('TotalCredit').innerHTML=(totalcredit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
-        // $tablecontent.="});";
-        // $tablecontent.="</script>";
+        $tablecontent.="var totaldebit=0;";
+        $tablecontent.="var totalcredit=0;";
+        $tablecontent.="$(document).ready(function(){";
+        $tablecontent.="document.getElementById('TotalDebit').innerHTML=(totaldebit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
+        $tablecontent.="document.getElementById('TotalCredit').innerHTML=(totalcredit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');";
+        $tablecontent.="});";
+        $tablecontent.="</script>";
         $currentno="";
-        $totalccccrrrreeddit=0;
-        $totaldebbiiittt=0;
+
         if($CostCenterFilter=="By Cost Center"){
             foreach($je_grouped as $group){
                 $tablecontent.="<tr>";
@@ -27578,9 +28576,6 @@ class ReportController extends Controller
                         }
                         $tablecontent.="</td>";
                         $tablecontent.="<td style='vertical-align:middle;'>";
-                            $tablecontent.=$JE->journal_type;
-                        $tablecontent.="</td>";
-                        $tablecontent.="<td style='vertical-align:middle;'>";
                         if($JE->remark==""){  
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                         $tablecontent.=$currentno!=$JE->je_no? $JE->je_transaction_type : "";
@@ -27593,10 +28588,10 @@ class ReportController extends Controller
                         if($JE->je_transaction_type=="Journal Entry"){
                             if($JE->remark==""){   
                             $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->je_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";
+                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";
                             $tablecontent.="</a>";
                             }else{
-                                $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";  
+                                $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";  
                             }
                         }else{
                             if($JE->remark==""){   
@@ -27612,20 +28607,20 @@ class ReportController extends Controller
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         if($JE->remark==""){   
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                        $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : "";
+                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : "";
                         $tablecontent.="</a>";
                         }else{
-                            $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : ""; 
+                            $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : ""; 
                         }
                         $tablecontent.="</td>";  
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         
                         if($JE->remark==""){   
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                        $tablecontent.=htmlentities($JE->je_memo);
+                        $tablecontent.=$JE->je_memo;
                         $tablecontent.="</a>";
                         }else{
-                            $tablecontent.=htmlentities($JE->je_memo);  
+                            $tablecontent.=$JE->je_memo;  
                         }
                         $tablecontent.="</td>";
                         $tablecontent.="<td style='vertical-align:middle;'>";
@@ -27633,13 +28628,13 @@ class ReportController extends Controller
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                         foreach ($COA as $csa){
                             if($csa->id==$JE->je_account){
-                                $tablecontent.=htmlentities($csa->coa_name);
+                                $tablecontent.=$csa->coa_name;
                             }
                         }
                         }else{
                             foreach ($COA as $csa){
                                 if($csa->id==$JE->je_account){
-                                    $tablecontent.=htmlentities($csa->coa_name);
+                                    $tablecontent.=$csa->coa_name;
                                 }
                             } 
                         }
@@ -27649,7 +28644,7 @@ class ReportController extends Controller
                         $tablecontent.="<td style='vertical-align:middle;'>";
                         
                         if($JE->remark!=""){
-                            $tablecontent.=htmlentities($JE->remark);
+                            $tablecontent.=$JE->remark;
                         }
                         
                        
@@ -27660,31 +28655,24 @@ class ReportController extends Controller
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">'; 
                         $tablecontent.=number_format($JE->je_debit,2);
                         $tablecontent.="</a>";
-                        
+                        $tablecontent.="<script>";
+                        $tablecontent.="totaldebit+=".$JE->je_debit.";";
+                        $tablecontent.="</script>";
                         }else{
                             $tablecontent.=number_format($JE->je_debit,2);
                         }
                         }
                         
                         $tablecontent.="</td>";
-                        if($JE->je_debit!=""){
-                        if($JE->remark==""){   
-                        
-                        // $tablecontent.="<script>";
-                        // $tablecontent.="totaldebit+=".$JE->je_debit.";";
-                        // $tablecontent.="</script>";
-                        $totaldebbiiittt+=$JE->je_debit;
-                        }else{
-                          
-                        }
-                        }
                         $tablecontent.="<td style='vertical-align:middle;text-align:right;'>";
                         if($JE->je_credit!=""){
                         if($JE->remark==""){
                             $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">';   
                             $tablecontent.=number_format($JE->je_credit,2);
                             $tablecontent.="</a>";
-                           
+                            $tablecontent.="<script>";
+                            $tablecontent.="totalcredit+=".$JE->je_credit.";";
+                            $tablecontent.="</script>";
                         }else{
                             $tablecontent.=number_format($JE->je_credit,2); 
                         }
@@ -27692,17 +28680,6 @@ class ReportController extends Controller
                         }
                         
                         $tablecontent.="</td>";
-                            if($JE->je_credit!=""){
-                            if($JE->remark==""){
-                                // $tablecontent.="<script>";
-                                // $tablecontent.="totalcredit+=".$JE->je_credit.";";
-                                // $tablecontent.="</script>";
-                                $totalccccrrrreeddit+=$JE->je_credit;
-                            }else{
-                             
-                            }
-                            
-                            }
                         $tablecontent.="</tr>";    
                         if($currentno!=$JE->je_no){
                             $currentno=$JE->je_no;
@@ -27738,9 +28715,6 @@ class ReportController extends Controller
                 }
                 $tablecontent.="</td>";
                 $tablecontent.="<td style='vertical-align:middle;'>";
-                    $tablecontent.=$JE->journal_type;
-                $tablecontent.="</td>";
-                $tablecontent.="<td style='vertical-align:middle;'>";
                 if($JE->remark==""){  
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                 $tablecontent.=$currentno!=$JE->je_no? $JE->je_transaction_type : "";
@@ -27753,18 +28727,18 @@ class ReportController extends Controller
                 if($JE->je_transaction_type=="Journal Entry"){
                     if($JE->remark==""){   
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";
+                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";
                     $tablecontent.="</a>";
                     }else{
-                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_series_no : "";  
+                        $tablecontent.=$currentno!=$JE->je_no? $JE->je_no : "";  
                     }
                 }else{
                     if($JE->remark==""){   
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                    $tablecontent.=htmlentities($currentno!=$JE->je_no? $JE->other_no : "");
+                    $tablecontent.=$currentno!=$JE->je_no? $JE->other_no : "";
                     $tablecontent.="</a>";
                     }else{
-                        $tablecontent.=htmlentities($currentno!=$JE->je_no? $JE->other_no : "");  
+                        $tablecontent.=$currentno!=$JE->je_no? $JE->other_no : "";  
                     }
                 }
                 
@@ -27772,20 +28746,20 @@ class ReportController extends Controller
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 if($JE->remark==""){   
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : "";
+                $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : "";
                 $tablecontent.="</a>";
                 }else{
-                    $tablecontent.=$currentno!=$JE->je_no? htmlentities($JE->je_name) : ""; 
+                    $tablecontent.=$currentno!=$JE->je_no? $JE->je_name : ""; 
                 }
                 $tablecontent.="</td>";  
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 
                 if($JE->remark==""){   
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                $tablecontent.=htmlentities($JE->je_memo);
+                $tablecontent.=$JE->je_memo;
                 $tablecontent.="</a>";
                 }else{
-                    $tablecontent.=htmlentities($JE->je_memo);  
+                    $tablecontent.=$JE->je_memo;  
                 }
                 $tablecontent.="</td>";
                 $tablecontent.="<td style='vertical-align:middle;'>";
@@ -27793,13 +28767,13 @@ class ReportController extends Controller
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
                 foreach ($COA as $csa){
                     if($csa->id==$JE->je_account){
-                        $tablecontent.=htmlentities($csa->coa_name);
+                        $tablecontent.=$csa->coa_name;
                     }
                 }
                 }else{
                     foreach ($COA as $csa){
                         if($csa->id==$JE->je_account){
-                            $tablecontent.=htmlentities($csa->coa_name);
+                            $tablecontent.=$csa->coa_name;
                         }
                     } 
                 }
@@ -27809,7 +28783,7 @@ class ReportController extends Controller
                 $tablecontent.="<td style='vertical-align:middle;'>";
                 
                 if($JE->remark!=""){
-                    $tablecontent.=htmlentities($JE->remark);
+                    $tablecontent.=$JE->remark;
                 }
                 
                
@@ -27820,31 +28794,24 @@ class ReportController extends Controller
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">'; 
                 $tablecontent.=number_format($JE->je_debit,2);
                 $tablecontent.="</a>";
-                
+                $tablecontent.="<script>";
+                $tablecontent.="totaldebit+=".$JE->je_debit.";";
+                $tablecontent.="</script>";
                 }else{
                     $tablecontent.=number_format($JE->je_debit,2);
                 }
                 }
                 
                 $tablecontent.="</td>";
-                if($JE->je_debit!=""){
-                if($JE->remark==""){   
-                
-                // $tablecontent.="<script>";
-                // $tablecontent.="totaldebit+=".$JE->je_debit.";";
-                // $tablecontent.="</script>";
-                $totalccccrrrreeddit+=$JE->je_debit;
-                }else{
-                    
-                }
-                }
                 $tablecontent.="<td style='vertical-align:middle;text-align:right;'>";
                 if($JE->je_credit!=""){
                 if($JE->remark==""){
                     $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\')">';   
                     $tablecontent.=number_format($JE->je_credit,2);
                     $tablecontent.="</a>";
-                    
+                    $tablecontent.="<script>";
+                    $tablecontent.="totalcredit+=".$JE->je_credit.";";
+                    $tablecontent.="</script>";
                 }else{
                     $tablecontent.=number_format($JE->je_credit,2); 
                 }
@@ -27852,17 +28819,6 @@ class ReportController extends Controller
                 }
                 
                 $tablecontent.="</td>";
-                if($JE->je_credit!=""){
-                if($JE->remark==""){
-                    // $tablecontent.="<script>";
-                    // $tablecontent.="totalcredit+=".$JE->je_credit.";";
-                    // $tablecontent.="</script>";
-                    $totaldebbiiittt+=$JE->je_credit;
-                }else{
-                    
-                }
-                
-                }
                 $tablecontent.="</tr>";    
                 if($currentno!=$JE->je_no){
                     $currentno=$JE->je_no;
@@ -27873,19 +28829,19 @@ class ReportController extends Controller
 
         
         $tablecontent.="<tr>";
-        $tablecontent.='<td colspan="10" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
+        $tablecontent.='<td colspan="9" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.='<td colspan="1" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.='<td colspan="1" style="vertical-align:middle;text-align:center;font-size:11px;" ></td>';
         $tablecontent.="</tr>";
         $tablecontent.="<tr>";
-        $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;" >Total</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalDebit">'.number_format($totalccccrrrreeddit,2).'</td>';
-        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalCredit">'.number_format($totaldebbiiittt,2).'</td>';
+        $tablecontent.='<td colspan="7" style="vertical-align:middle;font-weight:bold;" >Total</td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalDebit"></td>';
+        $tablecontent.='<td colspan="1" style="vertical-align:middle;font-weight:bold;text-align:right;" id="TotalCredit"></td>';
         $tablecontent.="</tr>";
 
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th>Date</th><th>Journal Type</th><th>Transaction type</th><th>No.</th><th>Name</th><th>Memo</th><th>Account</th><th>Remark</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
+                .'<th>Date</th><th>Transaction type</th><th>No.</th><th>Name</th><th>Memo</th><th>Account</th><th>Remark</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent

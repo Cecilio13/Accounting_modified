@@ -640,73 +640,7 @@
                                 </thead>
                                 
                                 <tbody>
-                                        <?php
-                                        $coa_name_totaldebit=0;
-                                        $coa_name_totalcredit=0;
-                                        ?>
-                                    @foreach ($COA as $coa)
-                                        <?php
-                                        $coa_name_total=0;
-                                        $coa_name_totalc=0;
-                                        $coa_name_totald=0;
-                                        ?>
-                                        @foreach ($JournalEntry as $JE)
-                                        @if ($JE->je_account==$coa->id && $JE->remark!='Cancelled')
-                                        @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                        <?php
-                                        $coa_name_totalc+=$JE->je_credit;
-                                        $coa_name_total+=$JE->je_credit;
-                                        ?>  
-                                        @else
-                                        <?php
-                                        $coa_name_totald+=$JE->je_debit;
-                                        $coa_name_total-=$JE->je_debit;
-                                        ?>
-                                        @endif
                                         
-                                        @endif
-                                        
-                                        @endforeach
-                                        @if ($coa_name_totalc!=0 || $coa_name_totald!=0)
-                                        <?php
-                                        $debit=0;
-                                        $credit=0;
-                                        if($coa_name_totalc<$coa_name_totald){
-                                            $debit=$coa_name_totalc-$coa_name_totald;
-                                            if($debit<0){
-                                                $debit*=-1;
-                                            }
-                                            $credit="";
-                                        }else if($coa_name_totalc>$coa_name_totald){
-                                            $debit="";
-                                            $credit=$coa_name_totalc-$coa_name_totald;
-                                            if($credit<0){
-                                                $credit*=-1;
-                                            }
-                                        }
-                                        ?>
-                                        @if ($coa_name_totalc!=$coa_name_totald)
-                                            <tr>
-                                                <td style="vertical-align:middle;">{{$coa->coa_code}}</td>
-                                                <td style="vertical-align:middle;">{{$coa->coa_name}}</td>
-                                                <td style="vertical-align:middle;">{{$coa->coa_account_type}}</td>
-                                                <td style="vertical-align:middle;text-align:right;">{{$debit!=""? number_format($debit,2) : ''}}</td>
-                                                <td style="vertical-align:middle;text-align:right;">{{$credit!=""? number_format($credit,2): ''}}</td>
-                                            </tr>  
-                                        @endif
-                                        
-                                        @endif
-                                        <?php
-                                        $coa_name_totaldebit+=$coa_name_totald;
-                                        $coa_name_totalcredit+=$coa_name_totalc;
-                                        ?>
-                                    @endforeach
-                                        <tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">
-                                            <td colspan="3" style="vertical-align:middle;">Total</td>
-                                            <td style="vertical-align:middle;text-align:right;">{{number_format($coa_name_totaldebit,2)}}</td>
-                                            <td style="vertical-align:middle;text-align:right;">{{number_format($coa_name_totalcredit,2)}}</td>
-                                            
-                                        </tr> 
                                 </tbody>
                             </table>
                         </td>
