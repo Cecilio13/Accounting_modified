@@ -127,7 +127,7 @@
                         <script>
                             function submitdates(){
                                 var filtertemplate= document.getElementById('filtertemplate').value;
-                                var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+                                var CostCenterFilter = $("#CostCenterFilter").val(); 
                                 var FROM= document.getElementById('Fromdate').value;
                                 var TO= document.getElementById('Todate').value;
                                 if((FROM=="" || TO=="") && filtertemplate!="All"){
@@ -342,16 +342,15 @@
                                 <div class="form-group">
                                     <label for="Todate">To</label>
                                     <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Todate" >
-                                    
                                 </div>
-                                </div>    
+                                </div>
                     </div>
                     <div class="col-md-6 ">
                             <p>Cost Center</p>
-                            <select class="form-control selectpicker" data-live-search="true" id="CostCenterFilter" onchange="submitdates()">
+                            <select class="form-control selectpicker" data-live-search="true" id="CostCenterFilter"  multiple>
                                 @foreach ($UserAccessCostCenterList as $uaccl)
                                 @if ("All"==$uaccl->cost_center_id)
-                                    <option>All</option>
+                                    <option selected>All</option>
                                 <?php
                                 break;
                                 ?>
@@ -371,6 +370,9 @@
                                     submitdates();
                                 })
                             </script>
+                    </div>
+                    <div class="col-md-12 mt-3" style="text-align:right">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="submitdates()">Fetch Data</button>
                     </div>
                 </div>
             </div>  

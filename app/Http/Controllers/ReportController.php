@@ -28553,9 +28553,40 @@ class ReportController extends Controller
         return $table;
     }
     public function Journal_by_date(Request $request){
+        $CostCenterArray=$request->CostCenterFilter;
+        $CostCenterFilter="By Cost Center";
+        if(!empty($CostCenterArray)){
+            foreach($CostCenterArray as $CC){
+                if($CC=="All"){
+                    $CostCenterFilter="All";
+                    break;
+                }
+            }
+            
+        }else{
+            $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
+                .'<thead><tr>'
+                .'<th>Date</th><th>Transaction type</th><th>No.</th><th>Name</th><th>Memo</th><th>Account</th><th>Remark</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th>'
+                .'</tr></thead>'
+                .'<tbody></tbody>'
+                .'</table>';
+            return $table;
+        }
+        $query_condition="";
+        if($CostCenterFilter=="By Cost Center"){
+            $count=1;
+            foreach($CostCenterArray as $CC){
+                if($count==1){
+                    $query_condition.="je_cost_center='$CC'";
+                }else{
+                    $query_condition.=" OR je_cost_center='$CC'";
+                }
+                $count++;
+            }
+        }
+
         $FROM=$request->FROM;
         $TO=$request->TO;
-        $CostCenterFilter=$request->CostCenterFilter;
         $filtertemplate=$request->filtertemplate;
         $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
         $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
@@ -28564,13 +28595,28 @@ class ReportController extends Controller
             $sortsettingjournal="";
         }
         if($sortsettingjournal==""){
-            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."' AND (remark!='NULLED' OR remark IS NULL)";
+            if($query_condition==""){
+                $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL)";
+            }else{
+                $sortjournal="WHERE ($query_condition) AND (remark!='NULLED' OR remark IS NULL)";
+            }
+            
         }else{
-            $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'  AND (remark!='NULLED' OR remark IS NULL)";
+            if($query_condition==""){
+                $sortjournal=" WHERE (remark!='NULLED' OR remark IS NULL)";
+            }else{
+                $sortjournal=" WHERE ($query_condition)  AND (remark!='NULLED' OR remark IS NULL)";
+            }
+           
         }
         
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
-            $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL)";
+            if($query_condition==""){
+                $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL)";
+            }else{
+                $sortjournal="WHERE ($query_condition) AND (remark!='NULLED' OR remark IS NULL)";  
+            }
+            
             $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
             if($filtertemplate=="All"){
                 $sortsetting="";
@@ -28591,18 +28637,50 @@ class ReportController extends Controller
         // $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->whereBetween('created_at', [$FROM, $TO])
         //                     ->orderBy('created_at','ASC')->get();
         // 
-        $je_grouped= DB::table('journal_entries')
-                ->whereBetween('journal_entries.created_at', [$FROM, $TO])
-                ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
-                ->select('*')
-                ->groupBy('je_cost_center')
-                ->get();
+        // $je_grouped= DB::table('journal_entries')
+        //         ->whereBetween('journal_entries.created_at', [$FROM, $TO])
+        //         ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
+        //         ->select('*')
+        //         ->groupBy('je_cost_center')
+        //         ->get();
+        if($FROM==""){
+            if($query_condition==""){
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                GROUP BY je_cost_center"); 
+            }else{
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                WHERE ($query_condition)
+                GROUP BY je_cost_center");
+            }
+            
+        }else{
+            if($query_condition==""){
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                WHERE journal_entries.created_at BETWEEN '$FROM' AND '$TO' GROUP BY je_cost_center");
+                
+            }else{
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                WHERE ($query_condition) AND journal_entries.created_at BETWEEN '$FROM' AND '$TO' GROUP BY je_cost_center");
+               
+            }
+            
+        }
+        
         if($filtertemplate=="All"){
-            $je_grouped= DB::table('journal_entries')
-            ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
-            ->select('*')
-            ->groupBy('je_cost_center')
-            ->get();
+            // $je_grouped= DB::table('journal_entries')
+            // ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
+            // ->select('*')
+            // ->groupBy('je_cost_center')
+            // ->get();
+            if($query_condition==""){
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                GROUP BY je_cost_center");
+            }else{
+                $je_grouped= DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN cost_center ON journal_entries.je_cost_center=cost_center.cc_no
+                WHERE ($query_condition)
+                GROUP BY je_cost_center");
+            }
+            
         }                  
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortjournal." 
