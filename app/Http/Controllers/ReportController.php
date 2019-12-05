@@ -7959,22 +7959,22 @@ class ReportController extends Controller
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">Retained Earnings</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalRE=0;
-                foreach ($COA as $coa){
+                // foreach ($COA as $coa){
                     
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotalRE+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotalRE-=$JE->je_debit;
-                                }
-                            }
-                        }
+                //     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotalRE+=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotalRE-=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
                         
-                    }
+                //     }
                     
-                }
+                // }
                 $CustomerTotal2RE=0;
                 $RetainedEarningsSubs=0;
                 $data=Advance::first();
@@ -8014,35 +8014,35 @@ class ReportController extends Controller
                     //     $CustomerTotalRE-=$coa->coa_balance;
                     // }
                    
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2RE-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2RE+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                    // if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //             if ($JE->je_credit!=""){
+                    //                 $CustomerTotal2RE-=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal2RE+=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                    // if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         //$tablecontent.=$JE->je_no."\n";
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                    //             if ($JE->je_credit!=""){
+                    //                 $RetainedEarningsSubs-=$JE->je_credit;
+                    //                 //$tablecontent.=$RetainedEarningsSubs." c";
+                    //             }else{
+                    //                 $RetainedEarningsSubs+=$JE->je_debit;
+                    //                 //$tablecontent.=$RetainedEarningsSubs." d";
+                    //             }
                                 
-                            }
-                        }
+                    //         }
+                    //     }
                         
-                    }
+                    // }
                 }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotalRE-$CustomerTotal2RE),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotalRE-$CustomerTotal2RE);
@@ -8090,26 +8090,50 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 foreach ($COA as $Coa){
                     if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
                         }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
@@ -8605,33 +8629,33 @@ class ReportController extends Controller
                         // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                         //     $CustomerTotalRE-=$coa->coa_balance;
                         // }
-                        if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                            foreach ($JournalEntryformpast as $JE){
-                                if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                    if ($JE->je_credit!=""){
-                                        $CustomerTotalRE+=$JE->je_credit;
-                                    }else{
-                                        $CustomerTotalRE-=$JE->je_debit;
-                                    }
-                                }
-                            }
-                        }
+                        // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                        //     foreach ($JournalEntryformpast as $JE){
+                        //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                        //             if ($JE->je_credit!=""){
+                        //                 $CustomerTotalRE+=$JE->je_credit;
+                        //             }else{
+                        //                 $CustomerTotalRE-=$JE->je_debit;
+                        //             }
+                        //         }
+                        //     }
+                        // }
                     }
                     $CustomerTotal2RE=0;
-                    foreach ($COA as $coa){
+                    // foreach ($COA as $coa){
                         
-                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                            foreach ($JournalEntryformpast as $JE){
-                                if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                    if ($JE->je_credit!=""){
-                                        $CustomerTotal2RE-=$JE->je_credit;
-                                    }else{
-                                        $CustomerTotal2RE+=$JE->je_debit;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                    //         foreach ($JournalEntryformpast as $JE){
+                    //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //                 if ($JE->je_credit!=""){
+                    //                     $CustomerTotal2RE-=$JE->je_credit;
+                    //                 }else{
+                    //                     $CustomerTotal2RE+=$JE->je_debit;
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     $tablecontent.=number_format($CustomerTotalRE-$CustomerTotal2RE,2);
                     $RetainedEarnings=$CustomerTotalRE-$CustomerTotal2RE;
                     $tablecontent.='</td>';
@@ -8674,27 +8698,51 @@ class ReportController extends Controller
                     $IncomeTotal=0;
                     $TotalEquityOthers=0;
                     foreach ($COA as $Coa){
-                        if ($Coa->coa_account_type=="Equity" ){
-                            $tablecontent.='<tr>';
-                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                            $coa_name_total=0;
-                            foreach ($JournalEntry as $JE){
-                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                    if ($JE->je_credit!=""){
-                                        $coa_name_total-=$JE->je_credit;
-                                    }else{
-                                        $coa_name_total+=$JE->je_debit;
+                        if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
+                            if($Coa->coa_name=="Prior Period Adjustments"){
+                                $tablecontent.='<tr>';
+                                $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                                $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                                $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total-=$JE->je_credit;
+                                        }else{
+                                            $coa_name_total+=$JE->je_debit;
+                                        }
                                     }
                                 }
+                                $coa_name_total-=$Coa->coa_balance;
+                                $IncomeTotal-=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.='</tr>';
+                            }else{
+                                $tablecontent.='<tr>';
+                                $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                                $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                                $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total-=$JE->je_credit;
+                                        }else{
+                                            $coa_name_total+=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                $coa_name_total+=$Coa->coa_balance;
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.='</tr>';
                             }
-                            $coa_name_total+=$Coa->coa_balance;
-                            $IncomeTotal+=$coa_name_total;
-                            $tablecontent.=number_format($coa_name_total,2);
-                            $tablecontent.='</td>';
-                            $tablecontent.='</tr>'; 
+                             
                         }
                     }
                     $TotalEquityOthers-=$IncomeTotal;
@@ -9177,51 +9225,51 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotalRE-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotalRE+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotalRE-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //             if ($JE->je_credit!=""){
+                    //                 $CustomerTotalRE+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotalRE-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 
                 $CustomerTotal2RE=0;
                 $RetainedEarningsSubs=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2RE-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2RE+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2RE-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2RE+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubs-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubs+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotalRE-$CustomerTotal2RE),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotalRE-$CustomerTotal2RE);
                 $tablecontent.='</td>';
@@ -9267,27 +9315,51 @@ class ReportController extends Controller
                 $IncomeTotal=0;
                 $TotalEquityOthers=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity" ){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
                         }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
@@ -10095,97 +10167,97 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //             if ($JE->je_credit!=""){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubs-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubs+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2),2);
                 $tablecontent.='</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalpv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotalpv+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotalpv-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotalpv+=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotalpv-=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $CustomerTotal2pv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2pv-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2pv+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2pv-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2pv+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpastpv as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubspv-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubspv+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubspv-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubspv+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubspv+($CustomerTotalpv-$CustomerTotal2pv),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2);
                 $RetainedEarningspv=$RetainedEarningsSubspv+($CustomerTotalpv-$CustomerTotal2pv);
@@ -10266,43 +10338,81 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 $TotalEquityOtherspv=0;
                 foreach ($COA as $Coa){
-                        
                     if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
-                        }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_totalpv=0;
-                        foreach ($JournalEntrypv as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_totalpv-=$JE->je_credit;
-                                }else{
-                                    $coa_name_totalpv+=$JE->je_debit;
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
                         }
-                        $IncomeTotalpv-=$coa_name_totalpv;
-                        $tablecontent.=number_format($coa_name_totalpv,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
-                    }
+                         
+                    }    
+                    
                 }
                 $TotalEquityOthers+=$IncomeTotal;
                 $TotalEquityOtherspv+=$IncomeTotalpv;
@@ -10972,63 +11082,63 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
+                    //             if ($JE->je_credit!=""){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($CustomerTotal-$CustomerTotal2,2);
                 $tablecontent.='</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalpv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotalpv+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotalpv-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotalpv+=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotalpv-=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $CustomerTotal2pv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2pv-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2pv+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2pv-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2pv+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($CustomerTotalpv-$CustomerTotal2pv,2);
                 $RetainedEarnings=$CustomerTotal-$CustomerTotal2;
                 $RetainedEarningspv=$CustomerTotalpv-$CustomerTotal2pv;
@@ -11109,41 +11219,79 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 $TotalEquityOtherspv=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity" ){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
-                        }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_totalpv=0;
-                        foreach ($JournalEntrypv as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_totalpv-=$JE->je_credit;
-                                }else{
-                                    $coa_name_totalpv+=$JE->je_debit;
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
                         }
-                        $IncomeTotalpv-=$coa_name_totalpv;
-                        $tablecontent.=number_format($coa_name_totalpv,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
@@ -11795,97 +11943,97 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
+                    //             if ($JE->je_credit!=""){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubs-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubs+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2),2);
                 $tablecontent.='</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalpv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotalpv+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotalpv-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotalpv+=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotalpv-=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $CustomerTotal2pv=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpastpv as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $CustomerTotal2pv-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2pv+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
+                //                 if ($JE->je_credit!=""){
+                //                     $CustomerTotal2pv-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2pv+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpastpv as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpastpv as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubspv-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubspv+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubspv-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubspv+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubspv+($CustomerTotalpv-$CustomerTotal2pv),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2);
                 $RetainedEarningspv=$RetainedEarningsSubs+($CustomerTotalpv-$CustomerTotal2pv);
@@ -11967,40 +12115,78 @@ class ReportController extends Controller
                 $TotalEquityOtherspv=0;
                 foreach ($COA as $Coa){
                     if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
-                        }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_totalpv=0;
-                        foreach ($JournalEntrypv as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!=""){
-                                    $coa_name_totalpv-=$JE->je_credit;
-                                }else{
-                                    $coa_name_totalpv+=$JE->je_debit;
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $tablecontent.=number_format($coa_name_totalpv,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
                         }
-                        $IncomeTotalpv-=$coa_name_totalpv;
-                        $tablecontent.=number_format($coa_name_totalpv,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
@@ -12924,49 +13110,49 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                    //             if ($JE->je_credit!="" ){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //                 if ($JE->je_credit!="" ){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubs-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubs+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2);
                 $tablecontent.='</td>';
@@ -13012,27 +13198,52 @@ class ReportController extends Controller
                 $TotalEquityOthers=0;
                 foreach ($COA as $Coa){
                     if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                                if ($JE->je_credit!="" ){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
                         }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
+                    
                 }
                 $TotalEquityOthers+=$IncomeTotal;
                 $tablecontent.='<tr style="background-color: #eaf0f7;border-top:2px solid #ccc;border-bottom:2px solid #ccc;">';
@@ -13803,32 +14014,32 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
+                    //             if ($JE->je_credit!="" ){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
+                //                 if ($JE->je_credit!="" ){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($CustomerTotal-$CustomerTotal2,2);
                 $RetainedEarnings=$CustomerTotal-$CustomerTotal2;
                 $tablecontent.='</td>';
@@ -13873,27 +14084,51 @@ class ReportController extends Controller
                 $IncomeTotal=0;
                 $TotalEquityOthers=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity" ){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
-                                if ($JE->je_credit!="" ){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
                         }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
@@ -14660,49 +14895,49 @@ class ReportController extends Controller
                     // if ($coa->coa_account_type=="Other Current Liabilities" || $coa->coa_account_type=="Other Current Liability" || $coa->coa_account_type=="Other Payables"){
                     //     $CustomerTotal-=$coa->coa_balance;
                     // }
-                    if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal+=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal-=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
+                    // if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue" || $coa->coa_account_type=='Cost of Sales'){
+                    //     foreach ($JournalEntryformpast as $JE){
+                    //         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
+                    //             if ($JE->je_credit!="" ){
+                    //                 $CustomerTotal+=$JE->je_credit;
+                    //             }else{
+                    //                 $CustomerTotal-=$JE->je_debit;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
                 $CustomerTotal2=0;
-                foreach ($COA as $coa){
-                    if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
-                        foreach ($JournalEntryformpast as $JE){
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!="" ){
-                                    $CustomerTotal2-=$JE->je_credit;
-                                }else{
-                                    $CustomerTotal2+=$JE->je_debit;
-                                }
-                            }
-                        }
-                    }
-                    if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
+                // foreach ($COA as $coa){
+                //     if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
+                //                 if ($JE->je_credit!="" ){
+                //                     $CustomerTotal2-=$JE->je_credit;
+                //                 }else{
+                //                     $CustomerTotal2+=$JE->je_debit;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     if ($coa->coa_account_type=="Equity" && ($coa->coa_detail_type=="Retained Earnings" || $coa->coa_detail_type=="Retained Earning")){
                         
-                        foreach ($JournalEntryformpast as $JE){
-                            //$tablecontent.=$JE->je_no."\n";
-                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                //         foreach ($JournalEntryformpast as $JE){
+                //             //$tablecontent.=$JE->je_no."\n";
+                //             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                 
-                                if ($JE->je_credit!=""){
-                                    $RetainedEarningsSubs-=$JE->je_credit;
-                                    //$tablecontent.=$RetainedEarningsSubs." c";
-                                }else{
-                                    $RetainedEarningsSubs+=$JE->je_debit;
-                                    //$tablecontent.=$RetainedEarningsSubs." d";
-                                }
+                //                 if ($JE->je_credit!=""){
+                //                     $RetainedEarningsSubs-=$JE->je_credit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." c";
+                //                 }else{
+                //                     $RetainedEarningsSubs+=$JE->je_debit;
+                //                     //$tablecontent.=$RetainedEarningsSubs." d";
+                //                 }
                                 
-                            }
-                        }
-                    }
-                }
+                //             }
+                //         }
+                //     }
+                // }
                 $tablecontent.=number_format($RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2),2);
                 $RetainedEarnings=$RetainedEarningsSubs+($CustomerTotal-$CustomerTotal2);
                 $tablecontent.='</td>';
@@ -14747,27 +14982,51 @@ class ReportController extends Controller
                 $IncomeTotal=0;
                 $TotalEquityOthers=0;
                 foreach ($COA as $Coa){
-                    if ($Coa->coa_account_type=="Equity"  && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
-                        $tablecontent.='<tr>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                        $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
-                        $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
-                        $coa_name_total=0;
-                        foreach ($JournalEntry as $JE){
-                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
-                                if ($JE->je_credit!="" ){
-                                    $coa_name_total-=$JE->je_credit;
-                                }else{
-                                    $coa_name_total+=$JE->je_debit;
+                    if ($Coa->coa_account_type=="Equity" && ($Coa->coa_detail_type!="Retained Earnings" && $Coa->coa_detail_type!="Retained Earning")){
+                        if($Coa->coa_name=="Prior Period Adjustments"){
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
                                 }
                             }
+                            $coa_name_total-=$Coa->coa_balance;
+                            $IncomeTotal-=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
+                        }else{
+                            $tablecontent.='<tr>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
+                            $tablecontent.='<td colspan="4" class="dottedborder" style="vertical-align:middle;font-size:11px;">'.$Coa->coa_name.'</td>';
+                            $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!="" ){
+                                        $coa_name_total-=$JE->je_credit;
+                                    }else{
+                                        $coa_name_total+=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $coa_name_total+=$Coa->coa_balance;
+                            $IncomeTotal+=$coa_name_total;
+                            $tablecontent.=number_format($coa_name_total,2);
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>'; 
                         }
-                        $coa_name_total+=$Coa->coa_balance;
-                        $IncomeTotal+=$coa_name_total;
-                        $tablecontent.=number_format($coa_name_total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='</tr>'; 
+                         
                     }
                 }
                 $TotalEquityOthers+=$IncomeTotal;
