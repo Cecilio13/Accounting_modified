@@ -27788,13 +27788,16 @@ class ReportController extends Controller
             if($CostCenterFilter=="All"){
                 $coa_name_totaldebit=0;
                 $coa_name_totalcredit=0;
+                $totaltotalssasdasd=0;
+                $beginningbalance_total=0;
                 foreach ($COA as $coa){
                     $coa_name_total=0;
                     $coa_name_totalc=0;
                     $coa_name_totald=0;
+                    
                     foreach ($JournalEntry as $JE){
                         if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
-                            if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            if ($JE->je_credit!=""){
                                 $coa_name_totalc+=$JE->je_credit;
                                 $coa_name_total+=$JE->je_credit;
                             }else{
@@ -27804,13 +27807,17 @@ class ReportController extends Controller
                         }
                     }
                     
-                    if ($coa_name_totalc!=0 || $coa_name_totald!=0){
-                        if($coa_name_totalc==$coa_name_totald){
+                    //if ("$coa_name_totalc!=0 || $coa_name_totald!=0"){
+                    if(""==""){
+                        
+                        // if($coa->normal_balance=="Debit"){
+                        //     $coa_name_totald+=$coa->coa_balance;
+                        // }
+                        // else if($coa->normal_balance=="Credit"){
+                        //     $coa_name_totalc+=$coa->coa_balance;
+                        // }
+                        
 
-                        }else{
-                            
-                        }
-                        $coa_name_totald+=$coa->coa_balance;
                         $debit=0;
                         $credit=0;
                         if($coa_name_totalc<$coa_name_totald){
@@ -27832,10 +27839,12 @@ class ReportController extends Controller
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                        //$tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
-                        //$tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated),2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
+                        $beginningbalance_total+=$coa->coa_balance;
+                        $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance; 
                         $tablecontent.='</tr>';  
                     }
                     $coa_name_totaldebit+=$coa_name_totald;
@@ -27843,10 +27852,10 @@ class ReportController extends Controller
                 }
                 $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
                 $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
-                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
-                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
-                //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
-                //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>'; 
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
                 $tablecontent.='</tr>';  
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
@@ -27862,9 +27871,10 @@ class ReportController extends Controller
 
                     if(count($JournalEntry)!=0){
                         
-            
+                        $beginningbalance_total=0;
                         $coa_name_totaldebit=0;
                         $coa_name_totalcredit=0;
+                        $totaltotalssasdasd=0;
                         foreach ($COA as $coa){
                             $coa_name_total=0;
                             $coa_name_totalc=0;
@@ -27880,8 +27890,9 @@ class ReportController extends Controller
                                     }
                                 }
                             }
-                            if ($coa_name_totalc!=0 || $coa_name_totald!=0){
-                                $coa_name_totald+=$coa->coa_balance;
+                             //if ("$coa_name_totalc!=0 || $coa_name_totald!=0"){
+                            if(""==""){
+                                //$coa_name_totald+=$coa->coa_balance;
                                 $debit=0;
                                 $credit=0;
                                 if($coa_name_totalc<$coa_name_totald){
@@ -27903,21 +27914,22 @@ class ReportController extends Controller
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                                //$tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
-                                //$tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
-                                $tablecontent.='</tr>';  
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
+                                $beginningbalance_total+=$coa->coa_balance;
+                                $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance;
                             }
                             $coa_name_totaldebit+=$coa_name_totald;
                             $coa_name_totalcredit+=$coa_name_totalc;
                         }
                         $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
                         $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
-                        //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
-                        //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
                         $tablecontent.='</tr>';    
                     }
             }
@@ -27941,7 +27953,9 @@ class ReportController extends Controller
             $tablecontent.="</tr>";
             $coa_name_totaldebit=0;
             $coa_name_totalcredit=0;
+            $totaltotalssasdasd=0;
             foreach ($COA as $coa){
+                $beginningbalance_total=0;
                 $coa_name_total=0;
                 $coa_name_totalc=0;
                 $coa_name_totald=0;
@@ -27956,8 +27970,9 @@ class ReportController extends Controller
                         }
                     }
                 }
-                if ($coa_name_totalc!=0 || $coa_name_totald!=0){
-                    $coa_name_totald+=$coa->coa_balance;
+                 //if ("$coa_name_totalc!=0 || $coa_name_totald!=0"){
+                    if(""==""){
+                    //$coa_name_totald+=$coa->coa_balance;
                     $debit=0;
                     $credit=0;
                     if($coa_name_totalc<$coa_name_totald){
@@ -27979,27 +27994,28 @@ class ReportController extends Controller
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                    //$tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
-                    //$tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
-                    $tablecontent.='</tr>';  
+                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
+                    $beginningbalance_total+=$coa->coa_balance;
+                    $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance;
                 }
                 $coa_name_totaldebit+=$coa_name_totald;
                 $coa_name_totalcredit+=$coa_name_totalc;
             }
             $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
             $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
             $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
             $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
-            //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
-            //$tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
             $tablecontent.='</tr>';     
         }
         
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th >Account Code</th><th >Account Title</th><th >Account Account Type</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;display:none;">Beginning Balance</th><th style="text-align:right;display:none;">Retained Earnings</th>'
+                .'<th >Account Code</th><th >Account Title</th><th >Account Account Type</th><th style="text-align:right;">Beginning Balance</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Total</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent
