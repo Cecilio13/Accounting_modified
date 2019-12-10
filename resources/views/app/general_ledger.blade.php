@@ -129,6 +129,7 @@
                                 var FROM= document.getElementById('Fromdate').value;
                                 var TO= document.getElementById('Todate').value;
                                 var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+                                var AccountFilter = document.getElementById('AccountFilter').value;
                                 if((FROM=="" || TO=="") && filtertemplate!="All"){
                                     
                                 }
@@ -138,7 +139,7 @@
                                     $.ajax({
                                         type: 'POST',
                                         url: 'General_Ledger_by_date',                
-                                        data: {CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
+                                        data: {AccountFilter:AccountFilter,CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {
                                         $( "#tablemain" ).replaceWith( data);
                                         $("input[name='columnnames[]']").each( function () {
@@ -307,7 +308,7 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <a href="reports" class="btn btn-link btn-upper-back" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
+        <a href="reports" class="btn btn-link btn-sm" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
     </div>
 </div>
 <!--changes filtersection-->
@@ -317,7 +318,6 @@
                     <div >
                     
                     <div class="col-md-6 ">
-                            
                             <p>Date</p>
                             <select class="form-control" id="filtertemplate" onchange="changedates(this)">
                                     <option>All</option>
@@ -371,6 +371,19 @@
                                 })
                             </script>
                     </div>
+                <div class="col-md-6 ">
+                        
+                </div>
+                <div class="col-md-6 ">
+                        <p>Account</p>
+                        <select class="form-control selectpicker" data-live-search="true" id="AccountFilter" onchange="submitdates()" >
+                            <option value="All">All</option>
+                            @foreach ($c_o_a_sorted as $item)
+                                <option value="{{$item->id}}">{{$item->coa_name}}</option>
+                            @endforeach
+                        </select>
+                        
+                </div>
                 </div>
             </div>  
         
@@ -486,7 +499,7 @@
                         <a class="btn-link dropdown-toggle btn-sm" style="display:none;" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
-                        <a href="#!" class="btn-link btn-upper-report" id="showhidebtn" onclick="showhode()">Add note</a>
+                        <a href="#!" class="btn-link btn-sm" id="showhidebtn" onclick="showhode()">Add note</a>
                         <script>
                             var noteshow="0";
                             function showhode(){
@@ -551,11 +564,11 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
-                        <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
-                        <button style="display:none;" class="btn btn-link btn-upper-report" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
+                        <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
+                        <button style="display:none;" class="btn btn-link btn-sm" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
 
                     </td>
                     </tr>
@@ -640,7 +653,7 @@
                                 </thead>
                                 
                                 <tbody>
-                                        
+                                    
                                 </tbody>
                             </table>
                         </td>

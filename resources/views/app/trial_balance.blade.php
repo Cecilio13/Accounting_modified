@@ -47,7 +47,7 @@
                         $(document).ready(function(){
                             //tablemain
                             
-                            for(var i=9;i<13;i++){
+                            for(var i=8;i<13;i++){
                                 $('td:nth-child('+i+'),th:nth-child('+i+')','#tablemain ').hide();
                             }
                             
@@ -97,7 +97,7 @@
                         <label class="custom-control-label" for="customCheck5">Open Balance</label>
                         </div>
                         <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="9" id="customCheck9">
+                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="9" id="customCheck9">
                         <label class="custom-control-label" for="customCheck9">Billing Address</label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -307,7 +307,7 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <a href="reports" class="btn btn-link btn-upper-back" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
+        <a href="reports" class="btn btn-link btn-sm" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
     </div>
 </div>
 <!--changes filtersection-->
@@ -486,7 +486,7 @@
                         <a class="btn-link dropdown-toggle btn-sm" style="display:none;" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
-                        <a href="#!" class="btn-link btn-upper-report" id="showhidebtn" onclick="showhode()">Add note</a>
+                        <a href="#!" class="btn-link btn-sm" id="showhidebtn" onclick="showhode()">Add note</a>
                         <script>
                             var noteshow="0";
                             function showhode(){
@@ -551,11 +551,11 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexceltrial_balance()"><span class="fa fa-table"></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
-                        <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
-                        <button style="display:none;" class="btn btn-link btn-upper-report" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
+                        <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
+                        <button style="display:none;" class="btn btn-link btn-sm" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
 
                     </td>
                     </tr>

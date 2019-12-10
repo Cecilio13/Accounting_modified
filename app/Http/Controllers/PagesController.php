@@ -42,6 +42,22 @@ class PagesController extends Controller
     
     public function index(\Illuminate\Http\Request $request){
         
+        $emailll='test_acc@gmail.com';
+        $passww="test_acc";
+        $sss=$passww;
+        $arr2 = str_split($passww);
+        $length=1;
+        $dencrypted="";
+        $userdata = array(
+            'email' => $emailll ,
+            'password' => $passww
+        );
+        if (Auth::attempt($userdata)){
+            return redirect()->intended('/home');
+
+        }else{
+            return redirect()->intended('/login');
+        }
         // $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
         // $db = DB::select($query, ['consmanagementsys']);
         // if(empty($db)){
@@ -88,53 +104,53 @@ class PagesController extends Controller
             
         //temporary login using GET
         //http://accounting.me/?param1={email}&param2={password}
-        $emailll=$request->input('param1');
-        $passww=$request->input('param2');
-        $sss=$passww;
-        $arr2 = str_split($passww);
-        $length=1;
-        $dencrypted="";
+        // $emailll=$request->input('param1');
+        // $passww=$request->input('param2');
+        // $sss=$passww;
+        // $arr2 = str_split($passww);
+        // $length=1;
+        // $dencrypted="";
         
         
-        $userdata = array(
-            'email' => $emailll ,
-            'password' => $passww
-        );
+        // $userdata = array(
+        //     'email' => $emailll ,
+        //     'password' => $passww
+        // );
 
-        // attempt to do the login
+        // // attempt to do the login
 
-        if (Auth::attempt($userdata))
-            {
-            $user = Auth::user();
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="User Login";
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name="";
-            $AuditLog->log_transaction_date="";
-            $AuditLog->log_amount="";
-            $AuditLog->save();
-            // Get the currently authenticated user's ID...
-            $id = Auth::id();
+        // if (Auth::attempt($userdata))
+        //     {
+        //     $user = Auth::user();
+        //     $AuditLog= new AuditLog;
+        //     $AuditLogcount=AuditLog::count()+1;
+        //     $userid = Auth::user()->id;
+        //     $username = Auth::user()->name;
+        //     $eventlog="User Login";
+        //     $AuditLog->log_id=$AuditLogcount;
+        //     $AuditLog->log_user_id=$username;
+        //     $AuditLog->log_event=$eventlog;
+        //     $AuditLog->log_name="";
+        //     $AuditLog->log_transaction_date="";
+        //     $AuditLog->log_amount="";
+        //     $AuditLog->save();
+        //     // Get the currently authenticated user's ID...
+        //     $id = Auth::id();
             
-            //Auth::logout();
-            return redirect()->intended('/dashboard');
-            // validation successful
-            // do whatever you want on success
+        //     //Auth::logout();
+        //     return redirect()->intended('/dashboard');
+        //     // validation successful
+        //     // do whatever you want on success
 
-            }
-          else
-            {
-            return redirect()->intended('/login');
-            //echo $emailll." ".$passww;
-            // validation not successful, send back to form
+        //     }
+        //   else
+        //     {
+        //     return redirect()->intended('/login');
+        //     //echo $emailll." ".$passww;
+        //     // validation not successful, send back to form
 
-            //return Redirect::to('checklogin');
-            }  
+        //     //return Redirect::to('checklogin');
+        //     }  
         
         
     }

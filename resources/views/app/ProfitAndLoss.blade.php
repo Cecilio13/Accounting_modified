@@ -298,8 +298,7 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <a href="reports" class="btn btn-link btn-upper-back" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
-        
+        <a href="reports" class="btn btn-link btn-sm" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
     </div>
 </div>
 <!--changes filtersection-->
@@ -369,8 +368,7 @@
     </div>
     <div class="col-md-2" style="text-align:right;">
         <button style="display:none;" class="btn btn-outline-dark" onclick="showcustomizationsection()">Customize</button>
-        <button class="btn btn-success"  data-toggle="modal" data-target="#exampleModal">Save customization</button>
-        
+        <button class="btn btn-success" data-toggle="modal" data-target="#exampleModal">Save customization</button>
         <div class="dropdown">
         <button class="btn btn-primary mt-2 dropdown-toggle" style="width:100%;" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Report Category
@@ -385,7 +383,6 @@
             
         </div>
         </div>
-        
     </div>
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -494,7 +491,7 @@
                         <a class="btn-link dropdown-toggle btn-sm" style="display:none;" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
-                        <a href="#!" class="btn-link btn-upper-report" id="showhidebtn" onclick="showhode()">Add note</a>
+                        <a href="#!" class="btn-link btn-sm" id="showhidebtn" onclick="showhode()">Add note</a>
                         <script>
                             var noteshow="0";
                             function showhode(){
@@ -559,12 +556,12 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcelprofitandloss()"><span class="fa fa-table"></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
-                        <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
-                        <button style="display:none;" class="btn btn-link btn-upper-report" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
-                            
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
+                        <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
+                        <button style="display:none;" class="btn btn-link btn-sm" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
+
                     </td>
                     </tr>
                     <tr>
@@ -651,236 +648,7 @@
                                 </thead>
                                 
                                 <tbody>
-                                    
-                                   <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;">Income</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                   </tr>
-                                    <?php
-                                    $IncomeTotal=0;
-                                    $GrossProfit=0;
-                                    ?>
-                                    @foreach ($coa_account_type as $coa)
-                                    @if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue")
-                                    <tr>
-                                        <td class="indented" style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">{{$coa->coa_account_type}}</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                    </tr>
-                                    <tr>
-                                    <td colspan="2" style="vertical-align:middle;padding-right:0px;">
-                                    @foreach ($COA as $Coa)
-                                    @if ($Coa->coa_account_type==$coa->coa_account_type)
-                                    <table class="itemsCOA" style="margin-left:5%;width:95%;">
-                                    <tr>
-                                        <td  style="vertical-align:middle;font-size:11px;">{{$Coa->coa_name}}</td>
-                                        <td style="vertical-align:middle;text-align:right;">
-                                        <?php
-                                        $coa_name_total=0;
-                                        ?>
-                                        @foreach ($JournalEntry as $JE)
-                                        @if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled')
-                                        @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                        <?php
-                                        $coa_name_total+=$JE->je_credit;
-                                        ?>  
-                                        @else
-                                        <?php
-                                        $coa_name_total-=$JE->je_debit;
-                                        ?>
-                                        @endif
-                                         
-                                        @endif
-                                          
-                                        @endforeach
-                                        <?php
-                                        $IncomeTotal+=$coa_name_total;
-                                        ?> 
-                                        {{number_format($coa_name_total,2)}}
-                                        </td>
-                                    </tr>
-                                    </table>
-                                    @endif
-                                    @endforeach
-                                    </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total {{$coa->coa_account_type}}</td>
-                                        <td style="vertical-align:middle;text-align:right;">{{number_format($IncomeTotal,2)}}</td>
-                                    </tr>
-                                    
-                                    @endif
-                                    
-                                    @endforeach
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Income</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold">{{number_format($IncomeTotal,2)}}</td>
-                                    </tr>
-                                    <?php
-                                    $GrossProfit+=$IncomeTotal;
-                                    ?>
-                                    <tr>
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Cost of Sales</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                    </tr>
-                                    <?php
-                                    $IncomeTotal=0;
-                                    ?>
-                                    @foreach ($coa_account_type as $coa)
-                                    @if ($coa->coa_account_type=="Cost of Sales")
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">{{$coa->coa_account_type}}</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                    </tr>
-                                    <tr>
-                                    <td colspan="2" style="vertical-align:middle;padding-right:0px;">
-                                    @foreach ($COA as $Coa)
-                                    @if ($Coa->coa_account_type=="Cost of Sales")
-                                    <table class="itemsCOA" style="margin-left:5%;width:95%;">
-                                    <tr>
-                                        <td  style="vertical-align:middle;font-size:11px;">{{$Coa->coa_name}}</td>
-                                        <td style="vertical-align:middle;text-align:right;">
-                                        <?php
-                                        $coa_name_total=0;
-                                        ?>
-                                        @foreach ($JournalEntry as $JE)
-                                        @if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled')
-                                        @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                        <?php
-                                        $coa_name_total+=$JE->je_credit;
-                                        ?>  
-                                        @else
-                                        <?php
-                                        $coa_name_total-=$JE->je_debit;
-                                        ?>
-                                        @endif
-                                         
-                                        @endif
-                                          
-                                        @endforeach
-                                        <?php
-                                        $IncomeTotal+=$coa_name_total;
-                                        
-                                        ?> 
-                                        {{number_format($coa_name_total,2)}}
-                                        </td>
-                                    </tr>
-                                    </table> 
-                                    @endif
-                                    @endforeach
-                                    </td><tr>
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>
-                                        <td style="vertical-align:middle;text-align:right;">{{number_format($IncomeTotal,2)}}</td>
-                                    </tr>
-                                    @endif
-                                    
-                                    @endforeach
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold;">{{number_format($IncomeTotal,2)}}</td>
-                                    </tr>
-                                    <?php
-                                    $GrossProfit+=$IncomeTotal;
-                                    ?>
-                                    <tr>
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>
-                                    </tr>
-                                    <tr style="background-color: #eaf0f7;border-top:2px solid #ccc;">
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;border-top:2px solid #ccc">Gross Profit</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold;border-top:2px solid #ccc">{{number_format($GrossProfit,2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>
-                                    </tr>
-                                    <!--expense-->
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Operating Expenses</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                    </tr>
-                                    <?php
-                                    
-                                    $TotalOperatingExpense=0;
-                                    ?>
-                                    @foreach ($coa_account_type as $coa)
-                                    <?php
-                                    $IncomeTotal=0;
-                                    ?>
-                                    @if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales")
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">{{$coa->coa_account_type}}</td>
-                                        <td style="vertical-align:middle;text-align:right;"></td>
-                                    </tr>
-                                    <tr>
-                                    <td colspan="2" style="vertical-align:middle;padding-right:0px;">
-                                    @foreach ($COA as $Coa)
-                                    @if ($Coa->coa_account_type==$coa->coa_account_type)
-                                    <table class="itemsCOA" style="margin-left:5%;width:95%;">
-                                    <tr>
-                                        <td  style="vertical-align:middle;font-size:11px;">{{$Coa->coa_name}}</td>
-                                        <td style="vertical-align:middle;text-align:right;">
-                                        <?php
-                                        $coa_name_total=0;
-                                        ?>
-                                        @foreach ($JournalEntry as $JE)
-                                        @if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled')
-                                        @if ($JE->je_credit!="" && $JE->remark!='Cancelled')
-                                        <?php
-                                        $coa_name_total-=$JE->je_credit;
-                                        ?>  
-                                        @else
-                                        <?php
-                                        $coa_name_total+=$JE->je_debit;
-                                        ?>
-                                        @endif
-                                         
-                                        @endif
-                                          
-                                        @endforeach
-                                        <?php
-                                        $IncomeTotal+=$coa_name_total;
-                                        
-                                        ?> 
-                                        {{number_format($coa_name_total,2)}}
-                                        </td>
-                                    </tr> 
-                                    </table> 
-                                    @endif
-                                    @endforeach
-                                    </td></tr>
-                                    <tr>
-                                    <td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total {{$coa->coa_account_type}}</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold;">{{number_format($IncomeTotal,2)}}</td>
-                                    </tr>
-                                    @endif
-                                    <?php
-                                    $TotalOperatingExpense+=$IncomeTotal;
-                                    ?>
-                                    @endforeach
-                                    
-                                    <tr>
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>
-                                    </tr>
-                                    
-
-                                    <tr>
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Operating Expenses</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold;">{{number_format($TotalOperatingExpense,2)}}</td>
-                                    </tr>
-                                    <tr style="display:none;">
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>
-                                    </tr>
-
-
-                                    <tr style="background-color: #eaf0f7;border-top:2px solid #ccc;">
-                                        <td style="vertical-align:middle;font-weight:bold;font-size:14px;border-top:2px solid solid #ccc;">Net Income</td>
-                                        <td style="vertical-align:middle;text-align:right;font-weight:bold;border-top:2px solid solid #ccc;">{{number_format($GrossProfit-$TotalOperatingExpense,2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>
-                                    </tr>
+                                   
                                 </tbody>
                             </table>
                         </td>

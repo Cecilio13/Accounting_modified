@@ -136,6 +136,7 @@
                                 var FROM= document.getElementById('Fromdate').value;
                                 var TO= document.getElementById('Todate').value;
                                 var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+                                var PeriodComparison= document.getElementById('PeriodComparison').value;
                                 if((FROM=="" || TO=="") && filtertemplate!="All"){
                                     
                                 }
@@ -145,7 +146,7 @@
                                     $.ajax({
                                         type: 'POST',
                                         url: 'BalanceSheetComparisonByDate',                
-                                        data: {CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
+                                        data: {PeriodComparison:PeriodComparison,CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {
                                             
                                         $( "#tablemain" ).replaceWith( data);
@@ -285,7 +286,7 @@
                                         FROM.value=(d.getFullYear()-1)+"-01-01";    
                                         TO.value=(d.getFullYear()-1)+"-12-31";
                                     }
-                                    document.getElementById('datedivs').style.display="block";
+                                    //document.getElementById('datedivs').style.display="block";
                                     
                                 }
                                 submitdates();
@@ -318,7 +319,7 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <a href="reports" class="btn btn-link btn-upper-back" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
+        <a href="reports" class="btn btn-link btn-sm" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
     </div>
 </div>
 <!--changes filtersection-->
@@ -326,35 +327,26 @@
     <div class="col-md-10 ">
             <div class="col-md-12" style="background-color: white;padding-top:15px;padding-bottom:15px;padding-left:0px;padding-right:0px;">
                     <div >
-                    
                     <div class="col-md-6 ">
+                        
+                        <p>Date</p>
+                        <select class="form-control" id="filtertemplate" onchange="changedates(this)">
+                            <option>This Year</option>
+                            <option>This Month</option>
+                        </select>
+                        
+                        <div id="datedivs" style="display:none;margin-top:10px;border-top:1px solid #ccc ;">
+                        <div class="form-group">
+                            <label for="Fromdate">From</label>
+                            <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Fromdate" >
                             
-                            <p>Date</p>
-                            <select class="form-control" id="filtertemplate" onchange="changedates(this)">
-                                    <option>All</option>
-                                    <option>Custom</option>
-                                    <option>This Week</option>
-                                    <option>This Month</option>
-                                    <option>This Quarter</option>
-                                    <option>This Year</option>
-                                    <option>Last Week</option>
-                                    <option>Last Month</option>
-                                    <option>Last Quarter</option>
-                                    <option>Last Year</option>
-                                </select>
-                                
-                                <div id="datedivs" style="display:none;margin-top:10px;border-top:1px solid #ccc ;">
-                                <div class="form-group">
-                                    <label for="Fromdate">From</label>
-                                    <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Fromdate" >
-                                    
-                                </div>
-                                <div class="form-group">
-                                    <label for="Todate">To</label>
-                                    <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Todate" >
-                                    
-                                </div>
-                                </div>    
+                        </div>
+                        <div class="form-group">
+                            <label for="Todate">To</label>
+                            <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Todate" >
+                            
+                        </div>
+                        </div>    
                     </div>
                     <div class="col-md-6 ">
                             <p>Cost Center</p>
@@ -377,6 +369,19 @@
                             @endforeach
                             </select>
                     </div>
+                    
+                    <div class="col-md-6 ">
+                            <p>Period of Comparison</p>
+                            <select class="form-control" id="PeriodComparison" onchange="submitdates()">
+                                <option>Last Year</option>
+                                <option>Last Month</option>
+                            </select>
+                        </div>
+                    <div class="col-md-6 ">
+                        
+                    </div>
+                    
+                    
                 </div>
             </div>  
         
@@ -492,7 +497,7 @@
                         <a class="btn-link dropdown-toggle btn-sm" style="display:none;" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
-                        <a href="#!" class="btn-link btn-upper-report" id="showhidebtn"  onclick="showhode()">Add note</a>
+                        <a href="#!" class="btn-link btn-sm" id="showhidebtn"  onclick="showhode()">Add note</a>
                         <script>
                             var noteshow="0";
                             function showhode(){
@@ -557,11 +562,11 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
-                        <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
-                        <button style="display:none;" class="btn btn-link btn-upper-report" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
+                        <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
+                        <button style="display:none;" class="btn btn-link btn-sm" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
 
                     </td>
                     </tr>
