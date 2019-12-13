@@ -231,6 +231,7 @@ class ChartofAccountsController extends Controller
             $Chart->coa_description=$ChartEdit->coa_description;
             $Chart->coa_code=$ChartEdit->coa_code;
             $Chart->coa_balance=$new_balance;
+            $Chart->normal_balance=$ChartEdit->normal_balance;
             $Chart->coa_beginning_balance=$ChartEdit->coa_beginning_balance;
             $Chart->coa_as_of_date=$ChartEdit->coa_as_of_date;
             $Chart->coa_title=$ChartEdit->coa_title;
