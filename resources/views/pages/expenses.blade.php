@@ -162,14 +162,13 @@
 
                                 $("#add_lines_bill_account2").click(function(event){
                                     event.preventDefault();
-                                    var count=$('#bill_account_tableedit_tbody tr').length+parseFloat(1);
-                                    var markup = '<tr class="bill_lines_account2" id="bill_line_account'+count+'"><td class="pt-3-half" style="padding-left:5px;" id="number_tag_bill_account" contenteditable="false">'+count+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker form-control" data-live-search="true" id="select_account_bill'+count+'"><option></option>@foreach($COA as $coa)<option value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach</select></td><td class="pt-3-half"><input class="form-control bill_data description_select_bill" id="select_description_bill'+count+'" style="border:0;"></td><td class="pt-3-half">';
-                                    markup=markup+'<input type="text" class="sssss form-control" id="unformated_select_bill_rate'+count+'" style="border:0;text-align:right;">';
+                                    var markup = '<tr class="bill_lines_account2" id="bill_line_account'+$('#bill_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+$('#bill_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+$('#bill_account_tableedit tr').length+'"><option></option>@foreach($COA as $coa)<option value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach</select></td><td class="pt-3-half"><input class="form-control bill_data description_select_bill" id="select_description_bill'+$('#bill_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half">';
+                                    markup=markup+'<input type="text" class="sssss form-control" id="unformated_select_bill_rate'+$('#bill_account_tableedit tr').length+'" style="border:0;text-align:right;">';
 
-                                    markup=markup+'<input type="hidden" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+count+'" style="border:0; text-align:center;"></td><td class="pt-3-half" style="padding-left:5px;"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
-                                    var textbox = '#unformated_select_bill_rate'+count;
-						            var hidden = '#select_bill_amount'+count;
-                                    $("#bill_account_tableedit_tbody").append(markup);
+                                    markup=markup+'<input type="hidden" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+$('#bill_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_bill'+$('#bill_account_tableedit tr').length+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
+                                    var textbox = '#unformated_select_bill_rate'+$('#bill_account_tableedit tr').length;
+						            var hidden = '#select_bill_amount'+$('#bill_account_tableedit tr').length;
+                                    $("#bill_account_tableedit").append(markup);
                                     $(textbox).keyup(function () {
                                         $(textbox).val(this.value.match(/[0-9.,-]*/));
                                     var num = $(textbox).val();
@@ -207,11 +206,9 @@
                                 $("#add_lines_sc_account2").click(function(event){
                                     
                                     event.preventDefault();
-                                    var count=$('#sc_account_tableedit_tbody tr').length+parseFloat(1);
-                                    var markup = '<tr class="sc_lines_account2" id="sc_line_account'+count+'"><td class="pt-3-half" style="padding-left:5px;" id="number_tag_sc_account" contenteditable="false">'+count+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="form-control sc_data account_select_sc selectpicker" id="select_account_sc'+count+'"><option></option>@foreach($COA as $coa)<option value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach</select></td><td class="pt-3-half"><input class="form-control  sc_data description_select_sc" id="select_description_sc'+count+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="form-control sc_data amount_select_sc" onclick="this.select();" id="select_sc_amount'+count+'" style="border:0; text-align:right;"></td><td style="padding-left:5px;"  class="pt-3-half"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
+                                    var markup = '<tr class="sc_lines_account2" id="sc_line_account'+$('#sc_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc" id="select_account_sc'+$('#sc_account_tableedit tr').length+'"><option></option>@foreach($COA as $coa)<option value="{{$coa->id}}">{{$coa->coa_name}}</option>@endforeach</select></td><td class="pt-3-half"><input class="sc_data description_select_sc" id="select_description_sc'+$('#sc_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="sc_data amount_select_sc" onclick="this.select();" id="select_sc_amount'+$('#sc_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_sc'+$('#sc_account_tableedit tr').length+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
                                     
-                                    $("#sc_account_tableedit_tbody").append(markup);
-                                    refreshpicjer();
+                                    $("#sc_account_tableedit").append(markup);
                                 }); 
                                 $("#clear_lines_sc_account2").click(function(event){
                                     event.preventDefault();
@@ -235,8 +232,10 @@
                                 <th  style="vertical-align:middle;" class="text-center">PO</th>
                                 <th  style="vertical-align:middle;" class="text-center">CI</th>
                                 <th  style="vertical-align:middle;" class="text-center">PAYEE</th>
+                                <th  style="vertical-align:middle;" class="text-center" width="10%">DESCRIPTION</th>
                                 <th  style="vertical-align:middle;" class="text-center">Due Date</th>
                                 <th  style="vertical-align:middle;" class="text-center"  width="20%">CATEGORY</th>
+                                <th  style="vertical-align:middle;" class="text-center" width="10%">MEMO</th>
                                 <th  style="vertical-align:middle;" class="text-center">TOTAL</th>
                                 <th  style="vertical-align:middle;" class="text-center"></th>
                             </tr>
@@ -305,6 +304,7 @@
                                         {{$et->et_shipping_via}}
                                     </td>
                                     <td class="pt-3-half"  style="vertical-align:middle;">{{$et->display_name!=""? $et->display_name :$et->f_name." ".$et->l_name}}</td>
+                                    <td class="pt-3-half"  style="vertical-align:middle;">{{$et->et_ad_desc}}</td>
                                     <td class="pt-3-half"  style="vertical-align:middle;">
                                         @if($et->et_due_date!="")
                                             <?php
@@ -329,6 +329,7 @@
                                         @endforeach
                                         
                                     </td>
+                                    <td class="pt-3-half"  style="vertical-align:middle;">{{$et->et_memo}}</td>
                                     <td class="pt-3-half" style="vertical-align:middle;" >PHP {{number_format($et->et_ad_total,2)}}</td>
                                     <td>
                                         @if($et->remark=="")
@@ -386,6 +387,14 @@
                                     @endforeach
                                 </td>
                                 <td class="pt-3-half"  style="vertical-align:middle;">
+                                    
+                                    @foreach ($ETANew as $ETAn)
+                                        @if ($ETAn->et_ad_no==$EXn->et_no)
+                                            {{$ETAn->et_ad_desc}}<br>
+                                        @endif
+                                    @endforeach
+                                </td>
+                                <td class="pt-3-half"  style="vertical-align:middle;">
                                     @if($EXn->et_due_date!="")
                                         <?php
                                         $date1=date_create(date('Y-m-d'));
@@ -419,6 +428,7 @@
                                     @endforeach
                                    
                                 </td>
+                                <td class="pt-3-half"  style="vertical-align:middle;">{{$EXn->et_memo}}</td>
                                 <td class="pt-3-half"  style="vertical-align:middle;">
                                      {{number_format($BillTotalAmount,2)}}
                                 </td>
@@ -743,7 +753,7 @@
     </div>
     </div>
                     <div class="col-md-12 mb-5 p-0 mt-3">
-                        <a href="#" class="btn btn-success"data-target='#supplierModal' onclick="document.getElementById('hidden_add_customer_status').value='ExpensePage'" data-toggle="modal">New Supplier</a>
+                        <a href="#" class="btn btn-success"data-target='#supplierModal' data-toggle="modal">New Supplier</a>
                         <a href="#" class="btn btn-success"data-target='#ImportSupplierModal' data-toggle="modal">Import Supplier</a>
                         
                     </div>

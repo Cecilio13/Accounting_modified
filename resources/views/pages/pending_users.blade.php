@@ -83,6 +83,9 @@
                         $('#UserAccessModal').find('input[type=checkbox]:checked').removeAttr('checked');
 						document.getElementById('ModalTitle').innerHTML=name;
 						document.getElementById('userid_accounting').value=id;
+						console.log(id);
+						
+						
                         @foreach($all_system_users_access as $acc)
                         if(id=="<?php echo $acc->user_id; ?>"){
                             if("<?php echo $acc->approvals ?>"=="1"){
@@ -331,6 +334,7 @@
 							<div class="checkbox">
 							  <label><input type="checkbox" name="access[]" value="Journal Entry">Journal Entry</label>
 							</div>
+							
 							<div class="checkbox">
 							  <label><input type="checkbox" name="access[]" value="Fund Feeds">Fund Feeds</label>
 							</div>
@@ -429,13 +433,20 @@
 										$('#sub_report_checkboxes').find('input[type=checkbox]:checked').removeAttr('checked');
 									}
 								}
-								
+								function validatecheckboxAll() {
+									if (document.getElementById('AllCheckOption').checked) {
+										checkAll();
+									}
+								}
+								function checkAll() {
+									$('#sub_report_checkboxes :checkbox:enabled').prop('checked', true);
+								}
 							  </script>
 							</div>
 							
 							<div class="checkbox" style="padding-left:20px;display:none;" id="sub_report_checkboxes" >
 								<div class="checkbox">
-								<label ><input type="checkbox" name="accesscostcenter[]" class="report_sub" value="All">All</label>
+								<label ><input type="checkbox" id="AllCheckOption" name="accesscostcenter[]" onclick="validatecheckboxAll()" class="report_sub"  value="All">All</label>
                                 </div>
                                 <?php
                                 $cc_id_count=0;
