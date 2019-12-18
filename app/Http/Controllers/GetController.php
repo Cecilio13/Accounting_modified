@@ -30,6 +30,9 @@ use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
 use App\CC_Type;
+use App\ExpenseTransaction;
+use App\ExpenseTransactionNew;
+use App\EtAccountDetail;
 class GetController extends Controller
 {
     public function __construct()
@@ -40,6 +43,83 @@ class GetController extends Controller
         // DB::disconnect('mysql');//here connection name, I used mysql for example
         // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
 
+    }
+    public function get_bill_info_for_supplier_credit(Request $request){
+        $supplier_credit_bill_no=$request->supplier_credit_bill_no;
+        $bill_info=ExpenseTransaction::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$supplier_credit_bill_no]
+        ])->first();
+
+        return $bill_info;
+    }
+    public function get_bill_account_detail(Request $request){
+        $supplier_credit_bill_no=$request->supplier_credit_bill_no;
+        $bill_info=EtAccountDetail::where([
+            ['et_ad_no','=',$supplier_credit_bill_no]
+        ])->get();
+
+        return $bill_info;
+    }
+    public function check_supplier_credit_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=ExpenseTransaction::where([
+            ['et_type','=','Supplier credit'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        return $invoice_count;
+    }
+    public function check_bill_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=ExpenseTransaction::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        $invoice_count_new=ExpenseTransactionNew::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        return $invoice_count+$invoice_count_new;
+    }
+    public function check_sales_receipt_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=SalesTransaction::where([
+            ['st_type','=','Sales Receipt'],
+            ['st_no','=',$invoice_no_field]
+        ])->count();
+
+        return $invoice_count;
+    }
+    public function check_credit_note_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=SalesTransaction::where([
+            ['st_type','=','Credit Note'],
+            ['st_no','=',$invoice_no_field]
+        ])->count();
+
+        return $invoice_count;
+    }
+    public function check_estimate_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=SalesTransaction::where([
+            ['st_type','=','Estimate'],
+            ['st_no','=',$invoice_no_field]
+        ])->count();
+
+        return $invoice_count;
+    }
+    public function check_invoice_no(Request $request){
+        $invoice_location_top=$request->invoice_location_top;
+        $invoice_type_top=$request->invoice_type_top;
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=SalesTransaction::where([
+            ['st_type','=','Invoice'],
+            ['st_location', '=', $invoice_location_top],
+            ['st_invoice_type','=',$invoice_type_top],
+            ['st_no','=',$invoice_no_field]
+        ])->count();
+
+        return $invoice_count;
     }
     public function get_customer_info(Request $request){
         $customers=Customers::find($request->id);

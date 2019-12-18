@@ -123,7 +123,60 @@ class JournalEntryController extends Controller
                 ['st_invoice_type','=',$request->invoice_type]
             ])
             ->update($updateDetails);
-            
+            if($request->type=="Sales Receipt"){
+                $data=DB::table('sales_transaction')
+                ->where([
+                    ['st_no', '=', $request->id],
+                    ['st_type', '=', $request->type],
+                    ['st_location','=',$request->locationss],
+                    ['st_invoice_type','=',$request->invoice_type]
+                ])->get();
+                foreach($data as $set){
+                    
+                    $amount=$set->st_amount_paid;
+                    $invoice_sss=DB::table('sales_transaction')
+                    ->where([
+                        ['st_no', '=', $set->st_payment_for],
+                        ['st_type', '=', 'Invoice'],
+                        ['st_location','=',$request->locationss],
+                        ['st_invoice_type','=',$request->invoice_type]
+                    ])->first();
+                    if(!empty($invoice_sss)){
+                        $amount+=$invoice_sss->st_balance;
+                    }
+                   
+                    $sales_receipt_insert=array(
+                        'st_balance' => $amount,
+                        'st_status' => 'Open'
+                    );
+                    $data=DB::table('sales_transaction')
+                    ->where([
+                        ['st_no', '=', $set->st_payment_for],
+                        ['st_type', '=', 'Invoice'],
+                        ['st_location','=',$request->locationss],
+                        ['st_invoice_type','=',$request->invoice_type]
+                    ])->update($sales_receipt_insert);
+                    $data=DB::table('st_invoice')
+                    ->where([
+                        ['st_i_no', '=', $set->st_payment_for],
+                        ['st_p_location','=',$request->locationss],
+                        ['st_p_invoice_type','=',$request->invoice_type],
+                        ['st_i_item_no','=',$set->st_email]
+                    ])->first();
+                    $balance_st=$data->st_p_amount-$amount;
+                    $st_invoice_data=array(
+                        'st_p_amount' => $balance_st
+                    );
+                    $data=DB::table('st_invoice')
+                    ->where([
+                        ['st_i_no', '=', $set->st_payment_for],
+                        ['st_p_location','=',$request->locationss],
+                        ['st_p_invoice_type','=',$request->invoice_type],
+                        ['st_i_item_no','=',$set->st_email]
+                    ])->update($st_invoice_data);
+
+                }
+            }
         }
         else if($request->type=="Bill" || $request->type=="Expense" || $request->type="Credit card credit" || $request->type=="Supplier Credit" || $request->type=="Cheque"){
             DB::table('expense_transactions')
@@ -141,7 +194,7 @@ class JournalEntryController extends Controller
             ])
             ->update($updateDetails);
         
-        return "Success";
+        return 'Success';
     }
     public function delete_overwrite_journal_entry(Request $request){
         $updateDetails=array(

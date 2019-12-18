@@ -63,7 +63,7 @@ class SuppliersController extends Controller
             $expense_transaction->et_shipping_address = $et[0]->et_shipping_address;
             $expense_transaction->et_shipping_to = $et[0]->et_shipping_to;
             $expense_transaction->et_shipping_via =$et[0]->et_shipping_via;
-            //$expense_transaction->et_credit_account=$et[0]->et_credit_account;
+            $expense_transaction->et_credit_account=$et[0]->et_credit_account;
             $expense_transaction->et_type = $et[0]->et_type;
             $expense_transaction->save();
 
@@ -797,11 +797,11 @@ class SuppliersController extends Controller
         
         $expense_number = ExpenseTransactionNew::where('et_type','Bill')->count()+ExpenseTransaction::where('et_type','Bill')->count() + $numbering->bill_start_no;
         $expense_transaction = new ExpenseTransactionNew;
-        $expense_transaction->et_no = $expense_number;
+        $expense_transaction->et_no = $request->bill_bill_no;
         $expense_transaction->et_customer = $sss[0];
         $expense_transaction->et_terms = $request->bill_terms;
         $expense_transaction->et_billing_address = $request->bill_billing_address;
-        $expense_transaction->et_bill_no =$expense_number;
+        $expense_transaction->et_bill_no =$request->bill_bill_no;
         $expense_transaction->et_date = $request->bill_date;
         $expense_transaction->et_due_date = $request->bill_due_date;
         $expense_transaction->et_memo = $request->bill_memo;
@@ -825,7 +825,7 @@ class SuppliersController extends Controller
         
         for($x=0;$x<$request->item_count_bills;$x++){
             $et_item = new EtItemDetailNew;
-            $et_item->et_id_no = $expense_number;
+            $et_item->et_id_no = $request->bill_bill_no;
             $et_item->et_ad_type = "Bill";
             $et_item->et_id_product = $request->input('select_product_name_bill'.$x);
             $et_item->et_id_desc = $request->input('select_product_description_bill'.$x);
@@ -840,18 +840,18 @@ class SuppliersController extends Controller
         $totalamount=0;
         for($x=0;$x<$request->account_count_bills;$x++){
             $et_account = new EtAccountDetailNew;
-            $et_account->et_ad_no = $expense_number;
+            $et_account->et_ad_no = $request->bill_bill_no;
             $et_account->et_ad_product = $request->input('select_account_bill'.$x);
             $et_account->et_ad_desc = $request->input('select_description_bill'.$x);
             $et_account->et_ad_total = $request->input('select_bill_amount'.$x);
-            $et_account->et_ad_rate = $x+1;
-            $et_account->et_ad_qty = $expense_number;
+            $et_account->et_ad_rate = 1;
+            $et_account->et_ad_qty = $request->bill_bill_no;
             $et_account->et_ad_type = "Bill";
             $totalamount+=$request->input('select_bill_amount'.$x);
             $et_account->save();
 
         }
-            $expense_transaction =ExpenseTransactionNew::find($expense_number);
+            $expense_transaction =ExpenseTransactionNew::find($request->bill_bill_no);
             $expense_transaction->bill_balance=$totalamount;
             $expense_transaction->save();
     }
@@ -922,17 +922,21 @@ class SuppliersController extends Controller
 
     public function add_supplier_credit(Request $request)
     {
+        
+        //return $request->return_item_sc;
         $sss=explode(" - ",$request->sc_customer);
         $numbering = Numbering::first();
         $expense_number = ExpenseTransaction::where('et_type','Supplier credit')->count() + $numbering->suppliers_credit_start_no;
 
         $expense_transaction = new ExpenseTransaction;
-        $expense_transaction->et_no = $expense_number;
+        $expense_transaction->et_no = $request->suppliers_credit_no;
         $expense_transaction->et_customer = $sss[0];
         $expense_transaction->et_billing_address = $request->sc_mail_address;
         $expense_transaction->et_date = $request->sc_date;
         $expense_transaction->et_reference_no = $request->sc_reference_no;
         $expense_transaction->et_memo = $request->sc_memo;
+        $expense_transaction->et_email = $request->supplier_credit_bill_no;
+
         $expense_transaction->et_attachment = $request->sc_attachment;
         $expense_transaction->et_type = 'Supplier credit';
         $expense_transaction->save();
@@ -942,7 +946,7 @@ class SuppliersController extends Controller
 
         for($x=0;$x<$request->item_count_scs;$x++){
             $et_item = new EtItemDetail;
-            $et_item->et_id_no = $expense_number;
+            $et_item->et_id_no = $request->suppliers_credit_no;
             $et_item->et_ad_type = "Supplier credit";
             $et_item->et_id_product = $request->input('select_product_name_sc'.$x);
             $et_item->et_id_desc = $request->input('select_product_description_sc'.$x);
@@ -955,81 +959,97 @@ class SuppliersController extends Controller
             // $customer->save();
         }
         $totalamount=0;
-        for($x=0;$x<$request->account_count_scs;$x++){
-            $et_account = new EtAccountDetail;
-            $et_account->et_ad_no = $expense_number;
-            $et_account->et_ad_type = "Supplier credit";
-            $et_account->et_ad_product = $request->input('select_account_sc'.$x);
-            $et_account->et_ad_desc = $request->input('select_description_sc'.$x);
-            $et_account->et_ad_total = -$request->input('select_sc_amount'.$x);
-            $totalamount-=$request->input('select_sc_amount'.$x);
-            $et_account->save();
+        
+        
+            foreach($request->return_item_sc as $checked){
+                for($x=0;$x<=$request->account_count_scs;$x++){
+                if($checked==$request->input('hiddenet_ad_id'.$x)){
+                    //$request->hiddenet_ad_id;
+                    $et_account = new EtAccountDetail;
+                    $et_account->et_ad_no = $request->suppliers_credit_no;
+                    $et_account->et_ad_type = "Supplier credit";
+                    $et_account->et_ad_product = $request->input('select_account_sc'.$x);
+                    $et_account->et_ad_desc = $request->input('select_description_sc'.$x);
+                    $et_account->et_ad_rate = $request->input('hiddenet_ad_id'.$x)." == ".$checked;
+                    $et_account->et_ad_total = -$request->input('select_sc_amount'.$x);
+                    $totalamount-=$request->input('select_sc_amount'.$x);
+                    $et_account->save();
 
+                    $et=EtAccountDetail::find($checked);
+                    $et->et_ad_rate='0';
+                    $et->save();
 
-            $JDate=$request->sc_date;
-            $JNo=$expense_number;
-            $JMemo=$request->sc_memo;
-            $account=$request->supplier_credit_account_debit_account;
-            $debit= -$request->input('select_sc_amount'.$x);
-            $credit= "";
-            $description=$request->input('select_description_sc'.$x);
-            $name="";
+                    $stew = ExpenseTransaction::find($request->supplier_credit_bill_no);
+                    $stew->bill_balance=$stew->bill_balance-$request->input('select_sc_amount'.$x);
+                    $stew->save();
 
-            $journal_entries = new  JournalEntry;
-            $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-            $journal_entries->je_id = "1";
+                    $JDate=$request->sc_date;
+                    $JNo=$request->suppliers_credit_no;
+                    $JMemo=$request->sc_memo;
+                    $account=$request->supplier_credit_account_debit_account;
+                    $debit= -$request->input('select_sc_amount'.$x);
+                    $credit= "";
+                    $description=$request->input('select_description_sc'.$x);
+                    $name="";
+
+                    $journal_entries = new  JournalEntry;
+                    $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+                    $journal_entries->je_id = "1";
+
+                    $journal_entries->je_no=$journal_entries_count;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    $wwe=explode(" - ",$request->CostCenterSupplierCredit);
+                    $journal_entries->je_cost_center=$wwe[0];
+                    $journal_entries->save();
+
+                    $JDate=$request->sc_date;
+                    $JNo=$request->suppliers_credit_no;
+                    $JMemo=$request->sc_memo;
+                    $account=$request->input('select_account_sc'.$x);
+                    $debit= "";
+                    $credit=-$request->input('select_sc_amount'.$x);
+                    $description=$request->input('select_description_sc'.$x);
+                    $name="";
+                        
+
+                    $journal_entries = new  JournalEntry;
+
+                    $journal_entries->je_id = "2";
+                    $journal_entries->je_no=$journal_entries_count;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    $wwe=explode(" - ",$request->CostCenterSupplierCredit);
+                    $journal_entries->je_cost_center=$wwe[0];
+                    $journal_entries->save();
+                    // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+                    // $customer->save();
+                }
+            }
             
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Supplier Credit";
-            $wwe=explode(" - ",$request->CostCenterSupplierCredit);
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->save();
-
-            $JDate=$request->sc_date;
-            $JNo=$expense_number;
-            $JMemo=$request->sc_memo;
-            $account=$request->input('select_account_sc'.$x);
-            $debit= "";
-            $credit=-$request->input('select_sc_amount'.$x);
-            $description=$request->input('select_description_sc'.$x);
-            $name="";
-                
-
-            $journal_entries = new  JournalEntry;
-            
-            $journal_entries->je_id = "2";
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Supplier Credit";
-            $wwe=explode(" - ",$request->CostCenterSupplierCredit);
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->save();
-            // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
-            // $customer->save();
         }
         $customer = Customers::find($sss[0]);
         $AuditLog= new AuditLog;
         $AuditLogcount=AuditLog::count()+1;
         $userid = Auth::user()->id;
         $username = Auth::user()->name;
-        $eventlog="Added Supplier Credit No. ".$expense_number;
+        $eventlog="Added Supplier Credit No. ".$request->suppliers_credit_no;
         $AuditLog->log_id=$AuditLogcount;
         $AuditLog->log_user_id=$username;
         $AuditLog->log_event=$eventlog;
@@ -1086,10 +1106,7 @@ class SuppliersController extends Controller
                 $Costtttsasdasd=$sacxzxcasd->je_cost_center;
             }
             $totalamount=0;
-            DB::table('journal_entries')->where([
-                ['other_no','=', $request->id],
-                ['je_transaction_type','=', $request->type]
-            ])->update([
+            DB::table('journal_entries')->where('other_no', $request->id)->update([
                 'remark'=>'NULLED'
             ]);
             $et_accounteditr=DB::table('et_account_details_edits')->where([
@@ -1102,7 +1119,6 @@ class SuppliersController extends Controller
                 $et_account->et_ad_no = $request->id;
                 $et_account->et_ad_product = $ets->et_ad_product;
                 $et_account->et_ad_desc = $ets->et_ad_desc;
-                $et_account->et_ad_rate = $ets->et_ad_rate;
                 $et_account->et_ad_qty = $ets->et_ad_qty;
                 $et_account->et_ad_total = $ets->et_ad_total;
                 $et_account->et_ad_type =$expense_transactionedit->et_type;
@@ -1490,7 +1506,6 @@ class SuppliersController extends Controller
             $et_account->et_ad_qty = $request->update_bill_id;
             $et_account->et_ad_product = $request->accounts1[$i];
             $et_account->et_ad_desc = $request->desc1[$i];
-            $et_account->et_ad_rate = $i+1;
             $et_account->et_ad_total = $request->amount1[$i];
             $et_account->et_ad_type = "Bill";
             $totalamount+=$request->amount1[$i];
@@ -1668,8 +1683,7 @@ class SuppliersController extends Controller
             $stew= JournalEntry::where([
                 ['other_no','=',$items],
                 ['je_transaction_type', '=', 'Bill'],
-                ['je_credit', '!=', ''],
-                ['remark','!=','NULLED']
+                ['je_credit', '!=', '']
             ])->first();
 
             $JDate=$request->paybill_paymentdate[$count];

@@ -60,7 +60,7 @@
                             <a class="btn btn-success" href="#" data-toggle="modal" data-target="#billmodal" onclick="ResetBills()">Bill</a>
                             @endif
                             @if ($UserAccessList[0]->supplier_credit=="1")
-                            <a class="btn btn-success" href="#" data-toggle="modal" data-target="#suppliercreditmodal">Supplier Credit</a>
+                            <a style="display:none;" class="btn btn-success" href="#" data-toggle="modal" data-target="#suppliercreditmodal">Supplier Credit</a>
                             <a style="display:none;" class="btn btn-success" href="#" data-toggle="modal" data-target="#creditcardcreditmodal">Credit Card Charge</a>
                             @endif
                             @if ($UserAccessList[0]->pay_bills=="1")
@@ -268,7 +268,7 @@
                                     <td class="pt-3-half"  style="vertical-align:middle;">{{$et->et_type}}</td>
                                     
                                     <td class="pt-3-half"  style="vertical-align:middle;">
-                                        @if($et->remark!="" || $et->et_bil_status!="")
+                                        {{-- @if($et->remark!="" || $et->et_bil_status!="")
                                         {{$et->et_no}}
                                         
                                         
@@ -287,8 +287,8 @@
                                             @else
                                             {{$et->et_no}}
                                             @endif
-                                        @endif
-                                        
+                                        @endif --}}
+                                        {{$et->et_no}}
                                     </td>
                                     <td class="pt-3-half"  style="vertical-align:middle;">
                                         {{$et->et_shipping_address}}
@@ -332,31 +332,17 @@
                                     <td class="pt-3-half"  style="vertical-align:middle;">{{$et->et_memo}}</td>
                                     <td class="pt-3-half" style="vertical-align:middle;" >PHP {{number_format($et->et_ad_total,2)}}</td>
                                     <td>
-                                        @if($et->remark=="")
-                                        
-                                        @if($et->et_type=="Expense" )
-                                        <button class="btn btn-xs btn-link" onclick="cancelentry('{{$et->et_type}}','{{$et->et_no}}','','')"><span class="fa fa-ban"></span></button>
-                                        @elseif($et->et_type=="Supplier credit" && $UserAccessList[0]->supplier_credit=="1")
-                                        <button class="btn btn-xs btn-link" onclick="cancelentry('{{$et->et_type}}','{{$et->et_no}}','','')"><span class="fa fa-ban"></span></button>
-                                        @elseif($et->et_type=="Bill" && $UserAccessList[0]->bill=="1")
-                                        @if($et->et_bil_status=="")
-
-                                        <button class="btn btn-xs btn-link" onclick="cancelentry('{{$et->et_type}}','{{$et->et_no}}','','')"><span class="fa fa-ban"></span></button>
-                                        @else
-                                        {{'Paid'}}
-                                        @endif
-                                        @elseif($et->et_type=="Cheque")
-                                        <button class="btn btn-xs btn-link" onclick="cancelentry('{{$et->et_type}}','{{$et->et_no}}','','')"><span class="fa fa-ban"></span></button>
-                                        @elseif($et->et_type=="Credit card credit")
-                                        <button class="btn btn-xs btn-link" onclick="cancelentry('{{$et->et_type}}','{{$et->et_no}}','','')"><span class="fa fa-ban"></span></button>
-                                        @else
-                                       
-                                        @endif
-                                        
+                                        @if ($et->et_type=="Bill" && $et->et_ad_rate=="1")
+                                            @if ($et->et_bil_status=="Paid")
+                                                Paid
+                                            @else
+                                            <button class="btn btn-link" title="Supplier Credit" onclick="supplier_credit_modal_open('{{$et->et_no}}')" data-toggle="modal" data-target="#suppliercreditmodal"><span class="fa fa-history"></span></button>
+                                            @endif
                                         
                                         @else
-                                        {{$et->remark}}
+                                            
                                         @endif
+                                        
                                     </td>
                                 </tr>
                                 @endif

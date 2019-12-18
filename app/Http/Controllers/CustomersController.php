@@ -346,7 +346,7 @@ class CustomersController extends Controller
 
         
         $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
+        $sales_transaction->st_no = $request->invoice_invoiceno;
         $sales_transaction->st_date = $request->date;
         $sales_transaction->st_type = $request->transaction_type;
         $sales_transaction->st_term = $request->term;
@@ -386,7 +386,7 @@ class CustomersController extends Controller
         for($x=0;$x<$request->product_count;$x++){
             $x2=$x+1;
             $st_invoice = new StInvoice;
-            $st_invoice->st_i_no = $sales_number;
+            $st_invoice->st_i_no = $request->invoice_invoiceno;
             $st_invoice->st_i_item_no = $x2;
             
             $st_invoice->st_i_product = $request->input('select_product_name'.$x);
@@ -406,7 +406,7 @@ class CustomersController extends Controller
             $st_invoice->save();
 
             $JDate=$request->date;
-            $JNo=$sales_number;
+            $JNo=$request->invoice_invoiceno;
             $JMemo=$request->memo;
             $account=$request->input('invoice_account_debit_account'.$x2);
             $debit= $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
@@ -452,7 +452,7 @@ class CustomersController extends Controller
             $journal_entries->save();
 
             $JDate=$request->date;
-            $JNo=$sales_number;
+            $JNo=$request->invoice_invoiceno;
             $JMemo=$request->memo;
             $account=$request->input('invoice_account_credit_account'.$x2);
             $debit= "";
@@ -511,7 +511,7 @@ class CustomersController extends Controller
             $AuditLogcount=AuditLog::count()+1;
             $userid = Auth::user()->id;
             $username = Auth::user()->name;
-            $eventlog="Added Invoice No. ".$sales_number;
+            $eventlog="Added Invoice No. ".$request->invoice_invoiceno;
             $AuditLog->log_id=$AuditLogcount;
             $AuditLog->log_user_id=$username;
             $AuditLog->log_event=$eventlog;
@@ -668,7 +668,7 @@ class CustomersController extends Controller
         $sales_number = SalesTransaction::where('st_type','Estimate')->count() + $numbering->estimate_start_no;
 
         $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
+        $sales_transaction->st_no = $request->estimate_no;
         $sales_transaction->st_date = $request->e_date;
         $sales_transaction->st_type = $request->transaction_type_estimate;
         $sales_transaction->st_term = null;
@@ -690,7 +690,7 @@ class CustomersController extends Controller
         $customer = Customers::find($sss[0]);
         for($x=0;$x<$request->product_count_estimate;$x++){
             $st_estimate = new StEstimate;
-            $st_estimate->st_e_no = $sales_number;
+            $st_estimate->st_e_no = $request->estimate_no;
             $st_estimate->st_e_product = $request->input('select_product_name_estimate'.$x);
             $st_estimate->st_e_desc = $request->input('select_product_description_estimate'.$x);
             $st_estimate->st_e_qty = $request->input('product_qty_estimate'.$x);
@@ -760,7 +760,7 @@ class CustomersController extends Controller
         $sales_number = SalesTransaction::where('st_type','Sales Receipt')->count() + $numbering->sales_receipt_start_no;
 
         $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
+        $sales_transaction->st_no = $request->sales_receipt_no;
         $sales_transaction->st_date = $request->sr_date;
         $sales_transaction->st_type = $request->transaction_type_sales_receipt;
         $sales_transaction->st_term = null;
@@ -768,14 +768,14 @@ class CustomersController extends Controller
         $sales_transaction->st_due_date = null;
         $sales_transaction->st_status = 'Closed';
         $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->sr_email;
+        $sales_transaction->st_email = $request->invoice_item_no;
         $sales_transaction->st_send_later = $request->sr_send_later;
         $sales_transaction->st_bill_address = $request->sr_bill_address;
         $sales_transaction->st_note = $request->sr_message;
         $sales_transaction->st_memo = $request->sr_memo;
         $sales_transaction->st_i_attachment = $request->sr_attachment;
         $sales_transaction->st_balance = 0;
-        $sales_transaction->st_amount_paid = $request->sr_amount_paid;
+        $sales_transaction->st_amount_paid = $request->hiddentotaldebitamountsalesreceipt;
         $sales_transaction->st_location = $request->sales_receipt_location_top;
         $sales_transaction->st_invoice_type = $request->sales_receipt_type_top;
         $sales_transaction->st_payment_for = $request->invoiceno_sr;
@@ -789,12 +789,12 @@ class CustomersController extends Controller
             ['st_invoice_type','=',$request->sales_receipt_type_top],
         ])->first();
         
-            if($old_invoice_transaction->st_balance <= $request->sr_amount_paid){
-                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->sr_amount_paid;
+            if($old_invoice_transaction->st_balance <= $request->hiddentotaldebitamountsalesreceipt){
+                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->hiddentotaldebitamountsalesreceipt;
                 $old_invoice_transaction->st_status = 'Paid';
                 $old_invoice_transaction->save();
             }else{
-                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->sr_amount_paid;
+                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->hiddentotaldebitamountsalesreceipt;
                 $old_invoice_transaction->st_status = 'Partially paid';
                 $old_invoice_transaction->save();
             }
@@ -804,19 +804,19 @@ class CustomersController extends Controller
             ['st_p_location','=',$request->sales_receipt_location_top],
             ['st_p_invoice_type','=',$request->sales_receipt_type_top],
         ])->first();
-        $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->sr_amount_paid;
+        $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->hiddentotaldebitamountsalesreceipt;
         $st_invoice_item->save();
 
         $customer = new Customers;
         $customer = Customers::find($request->sr_customer);
         $customer = Customers::find($request->sr_customer);
-        $customer->opening_balance = $customer->opening_balance -$request->sr_amount_paid;
+        $customer->opening_balance = $customer->opening_balance -$request->hiddentotaldebitamountsalesreceipt;
         $customer->save();
         $AuditLog= new AuditLog;
         $AuditLogcount=AuditLog::count()+1;
         $userid = Auth::user()->id;
         $username = Auth::user()->name;
-        $eventlog="Added Sales Receipt No.".$sales_number;
+        $eventlog="Added Sales Receipt No.".$request->sales_receipt_no;
         $AuditLog->log_id=$AuditLogcount;
         $AuditLog->log_user_id=$username;
         $AuditLog->log_event=$eventlog;
@@ -831,20 +831,15 @@ class CustomersController extends Controller
         }
         
         $AuditLog->log_transaction_date=$request->sr_date;
-        $AuditLog->log_amount=$request->sr_amount_paid;
+        $AuditLog->log_amount=$request->hiddentotaldebitamountsalesreceipt;
         $AuditLog->save();
         if($request->reload_sr=='0'){
             $JDate=$request->sr_date;
-            $JNo=$sales_number;
+            $JNo=$request->sales_receipt_no;
             $JMemo=$request->sr_memo;
-            if($request->sr_payment_method=="Cash" || $request->sr_payment_method=="Cash & Cheque"){
-                $account=$request->sales_receipt_account_debit_account;
-            }else if($request->sr_payment_method="Cheque"){
-                $account=$request->sales_receipt_account_debit_account_cheque;
-            }
-            
-            $debit= $request->sr_amount_paid;
-            $credit= "";
+            $account=$request->sales_receipt_account_debit_account;
+            $debit= $request->sr_amount_paid!=0? $request->sr_amount_paid : '';
+            $credit= $request->amountreceived_sr_c!=0? $request->amountreceived_sr_c : '';
             $description="";
             if($customer->display_name!=""){
                 $name= $customer->display_name;
@@ -873,48 +868,46 @@ class CustomersController extends Controller
             $journal_entries->je_attachment=$JDate;
             $journal_entries->je_transaction_type="Sales Receipt";
             $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
+            $journal_entries->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
             $journal_entries->save();
 
-            $JDate=$request->sr_date;
-            $JNo=$sales_number;
-            $JMemo=$request->sr_memo;
-            $account=$request->sales_receipt_account_credit_account;
-            $debit= "";
-            $credit= $request->sr_amount_paid;
-            $description="";
-            if($customer->display_name!=""){
-                $name= $customer->display_name;
-            }else{
-                if($customer->company_name!=""){
-                    $name= $customer->company_name;
+            for($c=1;$c<=$request->additional_count_cash_account;$c++){
+                $account=$request->input('additionalcashDebitAccount'.$c);
+                $debit=$request->input('additionalCashAmount'.$c)!=0? $request->input('additionalCashAmount'.$c) : '';
+                $credit=$request->input('additionalCashAmount_c'.$c)!=0? $request->input('additionalCashAmount_c'.$c): '';
+                if($customer->display_name!=""){
+                    $name= $customer->display_name;
                 }else{
-                    $name= $customer->f_name." ".$customer->l_name;
+                    if($customer->company_name!=""){
+                        $name= $customer->company_name;
+                    }else{
+                        $name= $customer->f_name." ".$customer->l_name;
+                    }
                 }
+                $data = new  JournalEntry;
+                $data->je_id = $c+1;
+                $data->other_no=$JNo;
+                $data->je_no=$journal_entries_count;
+                $data->je_account=$account;
+                $data->je_debit=$debit;
+                $data->je_credit=$credit;
+                $data->je_desc=$description;
+                $data->je_name=$name;
+                $data->je_memo=$JMemo;
+                $data->created_at=$JDate;
+                $data->je_attachment=$JDate;
+                $data->je_transaction_type="Sales Receipt";
+                $data->je_cost_center=$request->CostCenterSalesReceipt;
+                $data->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
+                $data->save();
             }
             
-
-            $journal_entries = new  JournalEntry;
-            
-            $journal_entries->je_id = "2";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Sales Receipt";
-            $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-            $journal_entries->save();
         }
         
         $value;
         for($x=0;$x<$request->product_count_sales_receipt;$x++){
             $st_sales_receipt = new StSalesReceipt;
-            $st_sales_receipt->st_s_no = $sales_number;
+            $st_sales_receipt->st_s_no = $request->sales_receipt_no;
             $st_sales_receipt->st_s_product = $request->input('select_product_name_sales_receipt'.$x);
             $st_sales_receipt->st_s_desc = $request->input('select_product_description_sales_receipt'.$x);
             $st_sales_receipt->st_s_qty = $request->input('product_qty_sales_receipt'.$x);
@@ -968,556 +961,13 @@ class CustomersController extends Controller
                 $message->from('floydignified@gmail.com','Floyd Matabilas');
             });
         }
-        if($request->sr_payment_method=="Cash & Cheque"){
-            $numbering = Numbering::first();
-            $sales_number = SalesTransaction::where('st_type','Sales Receipt')->count() + $numbering->sales_exp_start_no;
-
-            $sales_transaction = new SalesTransaction;
-            $sales_transaction->st_no = $sales_number;
-            $sales_transaction->st_date = $request->sr_date;
-            $sales_transaction->st_type = $request->transaction_type_sales_receipt;
-            $sales_transaction->st_term = null;
-            $sales_transaction->st_customer_id = $request->sr_customer;
-            $sales_transaction->st_due_date = null;
-            $sales_transaction->st_status = 'Closed';
-            $sales_transaction->st_action = '';
-            $sales_transaction->st_email = $request->sr_email;
-            $sales_transaction->st_send_later = $request->sr_send_later;
-            $sales_transaction->st_bill_address = $request->sr_bill_address;
-            $sales_transaction->st_note = $request->sr_message;
-            $sales_transaction->st_memo = $request->sr_memo;
-            $sales_transaction->st_i_attachment = $request->sr_attachment;
-            $sales_transaction->st_balance = 0;
-            $sales_transaction->st_amount_paid = $request->sr_amount_paid_from_cheque;
-            $sales_transaction->st_payment_for = $request->invoiceno_sr;
-            $sales_transaction->st_location = $request->sales_receipt_location_top;
-            $sales_transaction->st_invoice_type = $request->sales_receipt_type_top;
-            $sales_transaction->save();
-
-            $old_invoice_transaction = SalesTransaction::where([
-                ['st_no','=',$request->invoiceno_sr],
-                ['st_type','=',"Invoice"],
-                ['st_location','=',$request->sales_receipt_location_top],
-                ['st_invoice_type','=',$request->sales_receipt_type_top],
-            ])->first();
-            
-                if($old_invoice_transaction->st_balance <= $request->sr_amount_paid_from_cheque){
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->sr_amount_paid_from_cheque;
-                    $old_invoice_transaction->st_status = 'Paid';
-                    $old_invoice_transaction->save();
-                }else{
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->sr_amount_paid_from_cheque;
-                    $old_invoice_transaction->st_status = 'Partially paid';
-                    $old_invoice_transaction->save();
-                }
-            $st_invoice_item = StInvoice::where([
-                ['st_i_no','=',$request->invoiceno_sr],
-                ['st_i_item_no','=',$request->invoice_item_no],
-                ['st_p_location','=',$request->sales_receipt_location_top],
-                ['st_p_invoice_type','=',$request->sales_receipt_type_top],
-            ])->first();
-            $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->sr_amount_paid_from_cheque;
-            $st_invoice_item->save();
-
-            $customer = new Customers;
-            $customer = Customers::find($request->sr_customer);
-            $customer = Customers::find($request->sr_customer);
-            $customer->opening_balance = $customer->opening_balance -$request->sr_amount_paid_from_cheque;
-            $customer->save();
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Sales Receipt No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->sr_date;
-            $AuditLog->log_amount=$request->sr_amount_paid_from_cheque;
-            $AuditLog->save();
-            if($request->reload_sr=='0'){
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                
-                $account=$request->sales_receipt_account_debit_account_cheque;
-                $debit= $request->sr_amount_paid_from_cheque;
-                $credit= "";
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-                $journal_entries->je_id = "1";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                $account=$request->sales_receipt_account_credit_account;
-                $debit= "";
-                $credit= $request->sr_amount_paid_from_cheque;
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                
-                $journal_entries->je_id = "2";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-            }
-            $value;
-            for($x=0;$x<$request->product_count_sales_receipt;$x++){
-                $st_sales_receipt = new StSalesReceipt;
-                $st_sales_receipt->st_s_no = $sales_number;
-                $st_sales_receipt->st_s_product = $request->input('select_product_name_sales_receipt'.$x);
-                $st_sales_receipt->st_s_desc = $request->input('select_product_description_sales_receipt'.$x);
-                $st_sales_receipt->st_s_qty = $request->input('product_qty_sales_receipt'.$x);
-                
-                $st_sales_receipt->st_s_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-                $st_sales_receipt->st_s_total = $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-                
-                    $st_sales_receipt->st_p_method = "Cheque";
-                
-                $st_sales_receipt->st_p_reference_no = $request->sr_reference_no;
-                $st_sales_receipt->st_p_deposit_to = $request->sr_deposit_to;
-                $st_sales_receipt->st_p_amount = $request->sr_amount_paid_from_cheque;
-                $st_sales_receipt->invoice_no_link = $request->invoiceno_sr;
-                $st_sales_receipt->save();
-
-                $product = ProductsAndServices::find($request->input('select_product_name_sales_receipt'.$x));
-                $email_array = explode(',', $request->sr_email);
-
-                $value[$x] = [
-                    'type' => 'Sales Receipt',
-                    'name' => $customer->display_name,
-                    'email' => $email_array,
-                    'title' => 'SALES RECEIPT',
-                    'note' => $request->note,
-                    'memo' => $request->memo,
-                    'product_name' => !empty($product)? $product->product_name : '',
-                    'product_description' => $request->input('select_product_description_sales_receipt'.$x),
-                    'product_quantity' => $request->input('product_qty_sales_receipt'.$x),
-                    'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                    'product_total' => $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                    'credit_total' => $request->sr_amount_paid_from_cheque,
-                ];
-                
-                
-            }
-            if($request->send_later=="on"){
-                Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-                {
-                    $company = Company::first();
-                    $sales = Sales::first();
-                    $expenses = Expenses::first();
-                    $advance = Advance::first();
-                    
-                    $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                    $attachment = $pdf->stream('credit_notice.pdf');
-                    $message->attachData($attachment, 'credit_note.pdf');
         
-                    $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Sales Receipt for '.$value[0]['name']);
-                    $message->from('floydignified@gmail.com','Floyd Matabilas');
-                });
-            }
-        }
-        for($c=1;$c<=$request->additional_count;$c++){
-            $numbering = Numbering::first();
-            $sales_number = SalesTransaction::where('st_type','Sales Receipt')->count() + $numbering->sales_exp_start_no;
-
-            $sales_transaction = new SalesTransaction;
-            $sales_transaction->st_no = $sales_number;
-            $sales_transaction->st_date = $request->sr_date;
-            $sales_transaction->st_type = $request->transaction_type_sales_receipt;
-            $sales_transaction->st_term = null;
-            $sales_transaction->st_customer_id = $request->sr_customer;
-            $sales_transaction->st_due_date = null;
-            $sales_transaction->st_status = 'Closed';
-            $sales_transaction->st_action = '';
-            $sales_transaction->st_email = $request->sr_email;
-            $sales_transaction->st_send_later = $request->sr_send_later;
-            $sales_transaction->st_bill_address = $request->sr_bill_address;
-            $sales_transaction->st_note = $request->sr_message;
-            $sales_transaction->st_memo = $request->sr_memo;
-            $sales_transaction->st_i_attachment = $request->sr_attachment;
-            $sales_transaction->st_balance = 0;
-            $sales_transaction->st_amount_paid = $request->input('sr_amount_paid_from_cheque'.$c);
-            $sales_transaction->st_payment_for = $request->invoiceno_sr;
-            $sales_transaction->st_location = $request->sales_receipt_location_top;
-            $sales_transaction->st_invoice_type = $request->sales_receipt_type_top;
-            $sales_transaction->save();
-
-            $old_invoice_transaction = SalesTransaction::where([
-                ['st_no','=',$request->invoiceno_sr],
-                ['st_type','=',"Invoice"],
-                ['st_location','=',$request->sales_receipt_location_top],
-                ['st_invoice_type','=',$request->sales_receipt_type_top],
-            ])->first();
-            
-                if($old_invoice_transaction->st_balance <= $request->input('sr_amount_paid_from_cheque'.$c)){
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->input('sr_amount_paid_from_cheque'.$c);
-                    $old_invoice_transaction->st_status = 'Paid';
-                    $old_invoice_transaction->save();
-                }else{
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->input('sr_amount_paid_from_cheque'.$c);
-                    $old_invoice_transaction->st_status = 'Partially paid';
-                    $old_invoice_transaction->save();
-                }
-                $st_invoice_item = StInvoice::where([
-                    ['st_i_no','=',$request->invoiceno_sr],
-                    ['st_i_item_no','=',$request->invoice_item_no],
-                    ['st_p_location','=',$request->sales_receipt_location_top],
-                    ['st_p_invoice_type','=',$request->sales_receipt_type_top],
-                ])->first();
-                $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->input('sr_amount_paid_from_cheque'.$c);
-                $st_invoice_item->save();
-
-            $customer = new Customers;
-            $customer = Customers::find($request->sr_customer);
-            $customer = Customers::find($request->sr_customer);
-            $customer->opening_balance = $customer->opening_balance -$request->input('sr_amount_paid_from_cheque'.$c);
-            $customer->save();
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Sales Receipt No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->sr_date;
-            $AuditLog->log_amount=$request->input('sr_amount_paid_from_cheque'.$c);
-            $AuditLog->save();
-            if($request->reload_sr=='0'){
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                
-                $account=$request->sales_receipt_account_debit_account_cheque;
-                
-                
-                $debit= $request->input('sr_amount_paid_from_cheque'.$c);
-                $credit= "";
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-                $journal_entries->je_id = "1";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                $account=$request->sales_receipt_account_credit_account;
-                $debit= "";
-                $credit= $request->input('sr_amount_paid_from_cheque'.$c);
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                
-                $journal_entries->je_id = "2";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-            }
-            $value;
-            for($x=0;$x<$request->product_count_sales_receipt;$x++){
-                $st_sales_receipt = new StSalesReceipt;
-                $st_sales_receipt->st_s_no = $sales_number;
-                $st_sales_receipt->st_s_product = $request->input('select_product_name_sales_receipt'.$x);
-                $st_sales_receipt->st_s_desc = $request->input('select_product_description_sales_receipt'.$x);
-                $st_sales_receipt->st_s_qty = $request->input('product_qty_sales_receipt'.$x);
-                
-                $st_sales_receipt->st_s_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-                $st_sales_receipt->st_s_total = $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-                
-                    $st_sales_receipt->st_p_method = "Cheque";
-                
-                $st_sales_receipt->st_p_reference_no = $request->input('sr_reference_no'.$c);
-                $st_sales_receipt->st_p_deposit_to = $request->input('sr_deposit_to'.$c);
-                $st_sales_receipt->st_p_amount = $request->input('sr_amount_paid_from_cheque'.$c);
-                $st_sales_receipt->invoice_no_link = $request->invoiceno_sr;
-                $st_sales_receipt->save();
-
-                $product = ProductsAndServices::find($request->input('select_product_name_sales_receipt'.$x));
-                $email_array = explode(',', $request->sr_email);
-
-                $value[$x] = [
-                    'type' => 'Sales Receipt',
-                    'name' => $customer->display_name,
-                    'email' => $email_array,
-                    'title' => 'SALES RECEIPT',
-                    'note' => $request->note,
-                    'memo' => $request->memo,
-                    'product_name' => !empty($product)? $product->product_name : '',
-                    'product_description' => $request->input('select_product_description_sales_receipt'.$x),
-                    'product_quantity' => $request->input('product_qty_sales_receipt'.$x),
-                    'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                    'product_total' => $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                    'credit_total' => $request->input('sr_amount_paid_from_cheque'.$c),
-                ];
-                
-                
-            }
-            if($request->send_later=="on"){
-                Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-                {
-                    $company = Company::first();
-                    $sales = Sales::first();
-                    $expenses = Expenses::first();
-                    $advance = Advance::first();
-                    
-                    $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                    $attachment = $pdf->stream('credit_notice.pdf');
-                    $message->attachData($attachment, 'credit_note.pdf');
-        
-                    $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Sales Receipt for '.$value[0]['name']);
-                    $message->from('floydignified@gmail.com','Floyd Matabilas');
-                });
-            }
-        }
-        for($c=1;$c<=$request->additional_count_cash_account;$c++){
-            // $asdasd.=$request->input('additionalCashAmount'.$c)."\n";
-            // $asdasd.=$request->input('additionalcashDebitAccount'.$c)."\n";
-            // $asdasd.=$request->input('additionalcashCreditAccount'.$c)."\n";
-
-            //Start Additional Cash
-            $numbering = Numbering::first();
-            $sales_number = SalesTransaction::where('st_type','Sales Receipt')->count() + $numbering->sales_exp_start_no;
-
-            $sales_transaction = new SalesTransaction;
-            $sales_transaction->st_no = $sales_number;
-            $sales_transaction->st_date = $request->sr_date;
-            $sales_transaction->st_type = $request->transaction_type_sales_receipt;
-            $sales_transaction->st_term = null;
-            $sales_transaction->st_customer_id = $request->sr_customer;
-            $sales_transaction->st_due_date = null;
-            $sales_transaction->st_status = 'Closed';
-            $sales_transaction->st_action = '';
-            $sales_transaction->st_email = $request->sr_email;
-            $sales_transaction->st_send_later = $request->sr_send_later;
-            $sales_transaction->st_bill_address = $request->sr_bill_address;
-            $sales_transaction->st_note = $request->sr_message;
-            $sales_transaction->st_memo = $request->sr_memo;
-            $sales_transaction->st_i_attachment = $request->sr_attachment;
-            $sales_transaction->st_balance = 0;
-            $sales_transaction->st_amount_paid = $request->input('additionalCashAmount'.$c);
-            $sales_transaction->st_payment_for = $request->invoiceno_sr;
-            $sales_transaction->st_location = $request->sales_receipt_location_top;
-            $sales_transaction->st_invoice_type = $request->sales_receipt_type_top;
-            $sales_transaction->save();
-
-            $old_invoice_transaction = SalesTransaction::where([
-                ['st_no','=',$request->invoiceno_sr],
-                ['st_type','=',"Invoice"],
-                ['st_location','=',$request->sales_receipt_location_top],
-                ['st_invoice_type','=',$request->sales_receipt_type_top],
-            ])->first();
-            
-                if($old_invoice_transaction->st_balance <= $request->input('additionalCashAmount'.$c)){
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->input('additionalCashAmount'.$c);
-                    $old_invoice_transaction->st_status = 'Paid';
-                    $old_invoice_transaction->save();
-                }else{
-                    $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->input('additionalCashAmount'.$c);
-                    $old_invoice_transaction->st_status = 'Partially paid';
-                    $old_invoice_transaction->save();
-                }
-                $st_invoice_item = StInvoice::where([
-                    ['st_i_no','=',$request->invoiceno_sr],
-                    ['st_i_item_no','=',$request->invoice_item_no],
-                    ['st_p_location','=',$request->sales_receipt_location_top],
-                    ['st_p_invoice_type','=',$request->sales_receipt_type_top],
-                ])->first();
-                $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->input('additionalCashAmount'.$c);
-                $st_invoice_item->save();
-
-            $customer = new Customers;
-            $customer = Customers::find($request->sr_customer);
-            $customer = Customers::find($request->sr_customer);
-            $customer->opening_balance = $customer->opening_balance -$request->input('additionalCashAmount'.$c);
-            $customer->save();
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Sales Receipt No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->sr_date;
-            $AuditLog->log_amount=$request->input('additionalCashAmount'.$c);
-            $AuditLog->save();
-            if($request->reload_sr=='0'){
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                
-                $account=$request->input('additionalcashDebitAccount'.$c);
-                
-                
-                $debit= $request->input('additionalCashAmount'.$c);
-                $credit= "";
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-                $journal_entries->je_id = "1";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-
-                $JDate=$request->sr_date;
-                $JNo=$sales_number;
-                $JMemo=$request->sr_memo;
-                $account=$request->input('additionalcashCreditAccount'.$c);
-                $debit= "";
-                $credit= $request->input('additionalCashAmount'.$c);
-                $description="";
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
-                    }
-                }
-                
-
-                $journal_entries = new  JournalEntry;
-                
-                $journal_entries->je_id = "2";
-                $journal_entries->other_no=$JNo;
-                $journal_entries->je_no=$journal_entries_count;
-                $journal_entries->je_account=$account;
-                $journal_entries->je_debit=$debit;
-                $journal_entries->je_credit=$credit;
-                $journal_entries->je_desc=$description;
-                $journal_entries->je_name=$name;
-                $journal_entries->je_memo=$JMemo;
-                $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
-                $journal_entries->je_transaction_type="Sales Receipt";
-                $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-                $journal_entries->save();
-            }
-            //end additional Cash
-        }
         DB::connection('mysql')
-                        ->statement(
-                            DB::raw('UPDATE sales_transaction SET `st_balance`=?, `st_status`=? WHERE st_type=?'),
-                            array("0","Closed","Sales Receipt")
-                        );
-        
-            $asdassssssssssasd="";
+        ->statement(
+            DB::raw('UPDATE sales_transaction SET `st_balance`=?, `st_status`=? WHERE st_type=?'),
+            array("0","Closed","Sales Receipt")
+        );
+        $asdassssssssssasd="";
             
         return $asdassssssssssasd;
            
@@ -1699,7 +1149,7 @@ class CustomersController extends Controller
         $sales_number = SalesTransaction::where('st_type','Credit Note')->count() + $numbering->credit_note_start_no;
         
         $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
+        $sales_transaction->st_no = $request->credit_note_no;
         $sales_transaction->st_date = $request->cn_date;
         $sales_transaction->st_type = $request->transaction_type_credit_note;
         $sales_transaction->st_term = null;
@@ -1720,7 +1170,7 @@ class CustomersController extends Controller
         $AuditLogcount=AuditLog::count()+1;
         $userid = Auth::user()->id;
         $username = Auth::user()->name;
-        $eventlog="Added Credit Note No.".$sales_number;
+        $eventlog="Added Credit Note No.".$request->credit_note_no;
         $AuditLog->log_id=$AuditLogcount;
         $AuditLog->log_user_id=$username;
         $AuditLog->log_event=$eventlog;
@@ -1736,7 +1186,7 @@ class CustomersController extends Controller
 
         for($x=0;$x<$request->product_count_credit_note;$x++){
             $st_credit_note = new StCreditNote;
-            $st_credit_note->st_cn_no = $sales_number;
+            $st_credit_note->st_cn_no = $request->credit_note_no;
             $st_credit_note->st_cn_product = $request->input('select_product_name_credit_note'.$x);
             $st_credit_note->st_cn_desc = $request->input('select_product_description_credit_note'.$x);
             $st_credit_note->st_cn_qty = $request->input('product_qty_credit_note'.$x);
@@ -1750,7 +1200,7 @@ class CustomersController extends Controller
             $st_credit_note->save();
 
             $JDate=$request->cn_date;
-            $JNo=$sales_number;
+            $JNo=$request->credit_note_no;
             $JMemo=$request->cn_memo;
             $account=$request->credit_note_account_debit_account;
             $debit= $request->input('product_qty_credit_note'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x));
@@ -1779,7 +1229,7 @@ class CustomersController extends Controller
             $journal_entries->save();
 
             $JDate=$request->cn_date;
-            $JNo=$sales_number;
+            $JNo=$request->credit_note_no;
             $JMemo=$request->cn_memo;
             $account=$request->credit_note_account_credit_account;
             $debit= "";

@@ -1284,27 +1284,30 @@ function exporttoexcel(table_id){
                         function setInvoice_no_new(){
                             var invoice_location_top=document.getElementById('invoice_location_top').value;
                             var invoice_type_top=document.getElementById('invoice_type_top').value;
-                            var invoice_no_field=document.getElementById('invoice_invoiceno');
-                            if(invoice_location_top=="Main"){
-                                if(invoice_type_top=="Sales Invoice"){
-                                    invoice_no_field.value="{{count($invoice_count)+$sales_exp_start_no}}";
-                                }else if(invoice_type_top=="Bill Invoice"){
-                                    invoice_no_field.value="{{count($main_Bill_invoice_count)+$main_bill_invoice_start}}";
+                            var invoice_no_field=document.getElementById('invoice_invoiceno').value;
+                            $.ajax({
+                                method: "POST",
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                url: "check_invoice_no",
+                                data: {invoice_location_top:invoice_location_top,invoice_type_top:invoice_type_top,invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                success: function (data) {
+                                    if(data>0){
+                                        document.getElementById('invoice_invoiceno').style.border="1px solid red";
+                                        document.getElementById('invoice_add_button').disabled=true;
+                                    }else{
+                                        document.getElementById('invoice_invoiceno').style.border="1px solid green";
+                                        document.getElementById('invoice_add_button').disabled=false;
+                                    }
                                 }
-                            }
-                            else if(invoice_location_top=="Branch"){
-                                if(invoice_type_top=="Sales Invoice"){
-                                    invoice_no_field.value="{{count($branch_Sales_invoice_count)+$branch_sales_invoice_start}}";
-                                }else if(invoice_type_top=="Bill Invoice"){
-                                    invoice_no_field.value="{{count($branch_Bill_invoice_count)+$branch_bill_invoice_start}}";
-                                }
-                            }
+                            });
                         }
                     </script>
                     <div class="col-md-12 p-0 mb-4">
                         <div class="col-md-2 p-0 pr-3">
                             <p>Invoice No</p>
-                            <input id="invoice_invoiceno" type="text" value="{{count($invoice_count)+$sales_exp_start_no}}" name="invoice_invoiceno" class="w-100 form-control" readonly>
+                            <input id="invoice_invoiceno" type="text"  value="{{count($invoice_count)+$sales_exp_start_no}}" name="invoice_invoiceno" class="w-100 form-control" onkeyup="setInvoice_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" required>
                         </div>
                         <div class="col-md-2 p-0 pr-3">
                             <p>Invoice Date</p>
@@ -1638,7 +1641,7 @@ function addInvoicejournal(){
     $('#total_balance_journal').val($('#invoicetotal_journal').text());
    
    $(".invoice_lines").each(function() {
-       $("#product_count_journal").val(parseInt($("#product_count_journal").val())+1);
+       $("#product_count_journal").val(parseFloat($("#product_count_journal").val())+1);
    });
    
    var counter = 0;
@@ -3606,7 +3609,29 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 p-0 " style="margin-bottom:20px;">
                         <div class="col-md-2 p-0 pr-3">
                             <p>Estimate No</p>
-                            <input id="" type="text" value="{{count($estimate_count)+$estimate_start_no}}" name="" class="w-100 form-control" readonly>
+                            <input id="estimate_no" type="text" value="{{count($estimate_count)+$estimate_start_no}}" name="estimate_no" class="w-100 form-control" onkeyup="setestimate_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" required>
+                            <script>
+                                function setestimate_no_new(){
+                                    var invoice_no_field=document.getElementById('estimate_no').value;
+                                    $.ajax({
+                                        method: "POST",
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        },
+                                        url: "check_estimate_no",
+                                        data: {invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                        success: function (data) {
+                                            if(data>0){
+                                                document.getElementById('estimate_no').style.border="1px solid red";
+                                                document.getElementById('estimateadd').disabled=true;
+                                            }else{
+                                                document.getElementById('estimate_no').style.border="1px solid green";
+                                                document.getElementById('estimateadd').disabled=false;
+                                            }
+                                        }
+                                    });
+                                }
+                            </script>
                         </div>
                         <div class="col-md-2 p-0 pr-3">
                             <p>Estimate Date</p>
@@ -3617,7 +3642,10 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="date" name="e_due_date" id="e_due_date" class="w-100 form-control" required>
                         </div>
                         
-                        
+                        <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
+                            <h4 class="mr-2">BALANCE DUE: </h4>
+                            <h3 id="big_estimatebalance">PHP 0.00</h3>
+                        </div>
                     </div>
                     <div class="my-3 p-0">
                         <div class="col-md-3 p-0 pr-3">
@@ -3644,22 +3672,9 @@ function getModal(Location,TTTTT,e,type,sales){
                             <input type="text" name="e_bill_address" id="e_bill_address" class="w-100 form-control" required>
                         </div>
                     </div>
-
-                    <div class="col-md-12 p-0"  style="margin-bottom:20px;">
-                        <table class="table-borderless table-sm" style="margin-right:5%;float:right;"> <!--style="margin-right:5%;float:right;" -->
-                            <tr>
-                                <td style="vertical-align:middle;text-align:right;">
-                                    <div class="col-md-12 p-0 d-inline-flex center-content mr-1">
-                                        <h4 class="mr-2">BALANCE DUE: </h4>
-                                        <h3 id="big_estimatebalance">PHP 0.00</h3>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                        </table>
-                    </div>
-                    <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="estimate_table">
-                        <thead class="thead-light">
+                    
+                    <table class="table table-bordered table-responsive-md table-striped text-left font14" id="estimate_table">
+                        <thead>
                             <tr>
                                 <th class="text-left">#</th>
                                 <th class="text-left">PRODUCT/SERVICE</th>
@@ -3667,16 +3682,16 @@ function getModal(Location,TTTTT,e,type,sales){
                                 <th class="text-center" width="10%">QTY</th>
                                 <th class="text-left" width="15%">RATE</th>
                                 <th class="text-left" width="15%">AMOUNT</th>
-                                <th class="text-center" width="5%"></th>
+                                <th class="text-center"></th>
                             </tr>
                         </thead>
-                        <tbody id="estimate_table_tbody">
+                        <tbody  id="estimate_table_tbody">
 
                         </tbody>
                         
                         <!-- This is our clonable table line -->
                     </table>
-                    <div class="col-md-12 p-0 mt-4">
+                    <div class="col-md-12 p-0">
                         <div class="float-left">
                             <div class="d-inline-flex">
                                 <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_estimate">Add Items</button>
@@ -3684,18 +3699,18 @@ function getModal(Location,TTTTT,e,type,sales){
                                 
                             </div>
                         </div>
-                        <div class="float-right" style="margin-right:5%">
-                            <div class="d-inline-flex mr-1">
-                                <p style="font-size:1.3em !important" class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
-                                <p style="font-size:1.3em !important" class="mb-0 text-dark font-weight-bold" id="estimatetotal">PHP 0.00</p>
+                        <div class="float-right mr-5">
+                            <div class="d-inline-flex mr-4">
+                                <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
+                                <p class="mb-0 text-dark font-weight-bold" id="estimatetotal">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-12 p-0">
-                        <div class="float-right" style="margin-right:5%">
-                            <div class="d-inline-flex mr-1">
-                                <p style="font-size:1.3em !important" class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
-                                <p style="font-size:1.3em !important" class="text-dark font-weight-bold" id="estimatebalance">PHP 0.00</p>
+                        <div class="float-right mr-5">
+                            <div class="d-inline-flex mr-4">
+                                <p class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
+                                <p class="text-dark font-weight-bold" id="estimatebalance">PHP 0.00</p>
                             </div>
                         </div>
                     </div>
@@ -3733,364 +3748,314 @@ function getModal(Location,TTTTT,e,type,sales){
 </div>
 
 <div class="modal fade p-0" id="salesreceiptmodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
+    <script>
+        $(document).ready(function(){
+            $('#add_sales_receipt_form').submit(function(e){
+                e.preventDefault();
+            })
+        })
+    </script>
 <form action="#" class="form-horizontal " id="add_sales_receipt_form" onsubmit="addSalesReceipt()" autocomplete="off">
-{{ csrf_field() }}
-    <input type="hidden" id="reload_sr" name="reload_sr" value="0">
-    <input id="transaction_type_sales_receipt" name="transaction_type_sales_receipt" value="Sales Receipt" hidden>
-    <input type="number" id="total_balance_sales_receipt" step="0.01" name="total_balance_sales_receipt" value="0" hidden>
-    <input id="product_count_sales_receipt" name="product_count_sales_receipt" value="0" hidden>
-    <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
-        <div class="modal-content" style="min-height: 100vh;">
-            <div class="modal-header">
-                <h5 class="modal-title">Sales Receipt</h5>
-                <button type="button" class="close" data-dismiss="modal" id="sales_receipt_modalclose" aria-label="Close">
-                <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body p-4" id="result">
-                <div class="col-md-12 p-0 mb-4">
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Location</p>
-                            <select class="w-100 form-control" id="sales_receipt_location_top" name="sales_receipt_location_top" disabled>
-                                <option value="Main">Main</option>
-                                <option value="Branch">Branch</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Type</p>
-                            <select class="w-100 form-control" id="sales_receipt_type_top" name="sales_receipt_type_top" disabled>
-                                <option >Sales Invoice</option>
-                                <option >Bill Invoice</option>
-                            </select>
-                        </div>
-                    </div>
-                <div class="col-md-12 p-0">
-                    <div class="col-md-4 p-0 pr-3">
-                        <p>Sales Receipt No</p>
-                        <input type="text" name="" id="" class="w-100 form-control" value="{{count($sales_receipt_count)+$sales_receipt_start_no}}" readonly>
-                    </div>
-                    <div class="col-md-2 p-0 pr-3 ">
-                        <p>Sales Receipt Date</p>
-                        <input type="date" name="sr_date" id="sr_date" class="w-100 form-control" required>
-                    </div>
+    {{ csrf_field() }}
+        <input type="hidden" id="reload_sr" name="reload_sr" value="0">
+        <input id="transaction_type_sales_receipt" name="transaction_type_sales_receipt" value="Sales Receipt" hidden>
+        <input type="number" id="total_balance_sales_receipt" step="0.01" name="total_balance_sales_receipt" value="0" hidden>
+        <input id="product_count_sales_receipt" name="product_count_sales_receipt" value="0" hidden>
+        <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
+            <div class="modal-content" style="min-height: 100vh;">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sales Receipt</h5>
+                    <button type="button" class="close" data-dismiss="modal" id="sales_receipt_modalclose" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                    </button>
                 </div>
-                <div class="col-md-12 p-0">
-                    <div class="my-3 p-0 ">
-                        <div class="col-md-4 p-0 pr-3  mb-4">
-                            <p>Customer</p>
-                            <select id="salesrcustomer" type="text" name="sr_customer" class="w-100 form-control" required disabled>
-                                    <option value="">--Select Name--</option>
-                                    {!! $customers_list_after_foreach !!}
-                            </select>
-                        </div>
-                        <div class="col-md-2 p-0" style="display:none;">
-                            <p>Email</p>
-                            <input type="text" name="sr_email" id="sr_email" placeholder="Email (Separate emails with a comma)" class="w-100">
-                            <br>
-                            <div class="float-left">
-                                <input type="checkbox" name="sr_send_later"> Send Now
+                <div class="modal-body p-4" id="result">
+                    <div class="col-md-12 p-0 mb-4">
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Location</p>
+                                <select class="w-100 form-control" id="sales_receipt_location_top" name="sales_receipt_location_top" disabled>
+                                    <option value="Main">Main</option>
+                                    <option value="Branch">Branch</option>
+                                </select>
                             </div>
-                            <div class="float-right">
-                                <p class="text-info" style="margin-bottom:0px;"></p>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Type</p>
+                                <select class="w-100 form-control" id="sales_receipt_type_top" name="sales_receipt_type_top" disabled>
+                                    <option >Sales Invoice</option>
+                                    <option >Bill Invoice</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="col-md-2 p-0 pr-3" style="display:none;" >
-                            <p>Cost Center</p>
-                            <select name="CostCenterSalesReceipt" class="form-control"  id="CostCenterSalesReceipt" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}} disabled>
-                                <option value="">--Select Cost Center--</option>
-                                {!! $cc_list_after_foreach !!}
-                            </select>
-                        </div>
-                        <div class="col-md-2 p-0">
-                            <p>Find Invoice</p>
-                            <input type="text" class="form-control" id="invoiceno_sr" onchange="findInvoiceNo()" readonly onkeyup="findInvoiceNo()" name="invoiceno_sr" placeholder="Find by Invoice No">
-                            <input type="hidden" name="invoice_location" id="invoice_location">
-                            <input type="hidden" name="invoice_type" id="invoice_type">
-                            <input type="hidden" name="invoice_item_no" id="invoice_item_no">
+                    <div class="col-md-12 p-0">
+                        <div class="col-md-4 p-0 pr-3">
+                            <p>Sales Receipt No</p>
+                            <input type="text" name="sales_receipt_no" id="sales_receipt_no" onkeyup="setsales_receipt_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="w-100 form-control" value="{{count($sales_receipt_count)+$sales_receipt_start_no}}" required>
                             <script>
-                                function findInvoiceNo(){
-                                    document.getElementById('clear_lines_sales_receipt').click();
-                                    document.getElementById('salesrcustomer').value='';
-                                    document.getElementById('CostCenterSalesReceipt').value='';
-                                    document.getElementById('salesradd').disabled=true;
-                                    document.getElementById('amountreceived_sr').value="0";
-                                    document.getElementById('last_payment').innerHTML='0.00';
-                                    //EnableSalesReceiptInput(document.getElementById('CostCenterSalesReceipt'));
-                                    $('#salesrcustomer').change();
-                                    $('#sales_receiptbalance').html('PHP 0.00');
-                                    $('#big_sales_receiptbalance').html('PHP 0.00');
-
-                                    var value=document.getElementById('invoiceno_sr').value;
-                                    var location_invoice=document.getElementById('invoice_location').value;
-                                    var type_invoice=document.getElementById('invoice_type').value;
-                                    var invoice_item_no=document.getElementById('invoice_item_no').value;
-                                    var typematched=0;
-                                    document.getElementById('sales_receipt_location_top').value=location_invoice;
-                                    document.getElementById('sales_receipt_type_top').value=type_invoice;
-                                    @foreach($SS as $st)
-                                        if('{{$st->st_no}}'==value && '{{$st->st_type}}'=='Invoice' && '{{$st->st_status}}'!='Paid' && '{{$st->remark}}'!='Cancelled' && '{{$st->st_location}}'==location_invoice && '{{$st->st_invoice_type}}'==type_invoice){
-                                            typematched=1;
-                                        }
-                                    @endforeach
-                                    if(typematched==1){
-                                        console.log(value+" "+location_invoice+" "+type_invoice);
-                                        document.getElementById('salesradd').disabled=false;
-                                        $.ajax({
-                                        type: 'POST',
-                                        url: 'findInvoiceNoCu',                
-                                        data: {_token: '{{csrf_token()}}',value:value,location_invoice:location_invoice,type_invoice:type_invoice},
-                                        success: function(data) {
-                                            document.getElementById('salesrcustomer').value=data[0]['st_customer_id'];
-                                            $('#salesrcustomer').change();
-                                            // $('#sales_receiptbalance').html('PHP '+number_format(data[0]['st_balance'],2));
-                                            // $('#sales_receiptbalance').attr('title',data[0]['st_balance']);
-                                            
-                                            document.getElementById('job_order_sales_receipt').value=data[0]['st_invoice_job_order'];
-                                            document.getElementById('work_no_sales_receipt').value=data[0]['st_invoice_work_no'];
-                                            
-                                            
-                                            
-                                            @foreach($saleeeeeeee as $sa)
-                                                if('{{$sa->st_customer_id}}'==data[0]['st_customer_id'] && '{{$sa->st_type}}'=="Sales Receipt" && document.getElementById('invoiceno_sr').value=="{{$sa->st_payment_for}}"){
-                                                    document.getElementById('last_payment').innerHTML=number_format('{{$sa->st_amount_paid}}',2);
-                                                }
-                                            @endforeach
-                                            
-                                        } 											 
-                                        });
-                                        
-                                        
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: 'findInvoiceNo',                
-                                            data: {_token: '{{csrf_token()}}',value:value,location_invoice:location_invoice,type_invoice:type_invoice,invoice_item_no:invoice_item_no},
-                                            success: function(data) {
-                                                if(data.length>0){
-                                                    document.getElementById('clear_lines_sales_receipt').click();
-                                                }
-                                                var totalamount=0;
-                                            for(var c=1;c<=data.length;c++){
-
-                                                    document.getElementById('add_lines_sales_receipt').click();
-
-                                                    
-                                                    @foreach($cost_center_list as $ccl)
-                                                   
-                                                        if('{{$ccl->cc_no}}'==data[c-1]['st_p_cost_center']){
-                                                            var name_cc="{{trim(preg_replace('/\s\s+/', ' ',$ccl->cc_name))}}";
-                                                            document.getElementById('cost_center_sales_creciept'+c).value=data[c-1]['st_p_cost_center']+" - "+name_cc;
-                                                        }
-                                                    @endforeach
-                                                    document.getElementById('select_product_name_sales_receipt'+c).value=data[c-1]['st_i_product'];
-                                                    if(document.getElementById('select_product_name_sales_receipt'+c).value==""){
-                                                        document.getElementById('ParticularSalesReceipt'+c).value="Cost Center";
-                                                    }else{
-                                                        document.getElementById('ParticularSalesReceipt'+c).value="Product/Services";
-                                                    }
-                                                    $('#ParticularSalesReceipt'+c).trigger('change');
-                                                    //console.log('ParticularSalesReceipt'+c);
-                                                    
-                                                    if(data[c-1]['st_p_cost_center']!=""){
-                                                        document.getElementById('CostCenterSalesReceipt').value=data[c-1]['st_p_cost_center'];
-                                                    }else{
-                                                        document.getElementById('CostCenterSalesReceipt').value='None'; 
-                                                    }
-                                                    //alert(data[c-1]['st_p_debit']);
-                                                    if(data[c-1]['st_p_debit']!=""){
-                                                        document.getElementById('sales_receipt_account_credit_account').value=data[c-1]['st_p_debit'];
-                                                        document.getElementById('sales_receipt_account_credit_account_account').value=data[c-1]['st_p_debit'];
-                                                        document.getElementById('sales_receipt_account_credit_account_cheque_code').value=data[c-1]['st_p_debit'];
-                                                        document.getElementById('sales_receipt_account_credit_account_cheque').value=data[c-1]['st_p_debit'];
-                                                        
-                                                    }
-                                                    document.getElementById('sales_receipt_account_credit_account').disabled="true";
-                                                    document.getElementById('sales_receipt_account_credit_account_account').disabled="true";
-                                                    document.getElementById('sales_receipt_account_credit_account_cheque_code').disabled="true";
-                                                    document.getElementById('sales_receipt_account_credit_account_cheque').disabled="true";
-                                                    
-                                                    document.getElementById('select_product_description_sales_receipt'+c).value=data[c-1]['st_i_desc'];
-                                                    document.getElementById('product_qty_sales_receipt'+c).value=data[c-1]['st_i_qty'];
-                                                    document.getElementById('select_product_rate_sales_receipt'+c).value=number_format(data[c-1]['st_i_rate'],2);
-                                                    document.getElementById('select_product_rate_sales_receipt'+c).title=data[c-1]['st_i_rate'];
-                                                    document.getElementById('total_amount_sales_receipt'+c).innerHTML=number_format(data[c-1]['st_i_total'],2);
-                                                    document.getElementById('total_amount_sales_receipt'+c).title=data[c-1]['st_i_total'];
-                                                    totalamount=(parseInt(totalamount)+(parseInt(data[c-1]['st_i_total'])-parseInt(data[c-1]['st_p_amount'])));
+                                function setsales_receipt_no_new(){
+                                    var invoice_no_field=document.getElementById('sales_receipt_no').value;
+                                    $.ajax({
+                                        method: "POST",
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        },
+                                        url: "check_sales_receipt_no",
+                                        data: {invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                        success: function (data) {
+                                            if(data>0){
+                                                document.getElementById('sales_receipt_no').style.border="1px solid red";
+                                                document.getElementById('salesradd').disabled=true;
+                                            }else{
+                                                document.getElementById('sales_receipt_no').style.border="1px solid green";
+                                                document.getElementById('salesradd').disabled=false;
                                             }
-                                            $('#big_sales_receiptbalance').attr('title',totalamount);
-                                            $('#big_sales_receiptbalance').html('PHP '+number_format(totalamount,2));
-                                            document.getElementById('amountreceived_sr').value=totalamount;
-                                            document.getElementById('amountreceived_sr_mask').value=number_format(totalamount,2);
-                                            $('#sales_receiptbalance').html('PHP '+number_format(totalamount,2));
-                                            document.getElementById('amountreceived_sr').max=totalamount;
-                                            document.getElementById('amountreceived_sr_mask').max=totalamount;
-
-                                            document.getElementById('sales_receipttotal').innerHTML=number_format(totalamount,2);
-                                            
-                                            $('#sales_receipttotal').attr('title',totalamount);
-                                            } 											 
-                                        });
-                                        
-                                    }
-                                    document.getElementById('setselectpickerbutton').click();
-                                    
+                                        }
+                                    });
                                 }
                             </script>
                         </div>
-                        
+                        <div class="col-md-2 p-0 pr-3 ">
+                            <p>Sales Receipt Date</p>
+                            <input type="date" name="sr_date" id="sr_date" class="w-100 form-control" required>
+                        </div>
                     </div>
-                    <div class="col-md-12 p-0 " >
-                        <div class="col-md-4 p-0 pr-3">
-                            <p>Billing Address</p>
-                            <input type="text" name="sr_bill_address" id="sr_bill_address" class="w-100 form-control" readonly >
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>TIN No.</p>
-                            <input type="text" name="tin_no_sr" id="tin_no_sr" class="w-100 form-control" readonly>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Business Style</p>
-                            <input type="text" name="business_style_sr" id="business_style_sr" class="w-100 form-control" readonly>
-                        </div>
-                        
-                        
-                    </div>
-                    <div class="col-md-12 p-0 mt-3">
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Job Order</p>
-                            <input type="text" name="job_order_sales_receipt" id="job_order_sales_receipt" class="w-100 form-control" readonly>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p style="display:none;">Work No</p>
-                            <input type="text" name="work_no_sales_receipt" id="work_no_sales_receipt" class="w-100 form-control" readonly style="display:none;">
-                        </div>
-                        
-                        
-                    </div>
-                    <div class="col-md-12 p-0 mt-3 d-inline-flex" style="margin-bottom:20px;">
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Payment Method</p>
-                            <select onchange="SC_payment_method(this)" onkeyup="SC_payment_method(this)" name="sr_payment_method" id="sr_payment_method" placeholder="Choose payment method" class="w-100 form-control" required>
-                            <option>Cash</option>
-                            <option>Cheque</option>
-                            <option>Cash & Cheque</option>
-                            </select>
-                            <input type="hidden" name="additional_count" value="0" id="additional_count">
-                            <input type="hidden" name="additional_count_cash_account" value="0" id="additional_count_cash_account">
-                            <script>
-                                $(document).ready(function(){
-                                    $('#sr_payment_method').trigger('change');
-                                })
-                                var additionalchequecount=0;
-                                function GenerateFieldSalesReceipt(){
-                                    additionalchequecount++;
-                                    document.getElementById('additional_count').value=additionalchequecount;
-                                    var markup='<p>Bank '+additionalchequecount+'</p>';
-                                        markup=markup+'<select name="sr_reference_no'+additionalchequecount+'" id="sr_reference_no'+additionalchequecount+'" class="w-100 mb-1 form-control">';
-                                        markup=markup+'<option value="">--Select Bank--</option>';
-                                        @foreach ($banks as $bank)
-                                        @if($bank->bank_status=="1")
-                                        markup=markup+'<option title="{{$bank->bank_account_no}}" value="{{$bank->bank_no}}">{{$bank->bank_name." - ".$bank->bank_account_no}}</option>';
-                                        @endif
-                                        @endforeach
-                                        markup=markup+'</select>';
-                                    $("#BankAdditionalDiv").append(markup);
-
-                                    var markup='<p>Cheque No '+additionalchequecount+'</p>';
-                                        markup=markup+'<input type="text"  name="sr_deposit_to'+additionalchequecount+'" id="sr_deposit_to'+additionalchequecount+'" class="w-100 form-control mb-1">';
-                                    $("#BankChequeNoAdditionalDiv").append(markup);
-                                    var markup='<tr id="AdditionalChequeTRSalesReceipt'+additionalchequecount+'">';
-                                        markup=markup+'<td style="text-align:right;vertical-align:middle;">';
-                                            markup=markup+'<p class="text-dark font-weight-bold pr-3">Cheque Amount '+additionalchequecount+'</p>';
-                                        markup=markup+'</td>';
-                                        markup=markup+'<td style="vertical-align:middle;">';
-                                            markup=markup+'<input class="form-control" style="text-align:right;" type="text" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" name="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" placeholder="0.00"  required>';
-                                            markup=markup+'<input type="hidden" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="amountreceived_sr_from_cheque'+additionalchequecount+'" name="sr_amount_paid_from_cheque'+additionalchequecount+'" placeholder="0.00"  required>';
-                                            
-                                        markup=markup+'</td>';
-                                        markup=markup+'</tr>';
-                                       
+                    <div class="col-md-12 p-0">
+                        <div class="my-3 p-0 ">
+                            <div class="col-md-4 p-0 pr-3  mb-4">
+                                <p>Customer</p>
+                                <select id="salesrcustomer" type="text" name="sr_customer" class="w-100 form-control" required disabled>
+                                        <option value="">--Select Name--</option>
+                                        {!! $customers_list_after_foreach !!}
+                                </select>
+                            </div>
+                            <div class="col-md-2 p-0" style="display:none;">
+                                <p>Email</p>
+                                <input type="text" name="sr_email" id="sr_email" placeholder="Email (Separate emails with a comma)" class="w-100">
+                                <br>
+                                <div class="float-left">
+                                    <input type="checkbox" name="sr_send_later"> Send Now
+                                </div>
+                                <div class="float-right">
+                                    <p class="text-info" style="margin-bottom:0px;"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3" style="display:none;" >
+                                <p>Cost Center</p>
+                                <select name="CostCenterSalesReceipt" class="form-control"  id="CostCenterSalesReceipt" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}} disabled>
+                                    <option value="">--Select Cost Center--</option>
+                                    {!! $cc_list_after_foreach !!}
+                                </select>
+                            </div>
+                            <div class="col-md-2 p-0">
+                                <p>Find Invoice</p>
+                                <input type="text" class="form-control" id="invoiceno_sr" onchange="findInvoiceNo()" readonly onkeyup="findInvoiceNo()" name="invoiceno_sr" placeholder="Find by Invoice No">
+                                <input type="hidden" name="invoice_location" id="invoice_location">
+                                <input type="hidden" name="invoice_type" id="invoice_type">
+                                <input type="hidden" name="invoice_item_no" id="invoice_item_no">
+                                <script>
+                                    function findInvoiceNo(){
+                                        document.getElementById('clear_lines_sales_receipt').click();
+                                        document.getElementById('salesrcustomer').value='';
+                                        document.getElementById('CostCenterSalesReceipt').value='';
                                         
-                                    
-                                    $("#AmountFromChequeAdditional").append(markup);
-                                                        var textbox = '#amountreceived_sr_from_cheque_mask'+additionalchequecount;
-                                                        var hidden = '#amountreceived_sr_from_cheque'+additionalchequecount;
+                                        document.getElementById('salesradd').disabled=true;
+                                        document.getElementById('amountreceived_sr').value="0";
+                                        document.getElementById('last_payment').innerHTML='0.00';
+                                        
+                                        //EnableSalesReceiptInput(document.getElementById('CostCenterSalesReceipt'));
+                                        $('#salesrcustomer').change();
+                                        $('#sales_receiptbalance').html('PHP 0.00');
+                                        $('#big_sales_receiptbalance').html('PHP 0.00');
+    
+                                        var value=document.getElementById('invoiceno_sr').value;
+                                        var location_invoice=document.getElementById('invoice_location').value;
+                                        var type_invoice=document.getElementById('invoice_type').value;
+                                        var invoice_item_no=document.getElementById('invoice_item_no').value;
+                                        var typematched=0;
+                                        
+                                        document.getElementById('sales_receipt_location_top').value=location_invoice;
+                                        document.getElementById('sales_receipt_type_top').value=type_invoice;
+                                        @foreach($SS as $st)
+                                            if('{{$st->st_no}}'==value && '{{$st->st_type}}'=='Invoice' && '{{$st->st_status}}'!='Paid' && '{{$st->remark}}'!='Cancelled' && '{{$st->st_location}}'==location_invoice && '{{$st->st_invoice_type}}'==type_invoice){
+                                                typematched=1;
+                                            }
+                                        @endforeach
+                                        if(typematched==1){
+                                            console.log(value+" "+location_invoice+" "+type_invoice);
+                                            document.getElementById('salesradd').disabled=false;
+                                            $.ajax({
+                                            type: 'POST',
+                                            url: 'findInvoiceNoCu',                
+                                            data: {_token: '{{csrf_token()}}',value:value,location_invoice:location_invoice,type_invoice:type_invoice},
+                                            success: function(data) {
+                                                document.getElementById('salesrcustomer').value=data[0]['st_customer_id'];
+                                                $('#salesrcustomer').change();
+                                                // $('#sales_receiptbalance').html('PHP '+number_format(data[0]['st_balance'],2));
+                                                // $('#sales_receiptbalance').attr('title',data[0]['st_balance']);
+                                                
+                                                document.getElementById('job_order_sales_receipt').value=data[0]['st_invoice_job_order'];
+                                                document.getElementById('work_no_sales_receipt').value=data[0]['st_invoice_work_no'];
+                                                
+                                                
+                                                
+                                                @foreach($saleeeeeeee as $sa)
+                                                    if('{{$sa->st_customer_id}}'==data[0]['st_customer_id'] && '{{$sa->st_type}}'=="Sales Receipt" && document.getElementById('invoiceno_sr').value=="{{$sa->st_payment_for}}"){
+                                                        document.getElementById('last_payment').innerHTML=number_format('{{$sa->st_amount_paid}}',2);
+                                                    }
+                                                @endforeach
+                                                
+                                            } 											 
+                                            });
+                                            
+                                            
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: 'findInvoiceNo',                
+                                                data: {_token: '{{csrf_token()}}',value:value,location_invoice:location_invoice,type_invoice:type_invoice,invoice_item_no:invoice_item_no},
+                                                success: function(data) {
+                                                    if(data.length>0){
+                                                        document.getElementById('clear_lines_sales_receipt').click();
+                                                    }
+                                                    var totalamount=0;
+                                                for(var c=1;c<=data.length;c++){
+                                                        console.log('c='+c+' data.length='+data.length);
+                                                        document.getElementById('add_lines_sales_receipt').click();
+    
                                                         
-                                                        $(textbox).keyup(function () {
-                                                            $(textbox).val(this.value.match(/[0-9.,-]*/));
-                                                        var num = $(textbox).val();
-                                                            var comma = /,/g;
-                                                            num = num.replace(comma,'');
-                                                            $(hidden).val(num);
-                                                            $(hidden).attr('title',num);
-                                                            var numCommas = addCommas(num);
-                                                            $(textbox).val(numCommas);
-                                                        });
-                                                                   
-                                }
-                                var AdditionalCashAccountCount=0;
-                                function GenerateAdditionalCashAccountsSalesReceipt(){
-                                    
-                                    $("#cash_account_receive_payment_table").dataTable().fnDestroy();
-                                    AdditionalCashAccountCount++;
-                                    document.getElementById('additional_count_cash_account').value=AdditionalCashAccountCount;
-                                    var markup='<tr id="AdditionalCashTD'+AdditionalCashAccountCount+'">';
-                                        
-                                        markup=markup+'<td style="vertical-align:middle;">';
-                                        markup=markup+'<select onchange="setsraccountdebitcode(\'additionalcashDebitAccountcode'+AdditionalCashAccountCount+'\',\'additionalcashDebitAccount'+AdditionalCashAccountCount+'\')" class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccountcode'+AdditionalCashAccountCount+'" id="additionalcashDebitAccountcode'+AdditionalCashAccountCount+'">';
-                                        @foreach($COA as $coo)
-                                            if('{{$coo->id}}'=="1"){
-                                                markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
-                                            }else{
-                                                markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
-                                            }
-                                            
-                                        @endforeach
-
-                                        markup=markup+'</select>'; 
-                                            
-                                        markup=markup+'</td>';
-                                        markup=markup+'<td style="vertical-align:middle;">';
-
-                                        markup=markup+'<select required onchange="setsraccountdebitcode(\'additionalcashDebitAccount'+AdditionalCashAccountCount+'\',\'additionalcashDebitAccountcode'+AdditionalCashAccountCount+'\')" class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccount'+AdditionalCashAccountCount+'" id="additionalcashDebitAccount'+AdditionalCashAccountCount+'">';
-                                        @foreach($COA as $coo)
-                                            if('{{$coo->id}}'=="1"){
-                                                markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
-                                            }else{
-                                                markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
-                                            }
-                                            
-                                        @endforeach
-                                        
-                                        markup=markup+'</select>'; 
-                                            
-                                        markup=markup+'</td>';
-                                        markup=markup+'<td style="vertical-align:middle;">';
-                                        markup=markup+'<select disabled class="form-control" name="additionalcashCreditAccount'+AdditionalCashAccountCount+'" id="additionalcashCreditAccount'+AdditionalCashAccountCount+'">';
-                                            @foreach($COA as $coo)
-                                            markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_code}}'+'</option>'; 
+                                                        @foreach($cost_center_list as $ccl)
+                                                       
+                                                            if('{{$ccl->cc_no}}'==data[c-1]['st_p_cost_center']){
+                                                                var name_cc="{{trim(preg_replace('/\s\s+/', ' ',$ccl->cc_name))}}";
+                                                                document.getElementById('cost_center_sales_creciept'+c).value=data[c-1]['st_p_cost_center']+" - "+name_cc;
+                                                            }
+                                                        @endforeach
+                                                        
+                                                        document.getElementById('select_product_name_sales_receipt'+c).value=data[c-1]['st_i_product'];
+                                                        if(document.getElementById('select_product_name_sales_receipt'+c).value==""){
+                                                            document.getElementById('ParticularSalesReceipt'+c).value="Cost Center";
+                                                        }else{
+                                                            document.getElementById('ParticularSalesReceipt'+c).value="Product/Services";
+                                                        }
+                                                        $('#ParticularSalesReceipt'+c).trigger('change');
+                                                        //console.log('ParticularSalesReceipt'+c);
+                                                        
+                                                        //alert(data[c-1]['st_p_debit']);
+                                                        // if(data[c-1]['st_p_debit']!=""){
+                                                            
+                                                        //     document.getElementById('sales_receipt_account_credit_account').value=data[c-1]['st_p_debit'];
+                                                        //     document.getElementById('sales_receipt_account_credit_account_account').value=data[c-1]['st_p_debit'];
+                                                            
+                                                            
+                                                        // }
+                                                        
+                                                        // document.getElementById('sales_receipt_account_credit_account').disabled="true";
+                                                        // document.getElementById('sales_receipt_account_credit_account_account').disabled="true";
+                                                        
+                                                        document.getElementById('select_product_description_sales_receipt'+c).value=data[c-1]['st_i_desc'];
+                                                        document.getElementById('product_qty_sales_receipt'+c).value=data[c-1]['st_i_qty'];
+                                                        document.getElementById('select_product_rate_sales_receipt'+c).value=number_format(data[c-1]['st_i_rate'],2);
+                                                        document.getElementById('select_product_rate_sales_receipt'+c).title=data[c-1]['st_i_rate'];
+                                                        document.getElementById('total_amount_sales_receipt'+c).innerHTML=number_format(data[c-1]['st_i_total'],2);
+                                                        document.getElementById('total_amount_sales_receipt'+c).title=data[c-1]['st_i_total'];
+                                                        totalamount=(parseFloat(totalamount)+(parseFloat(data[c-1]['st_i_total'])-parseFloat(data[c-1]['st_p_amount'])));
+                                                        
+                                                }
+                                                $('#big_sales_receiptbalance').attr('title',totalamount);
+                                                $('#big_sales_receiptbalance').html('PHP '+number_format(totalamount,2));
+                                                document.getElementById('amountreceived_sr').value=totalamount;
+                                                document.getElementById('amountreceived_sr_mask').value=number_format(totalamount,2);
+                                                document.getElementById('TotalDebitSalesReceiptTD').innerHTML="Total : "+number_format(totalamount,2);
+                                                document.getElementById('hiddentotaldebitamountsalesreceipt').value=totalamount;
+                                                $('#sales_receiptbalance').html('PHP '+number_format(totalamount,2));
+                                                document.getElementById('amountreceived_sr').max=totalamount;
+                                                document.getElementById('amountreceived_sr_mask').max=totalamount;
+    
+                                                document.getElementById('sales_receipttotal').innerHTML=number_format(totalamount,2);
+                                                
+                                                $('#sales_receipttotal').attr('title',totalamount);
+                                                
+                                                }										 
+                                            });
+                                        }
+                                        document.getElementById('setselectpickerbutton').click();
+                                    }
+                                </script>
+                            </div>
+                            
+                        </div>
+                        <div class="col-md-12 p-0 " >
+                            <div class="col-md-4 p-0 pr-3">
+                                <p>Billing Address</p>
+                                <input type="text" name="sr_bill_address" id="sr_bill_address" class="w-100 form-control" readonly >
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>TIN No.</p>
+                                <input type="text" name="tin_no_sr" id="tin_no_sr" class="w-100 form-control" readonly>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Business Style</p>
+                                <input type="text" name="business_style_sr" id="business_style_sr" class="w-100 form-control" readonly>
+                            </div>
+                            
+                            
+                        </div>
+                        <div class="col-md-12 p-0 mt-3">
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Job Order</p>
+                                <input type="text" name="job_order_sales_receipt" id="job_order_sales_receipt" class="w-100 form-control" readonly>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Work No</p>
+                                <input type="text" name="work_no_sales_receipt" id="work_no_sales_receipt" class="w-100 form-control" readonly>
+                            </div>
+                            
+                            
+                        </div>
+                        <div class="col-md-12 p-0 mt-3 d-inline-flex" style="margin-bottom:20px;">
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Payment Method</p>
+                                <select  name="sr_payment_method" id="sr_payment_method" class="w-100 form-control" required>
+                                <option selected>Cash</option>
+                                <option>Cheque</option>
+                                <option>Cash & Cheque</option>
+                                </select>
+                                <input type="hidden" name="additional_count" value="0" id="additional_count">
+                                <input type="hidden" name="additional_count_cash_account" value="0" id="additional_count_cash_account">
+                                <script>
+                                   
+                                    var additionalchequecount=0;
+                                    function GenerateFieldSalesReceipt(){
+                                        additionalchequecount++;
+                                        document.getElementById('additional_count').value=additionalchequecount;
+                                        var markup='<p>Bank '+additionalchequecount+'</p>';
+                                            markup=markup+'<select name="sr_reference_no'+additionalchequecount+'" id="sr_reference_no'+additionalchequecount+'" class="w-100 mb-1 form-control">';
+                                            markup=markup+'<option value="">--Select Bank--</option>';
+                                            @foreach ($banks as $bank)
+                                            @if($bank->bank_status=="1")
+                                            markup=markup+'<option title="{{$bank->bank_account_no}}" value="{{$bank->bank_no}}">{{$bank->bank_name." - ".$bank->bank_account_no}}</option>';
+                                            @endif
                                             @endforeach
+                                            markup=markup+'</select>';
+                                        $("#BankAdditionalDiv").append(markup);
+    
+                                        var markup='<p>Cheque No '+additionalchequecount+'</p>';
+                                            markup=markup+'<input type="text"  name="sr_deposit_to'+additionalchequecount+'" id="sr_deposit_to'+additionalchequecount+'" class="w-100 form-control mb-1">';
+                                        $("#BankChequeNoAdditionalDiv").append(markup);
+                                        var markup='<tr id="AdditionalChequeTRSalesReceipt'+additionalchequecount+'">';
+                                            markup=markup+'<td style="text-align:right;vertical-align:middle;">';
+                                                markup=markup+'<p class="text-dark font-weight-bold">Cheque Amount '+additionalchequecount+'</p>';
+                                            markup=markup+'</td>';
+                                            markup=markup+'<td style="vertical-align:middle;">';
+                                                markup=markup+'<input class="form-control" style="text-align:right;" type="text" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" name="amountreceived_sr_from_cheque_mask'+additionalchequecount+'" placeholder="0.00"  required>';
+                                                markup=markup+'<input type="hidden" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="amountreceived_sr_from_cheque'+additionalchequecount+'" name="sr_amount_paid_from_cheque'+additionalchequecount+'" placeholder="0.00"  required>';
+                                                
+                                            markup=markup+'</td>';
+                                            markup=markup+'</tr>';
+                                           
+                                            
                                         
-                                        markup=markup+'</select>';    
-                                        
-                                        markup=markup+'</td>';
-                                        markup=markup+'<td style="vertical-align:middle;">';
-                                        markup=markup+'<select disabled required class="form-control" name="additionalcashCreditAccount'+AdditionalCashAccountCount+'" id="additionalcashCreditAccount'+AdditionalCashAccountCount+'">';
-                                            @foreach($COA as $coo)
-                                            markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{preg_replace( "/\r|\n/", "", $coo->coa_name )}}'+'</option>'; 
-                                            @endforeach
-                                        
-                                        markup=markup+'</select>';    
-                                        
-                                        markup=markup+'</td>';
-                                        markup=markup+'<td style="text-align:right;vertical-align:middle;">';
-                                                markup=markup+'<input style="text-align:right;" class="form-control" type="text" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="additionalCashAmount_mask'+AdditionalCashAccountCount+'" name="additionalCashAmount_mask'+AdditionalCashAccountCount+'" placeholder="0.00" value="0" required>';
-                                                markup=markup+'<input type="hidden" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="additionalCashAmount'+AdditionalCashAccountCount+'" name="additionalCashAmount'+AdditionalCashAccountCount+'" placeholder="0.00"  required>';
-                                        markup=markup+'</td>';
-                                        markup=markup+'</tr>';
-                                        $("#tablecashaccounttabletable").append(markup); 
-                                        document.getElementById('additionalcashCreditAccount'+AdditionalCashAccountCount).value=document.getElementById('sales_receipt_account_credit_account').value;
-                                        var textbox = '#additionalCashAmount_mask'+AdditionalCashAccountCount;
-                                        var hidden = '#additionalCashAmount'+AdditionalCashAccountCount;
+                                        $("#AmountFromChequeAdditional").append(markup);
+                                        var textbox = '#amountreceived_sr_from_cheque_mask'+additionalchequecount;
+                                        var hidden = '#amountreceived_sr_from_cheque'+additionalchequecount;
                                         
                                         $(textbox).keyup(function () {
                                             $(textbox).val(this.value.match(/[0-9.,-]*/));
@@ -4102,775 +4067,602 @@ function getModal(Location,TTTTT,e,type,sales){
                                             var numCommas = addCommas(num);
                                             $(textbox).val(numCommas);
                                         });
-                                        refreshpicjer();
-                                        var cash_account_receive_payment_table_table = $('#cash_account_receive_payment_table').DataTable({
-                                                paging: false,
-                                                "ordering": false,
-                                                'dom': 'Rlfrtip',
-                                                "autoWidth": false
+                                                                       
+                                    }
+                                    var AdditionalCashAccountCount=0;
+                                    function GenerateAdditionalCashAccountsSalesReceipt(){
+                                        AdditionalCashAccountCount++;
+                                        document.getElementById('additional_count_cash_account').value=AdditionalCashAccountCount;
+                                        var markup='<tr id="AdditionalCashTD'+AdditionalCashAccountCount+'">';
+                                            
+                                            markup=markup+'<td style="vertical-align:middle;" class="pl-0">';
+    
+                                            markup=markup+'<select required class="form-control selectpicker" data-live-search="true" name="additionalcashDebitAccount'+AdditionalCashAccountCount+'" id="additionalcashDebitAccount'+AdditionalCashAccountCount+'"><option value="">--Select--</option>';
+                                            @foreach($COA as $coo)
+                                                if('{{$coo->id}}'=="1"){
+                                                    markup=markup+'<option selected value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
+                                                }else{
+                                                    markup=markup+'<option value="'+'{{$coo->id}}'+'">'+'{{$coo->coa_name}}'+'</option>'; 
+                                                }
                                                 
-                                        });
-                                        
-                                        if(document.getElementById('cash_account_receive_payment_table_info')){
-                                            document.getElementById('cash_account_receive_payment_table_info').style.display="none";
-                                            document.getElementById('cash_account_receive_payment_table_filter').style.display="none";
-                                        }
+                                            @endforeach
+                                            
+                                            markup=markup+'</select>'; 
+                                                
+                                            markup=markup+'</td>';
+                                            
+                                            markup=markup+'<td style="text-align:right;vertical-align:middle;" class="pr-0">';
+                                                    markup=markup+'<input style="text-align:right;" class="form-control" type="text" onchange="computeoutstanding()" onkeyup="SetCommaValue(\'additionalCashAmount_mask'+AdditionalCashAccountCount+'\',\'additionalCashAmount'+AdditionalCashAccountCount+'\'),swap_amounts(\'additionalCashAmount_mask_c'+AdditionalCashAccountCount+'\',\'additionalCashAmount_c'+AdditionalCashAccountCount+'\'),computeoutstanding()" id="additionalCashAmount_mask'+AdditionalCashAccountCount+'" name="additionalCashAmount_mask'+AdditionalCashAccountCount+'" placeholder="0.00" value="0" required>';
+                                                    markup=markup+'<input type="hidden" onchange="computeoutstanding()" onkeyup="computeoutstanding()" id="additionalCashAmount'+AdditionalCashAccountCount+'" name="additionalCashAmount'+AdditionalCashAccountCount+'" placeholder="0.00" value="0"  required>';
+                                            markup=markup+'</td>';
+                                            markup=markup+'<td style="vertical-align:middle;" class="pr-0">';
+                                                    markup=markup+'<input type="text" style="text-align: right;" id="additionalCashAmount_mask_c'+AdditionalCashAccountCount+'" class="form-control" name="additionalCashAmount_mask_c'+AdditionalCashAccountCount+'" onchange="computeoutstanding_c()" onkeyup="SetCommaValue(\'additionalCashAmount_mask_c'+AdditionalCashAccountCount+'\',\'additionalCashAmount_c'+AdditionalCashAccountCount+'\'),swap_amounts(\'additionalCashAmount_mask'+AdditionalCashAccountCount+'\',\'additionalCashAmount'+AdditionalCashAccountCount+'\'),computeoutstanding_c()" placeholder="0.00" value="0" required>';
+                                                    markup=markup+'<input type="hidden"  id="additionalCashAmount_c'+AdditionalCashAccountCount+'"  onchange="computeoutstanding_c()" onkeyup="computeoutstanding_c()" name="additionalCashAmount_c'+AdditionalCashAccountCount+'" placeholder="0.00" value="0" required>';
+                                            markup=markup+'</td>';
+                                            markup=markup+'</tr>';
+                                            $("#additionalCashSalesReceiptTbody").append(markup); 
+                                            //document.getElementById('additionalcashCreditAccount'+AdditionalCashAccountCount).value=document.getElementById('sales_receipt_account_credit_account').value;
+                                            
+                                            refreshpicjer();
+                                    }
+                                    function SetCommaValue(textbox,hidden){
+                                        $('#'+textbox).val(document.getElementById(textbox).value.match(/[0-9.,-]*/));
+                                        var num = $('#'+textbox).val();
+                                        var comma = /,/g;
+                                        num = num.replace(comma,'');
+                                        $('#'+hidden).val(num);
+                                        $('#'+hidden).attr('title',num);
+                                        var numCommas = addCommas(num);
+                                        $('#'+textbox).val(numCommas);
+                                    }
+                                </script>
+                                <div id="NoOfChequeDivb" style="display:none;"><button type="button" onclick="GenerateFieldSalesReceipt()" class="btn btn-secondary btn-sm mt-1">Additional cheque</button></div>
+                            </div>
+                            <script>
+                                
+                                function addCommas(nStr) {
+                                    nStr += '';
+                                    var comma = /,/g;
+                                    nStr = nStr.replace(comma,'');
+                                    x = nStr.split('.');
+                                    x1 = x[0];
+                                    x2 = x.length > 1 ? '.' + x[1] : '';
+                                    var rgx = /(\d+)(\d{3})/;
+                                    while (rgx.test(x1)) {
+                                        x1 = x1.replace(rgx, '$1' + ',' + '$2');
+                                    }
+                                    return x1 + x2;
                                 }
                             </script>
-                            <div id="NoOfChequeDivb" style="display:none;"><button type="button" onclick="GenerateFieldSalesReceipt()" class="btn btn-secondary btn-sm mt-1">Additional cheque</button></div>
-                        </div>
-                        <script>
-                            function SC_payment_method(input){
-                                if(input.value=="Cheque" || input.value=="Cash & Cheque"){
-                                    document.getElementById('NoOfChequeDivb').style.display="block";
-                                    
-                                    var x=document.getElementsByClassName("ChequeColumnssc");
-                                    var i;
-                                    for (i = 0; i < x.length; i++) {
-                                    x[i].style.display = "block";
-                                    }
-                                    if(input.value=="Cash & Cheque"){
-                                        document.getElementById('CashAccountFirstTD').append(document.getElementById('amountreceived_sr_mask'));
-                                        document.getElementById('SalesReceiptAmountFromChequeDivTransferDiv').style.display="none";
-                                        document.getElementById('CashAccountDivSalesReceipt').style.display="inline";
-                                        document.getElementById('ChequeAccountDivSalesReceipt').style.display="inline";
-                                        //document.getElementById('CashAmountLabel').innerHTML="Cash Amount";
-                                        document.getElementById("SalesReceiptAmountFromChequeDiv").style.display="table-row-group";
-                                    }else{
-                                        //Cheque
-                                        document.getElementById('ChequeAccountFirstTDTransger').append(document.getElementById('amountreceived_sr_mask'));
-                                        document.getElementById('SalesReceiptAmountFromChequeDivTransferDiv').style.display="table-row-group";
-                                        document.getElementById('CashAccountDivSalesReceipt').style.display="none";
-                                        document.getElementById('ChequeAccountDivSalesReceipt').style.display="inline";
-                                        //document.getElementById('CashAmountLabel').innerHTML="Cheque Amount";
-                                        document.getElementById("SalesReceiptAmountFromChequeDiv").style.display="none";
-                                        for(var ss=1;ss<=AdditionalCashAccountCount;ss++){
-                                        
-                                            $('#AdditionalCashTD'+ss).remove();
-
-                                        }
-                                        AdditionalCashAccountCount=0;
-                                        document.getElementById('additional_count_cash_account').value=AdditionalCashAccountCount;
-                                        computeoutstanding();
-                                    }
-                                }else{
-                                    //Cash
-                                    var x=document.getElementsByClassName("ChequeColumnssc");
-                                    var i;
-                                    for (i = 0; i < x.length; i++) {
-                                    x[i].style.display = "none";
-                                    } 
-                                    document.getElementById('CashAccountFirstTD').append(document.getElementById('amountreceived_sr_mask'));
-                                    document.getElementById('SalesReceiptAmountFromChequeDivTransferDiv').style.display="none";
-                                    //document.getElementById('CashAmountLabel').innerHTML="Cash Amount";
-                                    document.getElementById('NoOfChequeDivb').style.display="none";
-                                    document.getElementById("SalesReceiptAmountFromChequeDiv").style.display="none";
-                                    document.getElementById('CashAccountDivSalesReceipt').style.display="inline";
-                                    document.getElementById('ChequeAccountDivSalesReceipt').style.display="none";
-                                    //
-                                    for(var ss=1;ss<=additionalchequecount;ss++){
-                                        
-                                        $('#AdditionalChequeTRSalesReceipt'+ss).remove();
-
-                                    }
-                                    document.getElementById('BankAdditionalDiv').innerHTML="";
-                                    document.getElementById('BankChequeNoAdditionalDiv').innerHTML="";
-                                     
-                                    additionalchequecount=0;
-                                    document.getElementById('additional_count').value=additionalchequecount;
-                                    computeoutstanding();
-                                }
-                               
-                            }
-                            function addCommas(nStr) {
-                                                nStr += '';
-                                                var comma = /,/g;
-                                                nStr = nStr.replace(comma,'');
-                                                x = nStr.split('.');
-                                                x1 = x[0];
-                                                x2 = x.length > 1 ? '.' + x[1] : '';
-                                                var rgx = /(\d+)(\d{3})/;
-                                                while (rgx.test(x1)) {
-                                                    x1 = x1.replace(rgx, '$1' + ',' + '$2');
-                                                }
-                                                return x1 + x2;
-                                                }
-                        </script>
-                        <div class="col-md-2 p-0 pr-3 " >
-                            <div class="ChequeColumnssc" style="display:none;">
-                                <p>Bank</p>
-                                <select name="sr_reference_no" id="sr_reference_no" class="w-100 mb-1 form-control">
-                                    <option value="">--Select Bank--</option>
-                                    @foreach ($banks as $bank)
-                                    @if($bank->bank_status=="1")
-                                    <option title="{{$bank->bank_account_no}}" value="{{$bank->bank_no}}">{{$bank->bank_name." - ".$bank->bank_account_no}}</option>
-                                    @endif
-                                    @endforeach
-                                </select>
-                                <div id="BankAdditionalDiv">
-                                    
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <div class="col-md-2 p-0 pr-3 " >
-                            <div class="ChequeColumnssc" style="display:none;">
-                                <p>Cheque No</p>
-                                <input type="text"  name="sr_deposit_to" id="sr_deposit_to" class="w-100 mb-1 form-control">
-                                <div id="BankChequeNoAdditionalDiv">
-                                    
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <div class="col-md-6 p-0 d-inline-flex justify-content-end pr-2" style="text-align:right;">
-                            <h4 class="mr-2">BALANCE DUE: </h4>
-                            <h4 id="big_sales_receiptbalance">PHP 0.00</h4>
-                        </div>
-                    </div>
-                    <table class="table table-bordered table-responsive-md  text-left font14" id="sales_receipt_table">
-                        <thead>
-                            <tr>
-                                <th class="text-center" width="5%">#</th>
-                                <th class="text-center"   width="10%">PARTICULARS</th>
-                                <th class="text-center"   width="10%">ITEMS</th>
-                                <th class="text-center">DESCRIPTION</th>
-                                <th class="text-center"  width="5%">QTY</th>
-                                <th class="text-center"   width="10%">RATE</th>
-                                <th class="text-center"   width="10%">AMOUNT</th>
-                                <th class="text-center" style="display:none;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="sales_receipt_table_tbody">
-
-                        </tbody>
-                        
-                        <!-- This is our clonable table line -->
-                    </table>
-                    
-                    <div class="col-md-10 p-0" style="text-align:right;">
-                        
-                    </div>
-                    <div class="col-md-2 p-0">
-                        <div class="float-left" style="display:none;">
-                            <div class="d-inline-flex">
-                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sales_receipt">Add Items</button>
-                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sales_receipt">Clear All Items</button>
-                            </div>
-                        </div>
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                
-                                
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8 p-0" style="text-align:right;">
-                    </div>
-                    <div class="col-md-4" style="text-align:right;padding-right:5px !important;">
-                        <table class="table table-borderless table-sm">
-                            <tr>
-                                <td style="vertical-align:middle;" width="80%"><p class="mb-0 pr-4 text-dark font-weight-bold">Amount Due</p></td>
-                                <td style="vertical-align:middle;" width="20%"><p class="mb-0 text-dark font-weight-bold" id="sales_receipttotal">PHP 0.00</p></td>
-                            </tr>
-                            <tr>
-                                <td style="vertical-align:middle;"><p class="mb-0 pr-4 text-dark font-weight-bold">Last Payment</p></td>
-                                <td style="vertical-align:middle;"><p class="mb-0 text-dark font-weight-bold" id="last_payment">PHP 0.00</p></td>
-                            </tr>
-                            <tr>
-                                <td style="vertical-align:middle;"><p class="pr-4 text-dark font-weight-bold">Total</p></td>
-                                <td style="vertical-align:middle;"><p class="text-dark font-weight-bold" id="sales_receiptbalance">PHP 0.00</p></td>
-                            </tr>
-                            <tr>
-                                <td style="vertical-align:middle;"><p class="pr-4 text-dark font-weight-bold">Outstanding Balance</p></td>
-                                <td style="vertical-align:middle;"><p class="text-dark font-weight-bold" id="sales_receiptoutstandingbalance">PHP 0.00</p></td>
-                            </tr>
-                        </table>
-                    </div>
-                    <button style="display:none;" type="button" data-value="asd" id="sales_receipt_account_debit_account_code_button"></button>
-                    <button style="display:none;" type="button" data-value="aqwe" id="sales_receipt_account_debit_account_button"></button>
-                   <script>
-                       function setsraccountdebitcode(origin,destination){
-                        var code=document.getElementById(origin).value;
-                            document.getElementById(destination).value=code;
-                            document.getElementById('sales_receipt_account_debit_account_code_button').setAttribute('data-value',destination);
-                            document.getElementById('sales_receipt_account_debit_account_code_button').click();
-                            //console.log(document.getElementById('sales_receipt_account_debit_account_code_button').getAttribute('id'));
-                            
-                       }
-                   </script>
-                    <div class="col-md-12 p-0 mt-4"  id="CashAccountDivSalesReceipt">
-                        <table class="table table-light table-sm" style="margin-bottom:0px;">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th colspan="3" style="vertical-align:middle;text-align:center;">Cash Accounts</th>
-                                </tr>
-                                
-                            </thead>
-                        </table>
-                        <table class="table table-light table-sm" style="margin-bottom:0px;" id="cash_account_receive_payment_table">
-                            <thead class="thead-light">
-                                <tr>
-                                    
-                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 3ch;border-right:1px solid #ccc;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Credit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 20%;">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablecashaccounttabletable">
-                                <tr>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account_code','sales_receipt_account_debit_account')" data-live-search="true" name="sales_receipt_account_debit_account_code"  id="sales_receipt_account_debit_account_code">
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account','sales_receipt_account_debit_account_code')" data-live-search="true" name="sales_receipt_account_debit_account"  id="sales_receipt_account_debit_account" required>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                    <td style="vertical-align:middle;" >
-                                        <select class="form-control" name="sales_receipt_account_credit_account_account"  id="sales_receipt_account_credit_account_account" >
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{$coa->coa_code}}</option>
-                                        @endforeach
-                                        </select>
-                                    </td>
-                                    <td style="vertical-align:middle;" >
-                                        <select class="form-control" name="sales_receipt_account_credit_account"  id="sales_receipt_account_credit_account" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}" {{$coa->id=="4"? 'Selected' : ''}}>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
-                                        @endforeach
-                                        </select>
-                                    </td>
-                                    <td style="vertical-align:middle;" id="CashAccountFirstTD">
-                                        <script>
-                                            function computeoutstanding(){
-                                                var totalpayment=0;
-                                                var amountreceived_sr=document.getElementById('amountreceived_sr').value;
-                                                var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
-                                                for(var c=1;c<=additionalchequecount;c++){
-                                                    totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
-                                                }
-                                                for(var c=1;c<=AdditionalCashAccountCount;c++){
-                                                    totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('additionalCashAmount'+c).value);
-                                                }
-                                                
-                                                totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr);
-                                                totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr_from_cheque);
-                                                document.getElementById('sales_receiptbalance').innerHTML=number_format(totalpayment,2);
-                                                var sales_receiptbalance=$('#big_sales_receiptbalance').attr('title');
-                                                var totaloutstanding=parseFloat(sales_receiptbalance)-parseFloat(totalpayment);
-                                                document.getElementById('sales_receiptoutstandingbalance').innerHTML=number_format(totaloutstanding,2);
-                                                if(totaloutstanding<0){
-                                                    document.getElementById('salesradd').disabled=true;
-                                                    
-                                                }else{
-                                                    document.getElementById('salesradd').disabled=false;
-                                                    
-                                                }
-                                            }
-                                            $(document).ready(function(){
-                                                var textbox = '#amountreceived_sr_mask';
-                                                var hidden = '#amountreceived_sr';
-                                                
-                                                $(textbox).keyup(function () {
-                                                    $(textbox).val(this.value.match(/[0-9.,-]*/));
-                                                var num = $(textbox).val();
-                                                    var comma = /,/g;
-                                                    num = num.replace(comma,'');
-                                                    $(hidden).val(num);
-                                                    $(hidden).attr('title',num);
-                                                    var numCommas = addCommas(num);
-                                                    $(textbox).val(numCommas);
-                                                });
-                                                function addCommas(nStr) {
-                                                nStr += '';
-                                                var comma = /,/g;
-                                                nStr = nStr.replace(comma,'');
-                                                x = nStr.split('.');
-                                                x1 = x[0];
-                                                x2 = x.length > 1 ? '.' + x[1] : '';
-                                                var rgx = /(\d+)(\d{3})/;
-                                                while (rgx.test(x1)) {
-                                                    x1 = x1.replace(rgx, '$1' + ',' + '$2');
-                                                }
-                                                return x1 + x2;
-                                                }
-                                            })
-                                            
-                                        </script>
-                                        <input type="text" style="text-align: right;" id="amountreceived_sr_mask" class="form-control" name="amountreceived_sr_mask" onchange="computeoutstanding()" onkeyup="computeoutstanding()" placeholder="0.00" required>
-                                        <input type="hidden"  id="amountreceived_sr"  onchange="computeoutstanding()" onkeyup="computeoutstanding()" name="sr_amount_paid" placeholder="0.00" required>
-
-                                    </td>
-                                </tr>
-                                
-                            </tbody>
-                        </table>
-                        <table class="table table-light table-sm">
-                            <tbody>
-                                <tr>
-                                    <td colspan="3" style="vertical-align:middle;">
-                                        <button type="button" onclick="GenerateAdditionalCashAccountsSalesReceipt()" class="btn btn-primary">Add Additional Cash Payment</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div> 
-                    <div class="col-md-12 p-0 mt-4"  id="ChequeAccountDivSalesReceipt">
-                        <table class="table table-light table-sm" style="margin-bottom:0px;" >
-                            <thead class="thead-light">
-                                <tr>
-                                    <th colspan="3" style="vertical-align:middle;text-align:center;">Cheque Accounts</th>
-                                </tr>
-                            </thead>
-                        </table>
-                        <table class="table table-light table-sm" style="margin-bottom:0px;" id="chequeaccounts_receivepayment_table">
-                            <thead class="thead-light">
-                                <tr> 
-                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 10%;">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Credit</th>
-                                    <th style="vertical-align:middle;text-align:center;width: 20%;">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="chequeaccounts_recievipaymenytable">
-                                <tr>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control selectpicker" onchange="setsraccountdebitcode('sales_receipt_account_debit_account_cheque_code','sales_receipt_account_debit_account_cheque')" data-live-search="true" name="sales_receipt_account_debit_account_cheque_code"  id="sales_receipt_account_debit_account_cheque_code" required>
-                                        <?php
-                                        $a = 'Cash Clearing Account';
-                                        ?>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        @if (!empty($sales_setting))
-                                            @if ($coa->id==$sales_setting->sales_sales_receipt_preferred_debit_cheque_account)
-                                            <option selected value="{{$coa->id}}">{{$coa->coa_code}}</option>     
-                                            @else
-                                            <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>    
-                                            @endif
-                                        @else
-                                            @if (strpos($coa->coa_code, $a) !== false)
-                                            <option selected value="{{$coa->id}}">{{$coa->coa_code}}</option>     
-                                            @else
-                                            <option  value="{{$coa->id}}">{{$coa->coa_code}}</option>    
-                                            @endif
-                                        
+                            <div class="col-md-2 p-0 pr-3 " >
+                                <div class="ChequeColumnssc" style="display:none;">
+                                    <p>Bank</p>
+                                    <select name="sr_reference_no" id="sr_reference_no" class="w-100 mb-1 form-control">
+                                        <option value="">--Select Bank--</option>
+                                        @foreach ($banks as $bank)
+                                        @if($bank->bank_status=="1")
+                                        <option title="{{$bank->bank_account_no}}" value="{{$bank->bank_no}}">{{$bank->bank_name." - ".$bank->bank_account_no}}</option>
                                         @endif
-                                        
                                         @endforeach
-                                        </select>
-                                    </td>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control selectpicker" data-live-search="true" name="sales_receipt_account_debit_account_cheque"  id="sales_receipt_account_debit_account_cheque" required>
-                                        <?php
-                                        $a = 'Cash Clearing Account';
-                                        ?>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        @if (!empty($sales_setting))
-                                            @if ($coa->id==$sales_setting->sales_sales_receipt_preferred_debit_cheque_account)
-                                            <option selected value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>     
-                                            @else
-                                            <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>    
-                                            @endif
-                                        @else
-                                            @if (strpos(preg_replace( "/\r|\n/", "", $coa->coa_name ), $a) !== false)
-                                            <option selected value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>     
-                                            @else
-                                            <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>    
-                                            @endif
-                                        
-                                        @endif
-                                        
-                                        @endforeach
-                                        </select>
-                                        <script>
-                                        @if (!empty($sales_setting))
-                                        var countryVal="{{$sales_setting->sales_sales_receipt_preferred_debit_cheque_account}}";
-                                        @else
-                                        var countryVal="1";  
-                                        @endif
-                                       
-                                        $("#sales_receipt_account_debit_account_cheque").change(function() {
-                                        var newVal = $(this).val();
-                                        // if (!confirm("Are you sure you want to change to another Account?")) {
-                                        //     $(this).val(countryVal); //set back
-                                        //     return;                  //abort!
-                                        // }
-                                        setsraccountdebitcode('sales_receipt_account_debit_account_cheque','sales_receipt_account_debit_account_cheque_code');
-                                        //destroy branches
-                                        countryVal = newVal;       //store new value for next time
-                                        });
-                                        </script>
-                                    </td>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control" name="sales_receipt_account_credit_account_cheque_code"  id="sales_receipt_account_credit_account_cheque_code"  required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                    <td style="vertical-align:middle;">
-                                        <select class="form-control"  name="sales_receipt_account_credit_account_cheque"  id="sales_receipt_account_credit_account_cheque" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                    <td style="vertical-align:middle;" id="ChequeAccountFirstTD">
-                                       <table  class="table table-borderless" style="margin-bottom:0px;">
-                                        <tbody id="SalesReceiptAmountFromChequeDivTransferDiv" >
-                                            <tr>
-                                            <td style="text-align:right;vertical-align:middle;">
-                                                    <p class="text-dark font-weight-bold pr-3">Cheque Amount</p>
-                                            </td>
-                                            <td style="vertical-align:middle;" id="ChequeAccountFirstTDTransger">
-                                                
-                                            </td>
-                                            </tr>
-                                        </tbody>
-                                        <tbody id="SalesReceiptAmountFromChequeDiv" style="display:none;">                    
-                                        <tr>
-                                        <td style="text-align:right;vertical-align:middle;">
-                                            <p class="text-dark font-weight-bold pr-3">Cheque Amount</p>
-                                        </td>
-                                        <td style="vertical-align:middle;">
-                                            
-                                                    <script>
-                                                    $(document).ready(function(){
-                                                        var textbox = '#amountreceived_sr_from_cheque_mask';
-                                                        var hidden = '#amountreceived_sr_from_cheque';
-                                                        
-                                                        $(textbox).keyup(function () {
-                                                            $(textbox).val(this.value.match(/[0-9.,-]*/));
-                                                        var num = $(textbox).val();
-                                                            var comma = /,/g;
-                                                            num = num.replace(comma,'');
-                                                            $(hidden).val(num);
-                                                            $(hidden).attr('title',num);
-                                                            var numCommas = addCommas(num);
-                                                            $(textbox).val(numCommas);
-                                                        });
-                                                        function addCommas(nStr) {
-                                                        nStr += '';
-                                                        var comma = /,/g;
-                                                        nStr = nStr.replace(comma,'');
-                                                        x = nStr.split('.');
-                                                        x1 = x[0];
-                                                        x2 = x.length > 1 ? '.' + x[1] : '';
-                                                        var rgx = /(\d+)(\d{3})/;
-                                                        while (rgx.test(x1)) {
-                                                            x1 = x1.replace(rgx, '$1' + ',' + '$2');
-                                                        }
-                                                        return x1 + x2;
-                                                        }
-                                                    })
-                                                    </script>
-                                                    <input type="text" style="text-align: right;" id="amountreceived_sr_from_cheque_mask" onchange="computeoutstanding()" onkeyup="computeoutstanding()" name="amountreceived_sr_from_cheque_mask" class="form-control" placeholder="0.00" value="0" required>
-                                                    <input type="hidden" step="0.01"  id="amountreceived_sr_from_cheque" onchange="computeoutstanding()" onkeyup="computeoutstanding()" name="sr_amount_paid_from_cheque" placeholder="0.00" value="0" required>
-                                            
-                                        </td>
-                                        </tr>
-                                        </tbody>
-                                        <tbody id="AmountFromChequeAdditional" >
-                                            
-                                        </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                                
-                            </tbody>
-                        </table>
-                    </div> 
-                    <div class="col-md-12 p-0">
-                        <div class="col-md-6 pl-0">
-                            <p>Message Displayed on Sales Receipt</p>
-                            <textarea rows="3" class="w-100 form-control" name="sr_message"></textarea>
-                        </div>
-                        <div class="col-md-6 pr-0">
-                            <p>Memo</p>
-                            <textarea rows="3" class="w-100 form-control" name="sr_memo"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6 m-0 p-0 mt-3" style="display:none;">
-                        <div class="d-inline-flex">
-                            <p class="fa fa-paperclip"></p>
-                            <p class="p-0 ml-1">Maximum Size: 20MB</p>
-                        </div>
-                        <div class="input-group mb-3 p-0">
-                            <div class="custom-file">
-                                <input type="file" name="sr_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                                <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                <button id="salesradd" class="btn btn-success rounded" type="submit">Save</button>
-            </div>
-        </div>
-    </div>
-</form>
-</div>
-
-<div class="modal fade p-0" id="creditnotemodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
-<form action="#" class="form-horizontal " id="add_credit_note_form" onsubmit="addCreditNote()" autocomplete="off">
-{{ csrf_field() }}
-    <input id="transaction_type_credit_note" name="transaction_type_credit_note" value="Credit Note" hidden>
-    <input type="number" id="total_balance_credit_note" step="0.01" name="total_balance_credit_note" value="0" hidden>
-    <input id="product_count_credit_note" name="product_count_credit_note" value="0" hidden>
-    <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
-        <div class="modal-content" style="min-height: 100vh;">
-            <div class="modal-header">
-                <h5 class="modal-title">Credit Note</h5>
-                <button type="button" class="close" data-dismiss="modal" id="creditnotemodalclose" aria-label="Close">
-                <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body p-4" id="result">
-                <div class="col-md-12 p-0 mb-4">
-                    <div class="col-md-12 p-0 " style="margin-bottom:20px;">
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Credit Note No</p>
-                            <input type="text" name="" id="" class="w-100 form-control" value="{{count($credit_note_count)+$credit_note_start_no}}" readonly>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Credit Note Date</p>
-                            <input type="date" name="cn_date" id="cn_date" class="w-100 form-control" required>
-                        </div>
-                        
-                    </div>
-                    <div class="my-3 p-0">
-                        <div class="col-md-3 p-0 pr-3">
-                            <p>Customer</p>
-                            <select id="creditncustomer" type="text" name="cn_customer" class="w-100 selectpicker " data-live-search="true" required>
-                                    <option value="">--Select Name--</option>
-                                    {!! $customers_list_after_foreach !!}
                                     </select>
-                        </div>
-                        <div class="col-md-3 p-0 pr-3" style="display:none;">
-                            <p>Email</p>
-                            <input type="text" name="cn_email" id="cn_email" placeholder="Email (Separate emails with a comma)" class="w-100">
-                            <br>
-                            <div class="float-left">
-                                <input type="checkbox" name="cn_send_later"> Send Now
-                            </div>
-                            <div class="float-right">
-                                <p class="text-info" style="margin-bottom:0px;"></p>
-                            </div>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
-                            <p>Cost Center</p>
-                            <select name="CostCenterCreditNote" onchange="EnableCreditNoteInput(this)" id="CostCenterCreditNote" class="w-100 form-control" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
-                                <option value="">--Select Cost Center--</option>
-                                {!! $cc_list_after_foreach !!}
-                            </select>
-                        </div>
-                        
-                        
-                    </div>
-                    
-                    <div class="col-md-12 p-0 ">
-                        <div class="col-md-4 p-0 pr-3">
-                            <p>Billing Address</p>
-                            <input type="text" name="cn_bill_address" id="cn_bill_address" class="w-100 form-control" required>
-                        </div>
-                        
-                        
-                        
-                    </div>
-                    <div class="col-md-12 p-0"  style="margin-bottom:20px;">
-                        <table class="table-borderless table-sm" style="margin-right:3%;float:right;"> <!--style="margin-right:5%;float:right;" -->
-                            <tr>
-                                <td style="vertical-align:middle;text-align:right;">
-                                    <div class="col-md-12 p-0 d-inline-flex center-content">
-                                        <h4 class="mr-2">BALANCE DUE: </h4>
-                                        <h4 id="big_credit_notebalance">PHP 0.00</h4>
+                                    <div id="BankAdditionalDiv">
+                                        
                                     </div>
-                                </td>
-                            </tr>
-                            
-                        </table>
-                    </div>
-                    <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="credit_note_table">
-                        <thead class="thead-light">
-                            <tr>
-                                <th class="text-center">#</th>
-                                <th class="text-center">PRODUCT/SERVICE</th>
-                                <th class="text-center" width="30%">DESCRIPTION</th>
-                                <th class="text-center" width="10%">QTY</th>
-                                <th class="text-center" width="15%">RATE</th>
-                                <th class="text-center" width="15%">AMOUNT</th>
-                                <th class="text-center" width="3%"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="credit_note_table_tbody">
-
-                        </tbody>
-                        
-                        <!-- This is our clonable table line -->
-                    </table>
-                    <div class="col-md-12 p-0 mt-4">
-                        <div class="float-left">
-                            <div class="d-inline-flex">
-                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_credit_note">Add Items</button>
-                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_credit_note">Clear All Items</button>
-                            </div>
-                        </div>
-                        <div class="float-right " style="margin-right:3%">
-                            <div class="d-inline-flex mr-1" >
-                                <p style="font-size:1.3em !important" class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
-                                <p style="font-size:1.3em !important" class="mb-0 text-dark font-weight-bold" id="credit_notetotal">PHP 0.00</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 p-0">
-                        <div class="float-right " style="margin-right:3%">
-                            <div class="d-inline-flex mr-1" >
-                                <p style="font-size:1.3em !important" class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
-                                <p style="font-size:1.3em !important" class="text-dark font-weight-bold" id="credit_notebalance">PHP 0.00</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 p-0">
-                        <div class="col-md-6 pl-0">
-                            <p>Message Displayed on Credit Note</p>
-                            <textarea rows="3" class="w-100 form-control" name="cn_message"></textarea>
-                        </div>
-                        <div class="col-md-6 pr-0">
-                            <p>Memo</p>
-                            <textarea rows="3" class="w-100 form-control" name="cn_memo"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-12 p-0 mt-4">
-                        <table class="table table-light mb-0">
-                            <thead class="thead-light table-sm">
-                                <tr>
-                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
-                                </tr>
-                            </thead>
-                        </table>
-                        <button type="button" style="display:none;" data-value="" id="creditnotedebitcodebutton"></button>
-                        <button type="button" style="display:none;" data-value="" id="creditnotedebitaccountbutton"></button>
-                        <button type="button" style="display:none;" data-value="" id="creditnotecreditcodebutton"></button>
-                        <button type="button" style="display:none;" data-value="" id="creditnotecreditaccountbutton"></button>
-                        <script>
-                            function setcredit_note_debit_Code(row){
-                                var code=document.getElementById('credit_note_account_debit_account_code').value;
-                                document.getElementById('credit_note_account_debit_account').value=code;
-                                document.getElementById('creditnotedebitcodebutton').setAttribute('data-value',row);
-                                document.getElementById('creditnotedebitcodebutton').click();
-                            }
-                            function setcredit_note_debit_account(row){
-                                var code=document.getElementById('credit_note_account_debit_account').value;
-                                document.getElementById('credit_note_account_debit_account_code').value=code;
-                                document.getElementById('creditnotedebitaccountbutton').setAttribute('data-value',row);
-                                document.getElementById('creditnotedebitaccountbutton').click();
-                            }
-                            function setcredit_note_credit_Code(row){
-                                var code=document.getElementById('credit_note_account_credit_account_code').value;
-                                document.getElementById('credit_note_account_credit_account').value=code;
-                                document.getElementById('creditnotecreditcodebutton').setAttribute('data-value',row);
-                                document.getElementById('creditnotecreditcodebutton').click();
-                               
-                            }
-                            function setcredit_note_credit_account(row){
-                                var code=document.getElementById('credit_note_account_credit_account').value;
-                                document.getElementById('credit_note_account_credit_account_code').value=code;
-                                document.getElementById('creditnotecreditaccountbutton').setAttribute('data-value',row);
-                                document.getElementById('creditnotecreditaccountbutton').click();
-                            }
-                        </script>
-                        <table class="table table-light table-sm" id="credit_note_accounts_table_main">
-                            <thead class="thead-light table-sm">
-                                <tr>
-                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="10%">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;border-right:2px solid #ccc;" width="40%">Debit</th>
-                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="10%">Code</th>
-                                    <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;" width="40%">Credit</th>
-                                </tr>
-                            </thead>
-                            <tbody id="credit_note_accounts_table">
-                                <tr>
-                                    <td style="vertical-align:middle;" class="pl-0">
-                                        <select class="form-control selectpicker" onchange="setcredit_note_debit_Code('1')" data-live-search="true" name="credit_note_account_debit_account_code"  id="credit_note_account_debit_account_code" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='4'? 'selected':''}} value="{{$coa->id}}">{{$coa->coa_code}}</option>
-                                        @endforeach
-                                        </select>
-                                    </td>   
-                                    <td style="vertical-align:middle;border-right:2px solid #ccc;" class="pl-0">
-                                        <select class="form-control selectpicker" onchange="setcredit_note_debit_account('1')" data-live-search="true" name="credit_note_account_debit_account"  id="credit_note_account_debit_account" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='4'? 'selected':''}}  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                    <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" onchange="setcredit_note_credit_Code('1')" data-live-search="true" name="credit_note_account_credit_account_code"  id="credit_note_account_credit_account_code" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='2'? 'selected':''}} value="{{$coa->id}}">{{$coa->coa_code}}</option>
-                                        @endforeach
-                                        </select>
-                                       
-                                    </td>
-                                    <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" onchange="setcredit_note_credit_account('1')" data-live-search="true" name="credit_note_account_credit_account"  id="credit_note_account_credit_account" required>
-                                        <option></option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        <option {{$coa->id=='2'? 'selected':''}}  value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>
-                                        @endforeach
-                                        </select>
-                                        
-                                    </td>
-                                </tr>
+                                </div>
                                 
-                            </tbody>
-                        </table>
-                    </div> 
-                    <div class="col-md-6 m-0 p-0 mt-3" style="display:none;">
-                        <div class="d-inline-flex">
-                            <p class="fa fa-paperclip"></p>
-                            <p class="p-0 ml-1">Maximum Size: 20MB</p>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3 " >
+                                <div class="ChequeColumnssc" style="display:none;">
+                                    <p>Cheque No</p>
+                                    <input type="text"  name="sr_deposit_to" id="sr_deposit_to" class="w-100 mb-1 form-control">
+                                    <div id="BankChequeNoAdditionalDiv">
+                                        
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-6 p-0 d-inline-flex justify-content-end pr-5" style="text-align:right;">
+                                <h4 class="mr-2">BALANCE DUE: </h4>
+                                <h4 id="big_sales_receiptbalance">PHP 0.00</h4>
+                            </div>
                         </div>
-                        <div class="input-group mb-3 p-0">
-                            <div class="custom-file">
-                                <input type="file" name="cn_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                                <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
+                        <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sales_receipt_table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" width="5%">#</th>
+                                    <th class="text-center"   width="10%">PARTICULARS</th>
+                                    <th class="text-center"   width="10%">ITEMS</th>
+                                    <th class="text-center">DESCRIPTION</th>
+                                    <th class="text-center"  width="5%">QTY</th>
+                                    <th class="text-center"   width="10%">RATE</th>
+                                    <th class="text-center"   width="10%">AMOUNT</th>
+                                    <th class="text-center" style="display:none;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales_receipt_table_tbody">
+
+                            </tbody>
+                            <!-- This is our clonable table line -->
+                        </table>
+                        
+                        <div class="col-md-10 p-0" style="text-align:right;">
+                            
+                        </div>
+                        <div class="col-md-2 p-0">
+                            <div class="float-left" style="display:none;">
+                                <div class="d-inline-flex">
+                                    <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sales_receipt">Add Items</button>
+                                    <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sales_receipt">Clear All Items</button>
+                                </div>
+                            </div>
+                            <div class="float-right mr-5">
+                                <div class="d-inline-flex mr-4">
+                                    
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8 p-0" style="text-align:right;">
+                        </div>
+                        <div class="col-md-4" style="text-align:right;">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td style="vertical-align:middle;" width="80%"><p class="mb-0 pr-4 text-dark font-weight-bold">Amount Due</p></td>
+                                    <td style="vertical-align:middle;" width="20%"><p class="mb-0 text-dark font-weight-bold" id="sales_receipttotal">PHP 0.00</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;"><p class="mb-0 pr-4 text-dark font-weight-bold">Last Payment</p></td>
+                                    <td style="vertical-align:middle;"><p class="mb-0 text-dark font-weight-bold" id="last_payment">PHP 0.00</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;"><p class="pr-4 text-dark font-weight-bold">Total</p></td>
+                                    <td style="vertical-align:middle;"><p class="text-dark font-weight-bold" id="sales_receiptbalance">PHP 0.00</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;"><p class="pr-4 text-dark font-weight-bold">Outstanding Balance</p></td>
+                                    <td style="vertical-align:middle;"><p class="text-dark font-weight-bold" id="sales_receiptoutstandingbalance">PHP 0.00</p></td>
+                                </tr>
+                            </table>
+                        </div>
+                       
+                        <div class="col-md-12 p-0 mt-4"  id="CashAccountDivSalesReceipt">
+                            <table class="table table-light">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th colspan="3" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="vertical-align:middle;text-align:center;width: 40%;">Account</th>
+                                        <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Debit</th>
+                                        <th style="vertical-align:middle;text-align:center;width: 30%;border-right:1px solid #ccc;">Credit</th>
+                                        
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        
+                                        <td style="vertical-align:middle;" class="pl-0">
+                                            <select class="form-control selectpicker" data-live-search="true" name="sales_receipt_account_debit_account"  id="sales_receipt_account_debit_account" required>
+                                            <option value="">--Select--</option>
+                                            @foreach($c_o_a_sorted as $coa)
+                                            <option value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                            @endforeach
+                                            </select>
+                                            
+                                        </td>
+                                        
+                                        <td style="vertical-align:middle;" id="CashAccountFirstTD" class="pr-0">
+                                            <script>
+                                                function computeoutstanding(){
+                                                    var totalpayment=0;
+                                                    var amountreceived_sr=document.getElementById('amountreceived_sr').value;
+                                                    //var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
+                                                    // for(var c=1;c<=additionalchequecount;c++){
+                                                    //     totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
+                                                    // }
+                                                    for(var c=1;c<=AdditionalCashAccountCount;c++){
+                                                        totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('additionalCashAmount'+c).value);
+                                                    }
+                                                    
+                                                    totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr);
+                                                    //totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr_from_cheque);
+                                                    document.getElementById('sales_receiptbalance').innerHTML=number_format(totalpayment,2);
+                                                    var sales_receiptbalance=$('#big_sales_receiptbalance').attr('title');
+                                                    var totaloutstanding=parseFloat(sales_receiptbalance)-parseFloat(totalpayment);
+                                                    document.getElementById('sales_receiptoutstandingbalance').innerHTML=number_format(totaloutstanding,2);
+                                                    document.getElementById('TotalDebitSalesReceiptTD').innerHTML='Total : '+number_format(totalpayment,2);
+                                                    document.getElementById('hiddentotaldebitamountsalesreceipt').value=totalpayment;
+                                                    var totalpayment=0;
+                                                    var amountreceived_sr_c=document.getElementById('amountreceived_sr_c').value;
+                                                    //var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
+                                                    // for(var c=1;c<=additionalchequecount;c++){
+                                                    //     totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
+                                                    // }
+                                                    for(var c=1;c<=AdditionalCashAccountCount;c++){
+                                                        totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('additionalCashAmount_c'+c).value);
+                                                    }
+                                                    totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr_c);
+                                                    var sales_receiptbalance=$('#big_sales_receiptbalance').attr('title');
+                                                    var totaloutstanding2=parseFloat(sales_receiptbalance)-parseFloat(totalpayment);
+                                                    document.getElementById('TotalCreditSalesReceiptTD').innerHTML='Total : '+number_format(totalpayment,2);
+                                                    document.getElementById('hiddentotalcredtiamountsalesreceipt').value=totalpayment;
+                                                    if(totaloutstanding<0 || totaloutstanding2<0){
+                                                        document.getElementById('salesradd').disabled=true;
+                                                        
+                                                    }else{
+                                                        if(document.getElementById('hiddentotaldebitamountsalesreceipt').value==document.getElementById('hiddentotalcredtiamountsalesreceipt').value){
+                                                            document.getElementById('salesradd').disabled=false;
+                                                        }else{
+                                                            document.getElementById('salesradd').disabled=true;
+                                                        }
+                                                        
+                                                        
+                                                    }
+    
+                                                }
+                                                
+                                                function computeoutstanding_c(){
+                                                    var totalpayment=0;
+                                                    var amountreceived_sr_c=document.getElementById('amountreceived_sr_c').value;
+                                                    //var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
+                                                    // for(var c=1;c<=additionalchequecount;c++){
+                                                    //     totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
+                                                    // }
+                                                    for(var c=1;c<=AdditionalCashAccountCount;c++){
+                                                        totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('additionalCashAmount_c'+c).value);
+                                                    }
+                                                    totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr_c);
+                                                    var sales_receiptbalance=$('#big_sales_receiptbalance').attr('title');
+                                                    var totaloutstanding=parseFloat(sales_receiptbalance)-parseFloat(totalpayment);
+                                                    document.getElementById('TotalCreditSalesReceiptTD').innerHTML='Total : '+number_format(totalpayment,2);
+                                                    document.getElementById('hiddentotalcredtiamountsalesreceipt').value=totalpayment;
+                                                    var totalpayment=0;
+                                                    var amountreceived_sr=document.getElementById('amountreceived_sr').value;
+                                                    //var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
+                                                    // for(var c=1;c<=additionalchequecount;c++){
+                                                    //     totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
+                                                    // }
+                                                    for(var c=1;c<=AdditionalCashAccountCount;c++){
+                                                        totalpayment=parseFloat(totalpayment)+parseFloat(document.getElementById('additionalCashAmount'+c).value);
+                                                    }
+                                                    
+                                                    totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr);
+                                                    //totalpayment=parseFloat(totalpayment)+parseFloat(amountreceived_sr_from_cheque);
+                                                    document.getElementById('sales_receiptbalance').innerHTML=number_format(totalpayment,2);
+                                                    var sales_receiptbalance=$('#big_sales_receiptbalance').attr('title');
+                                                    var totaloutstanding2=parseFloat(sales_receiptbalance)-parseFloat(totalpayment);
+                                                    document.getElementById('sales_receiptoutstandingbalance').innerHTML=number_format(totaloutstanding,2);
+                                                    document.getElementById('TotalDebitSalesReceiptTD').innerHTML='Total : '+number_format(totalpayment,2);
+                                                    document.getElementById('hiddentotaldebitamountsalesreceipt').value=totalpayment;
+                                                    if(totaloutstanding<0 || totaloutstanding2<0){
+                                                        document.getElementById('salesradd').disabled=true;
+                                                        
+                                                    }else{
+                                                        document.getElementById('salesradd').disabled=false;
+                                                        
+                                                    }
+                                                }
+                                                $(document).ready(function(){
+                                                    var textbox = '#amountreceived_sr_mask';
+                                                    var hidden = '#amountreceived_sr';
+                                                    
+                                                    $('#amountreceived_sr_mask').keyup(function () {
+                                                        $('#amountreceived_sr_mask').val(this.value.match(/[0-9.,-]*/));
+                                                    var num = $('#amountreceived_sr_mask').val();
+                                                        var comma = /,/g;
+                                                        num = num.replace(comma,'');
+                                                        $('#amountreceived_sr').val(num);
+                                                        $('#amountreceived_sr').attr('title',num);
+                                                        var numCommas = addCommas(num);
+                                                        $('#amountreceived_sr_mask').val(numCommas);
+                                                    });
+                                                    function addCommas(nStr) {
+                                                    nStr += '';
+                                                    var comma = /,/g;
+                                                    nStr = nStr.replace(comma,'');
+                                                    x = nStr.split('.');
+                                                    x1 = x[0];
+                                                    x2 = x.length > 1 ? '.' + x[1] : '';
+                                                    var rgx = /(\d+)(\d{3})/;
+                                                    while (rgx.test(x1)) {
+                                                        x1 = x1.replace(rgx, '$1' + ',' + '$2');
+                                                    }
+                                                    return x1 + x2;
+                                                    }
+                                                    var textbox2 = '#amountreceived_sr_mask_c';
+                                                    var hidden2 = '#amountreceived_sr_c';
+                                                    
+                                                    $('#amountreceived_sr_mask_c').keyup(function () {
+                                                        $('#amountreceived_sr_mask_c').val(this.value.match(/[0-9.,-]*/));
+                                                    var num = $('#amountreceived_sr_mask_c').val();
+                                                        var comma = /,/g;
+                                                        num = num.replace(comma,'');
+                                                        $('#amountreceived_sr_c').val(num);
+                                                        $('#amountreceived_sr_c').attr('title',num);
+                                                        var numCommas = addCommas(num);
+                                                        $('#amountreceived_sr_mask_c').val(numCommas);
+                                                    });
+                                                })
+                                                function swap_amounts(mask,type){
+                                                    console.log(mask+" "+type);
+                                                    document.getElementById(mask).value="0";
+                                                    document.getElementById(type).value="0";
+                                                    $('#'+type).attr('title','0');
+                                                   
+                                                }
+                                            </script>
+                                            <input type="text" style="text-align: right;" id="amountreceived_sr_mask" class="form-control" name="amountreceived_sr_mask" onchange="computeoutstanding()" onkeyup="swap_amounts('amountreceived_sr_mask_c','amountreceived_sr_c'),computeoutstanding()" placeholder="0.00" value='0' required>
+                                            <input type="hidden"  id="amountreceived_sr"  onchange="computeoutstanding()" onkeyup="computeoutstanding()" value='0' name="sr_amount_paid" placeholder="0.00" required>
+                                        </td>
+                                        <td style="vertical-align:middle;" class="pr-0">
+                                            <input type="text" style="text-align: right;" id="amountreceived_sr_mask_c" class="form-control" name="amountreceived_sr_mask_c" onchange="computeoutstanding_c()" onkeyup="swap_amounts('amountreceived_sr_mask','amountreceived_sr'),computeoutstanding_c()" placeholder="0.00" value='0' required>
+                                            <input type="hidden"  id="amountreceived_sr_c"  onchange="computeoutstanding_c()" onkeyup="computeoutstanding_c()" value='0' name="amountreceived_sr_c" placeholder="0.00" required>
+                                        </td>
+                                    </tr>
+                                    
+                                </tbody>
+                                <tbody id="additionalCashSalesReceiptTbody">
+    
+                                </tbody>
+                                <tbody>
+                                    <tr>
+                                        <td  style="vertical-align:middle;">
+                                            <input type="hidden" id="hiddentotaldebitamountsalesreceipt" name="hiddentotaldebitamountsalesreceipt">
+                                            <input type="hidden" id="hiddentotalcredtiamountsalesreceipt" name="hiddentotalcredtiamountsalesreceipt">
+                                            <button type="button" onclick="GenerateAdditionalCashAccountsSalesReceipt()" class="btn btn-primary">Add Account</button>
+                                        </td>
+                                        <td  style="vertical-align:middle;text-align:right;font-size:large;font-weight:bold;" id="TotalDebitSalesReceiptTD">
+                                            Total : 0.00
+                                        </td>
+                                        <td  style="vertical-align:middle;text-align:right;font-size:large;font-weight:bold;" id="TotalCreditSalesReceiptTD">
+                                            Total : 0.00
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+    
+                        </div> 
+                        
+                        <div class="col-md-12 p-0">
+                            <div class="col-md-6 pl-0">
+                                <p>Message Displayed on Sales Receipt</p>
+                                <textarea rows="3" class="w-100 form-control" name="sr_message"></textarea>
+                            </div>
+                            <div class="col-md-6 pr-0">
+                                <p>Memo</p>
+                                <textarea rows="3" class="w-100 form-control" name="sr_memo"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6 m-0 p-0 mt-3" style="display:none;">
+                            <div class="d-inline-flex">
+                                <p class="fa fa-paperclip"></p>
+                                <p class="p-0 ml-1">Maximum Size: 20MB</p>
+                            </div>
+                            <div class="input-group mb-3 p-0">
+                                <div class="custom-file">
+                                    <input type="file" name="sr_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                                    <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                <button id="creditnadd" class="btn btn-success rounded" type="submit">Save</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
+                    <button id="salesradd" class="btn btn-success rounded" type="submit">Save</button>
+                </div>
             </div>
         </div>
+    </form>
     </div>
-</form>
-</div>
+
+    <div class="modal fade p-0" id="creditnotemodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
+        <form action="#" class="form-horizontal " id="add_credit_note_form" onsubmit="addCreditNote()" autocomplete="off">
+        {{ csrf_field() }}
+            <input id="transaction_type_credit_note" name="transaction_type_credit_note" value="Credit Note" hidden>
+            <input type="number" id="total_balance_credit_note" step="0.01" name="total_balance_credit_note" value="0" hidden>
+            <input id="product_count_credit_note" name="product_count_credit_note" value="0" hidden>
+            <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
+                <div class="modal-content" style="min-height: 100vh;">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Credit Note</h5>
+                        <button type="button" class="close" data-dismiss="modal" id="creditnotemodalclose" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4" id="result">
+                        <div class="col-md-12 p-0 mb-4">
+                            <div class="col-md-12 p-0 " style="margin-bottom:20px;">
+                                <div class="col-md-2 p-0 pr-3">
+                                    <p>Credit Note No</p>
+                                    <input type="text" onkeyup="setcredit_note_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" name="credit_note_no" id="credit_note_no" class="w-100 form-control" value="{{count($credit_note_count)+$credit_note_start_no}}" required>
+                                    <script>
+                                        function setcredit_note_no_new(){
+                                            var invoice_no_field=document.getElementById('credit_note_no').value;
+                                            $.ajax({
+                                                method: "POST",
+                                                headers: {
+                                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                                },
+                                                url: "check_credit_note_no",
+                                                data: {invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                                success: function (data) {
+                                                    if(data>0){
+                                                        document.getElementById('credit_note_no').style.border="1px solid red";
+                                                        document.getElementById('creditnadd').disabled=true;
+                                                    }else{
+                                                        document.getElementById('credit_note_no').style.border="1px solid green";
+                                                        document.getElementById('creditnadd').disabled=false;
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    </script>
+                                </div>
+                                <div class="col-md-2 p-0 pr-3">
+                                    <p>Credit Note Date</p>
+                                    <input type="date" name="cn_date" id="cn_date" class="w-100 form-control" required>
+                                </div>
+                                <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
+                                    <h4 class="mr-2">BALANCE DUE: </h4>
+                                    <h4 id="big_credit_notebalance">PHP 0.00</h4>
+                                </div>
+                            </div>
+                            <div class="my-3 p-0">
+                                <div class="col-md-3 p-0 pr-3">
+                                    <p>Customer</p>
+                                    <select id="creditncustomer" type="text" name="cn_customer" class="w-100 selectpicker " data-live-search="true" required>
+                                            <option value="">--Select Name--</option>
+                                            {!! $customers_list_after_foreach !!}
+                                            </select>
+                                </div>
+                                <div class="col-md-3 p-0 pr-3" style="display:none;">
+                                    <p>Email</p>
+                                    <input type="text" name="cn_email" id="cn_email" placeholder="Email (Separate emails with a comma)" class="w-100">
+                                    <br>
+                                    <div class="float-left">
+                                        <input type="checkbox" name="cn_send_later"> Send Now
+                                    </div>
+                                    <div class="float-right">
+                                        <p class="text-info" style="margin-bottom:0px;"></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
+                                    <p>Cost Center</p>
+                                    <select name="CostCenterCreditNote" onchange="EnableCreditNoteInput(this)" id="CostCenterCreditNote" class="w-100 form-control" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
+                                        <option value="">--Select Cost Center--</option>
+                                        {!! $cc_list_after_foreach !!}
+                                    </select>
+                                </div>
+                                
+                                
+                            </div>
+                            
+                            <div class="col-md-12 p-0 " style="margin-bottom:20px;">
+                                <div class="col-md-4 p-0 pr-3">
+                                    <p>Billing Address</p>
+                                    <input type="text" name="cn_bill_address" id="cn_bill_address" class="w-100 form-control" required>
+                                </div>
+                                
+                                
+                                
+                            </div>
+                            <table class="table table-bordered table-responsive-md table-striped text-left font14" id="credit_note_table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">PRODUCT/SERVICE</th>
+                                        <th class="text-center" width="30%">DESCRIPTION</th>
+                                        <th class="text-center" width="10%">QTY</th>
+                                        <th class="text-center" width="15%">RATE</th>
+                                        <th class="text-center" width="15%">AMOUNT</th>
+                                        <th class="text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="credit_note_table_tbody">
+
+                                </tbody>
+                                
+                                <!-- This is our clonable table line -->
+                            </table>
+                            <div class="col-md-12 p-0">
+                                <div class="float-left">
+                                    <div class="d-inline-flex">
+                                        <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_credit_note">Add Items</button>
+                                        <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_credit_note">Clear All Items</button>
+                                    </div>
+                                </div>
+                                <div class="float-right mr-5">
+                                    <div class="d-inline-flex mr-4">
+                                        <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
+                                        <p class="mb-0 text-dark font-weight-bold" id="credit_notetotal">PHP 0.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 p-0">
+                                <div class="float-right mr-5">
+                                    <div class="d-inline-flex mr-4">
+                                        <p class="pr-4 text-dark font-weight-bold">BALANCE DUE</p>
+                                        <p class="text-dark font-weight-bold" id="credit_notebalance">PHP 0.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 p-0">
+                                <div class="col-md-6 pl-0">
+                                    <p>Message Displayed on Credit Note</p>
+                                    <textarea rows="3" class="w-100 form-control" name="cn_message"></textarea>
+                                </div>
+                                <div class="col-md-6 pr-0">
+                                    <p>Memo</p>
+                                    <textarea rows="3" class="w-100 form-control" name="cn_memo"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12 p-0 mt-4">
+                                <table class="table table-light">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="vertical-align:middle;text-align:center;border-right:1px solid #ccc;">Debit</th>
+                                            <th style="vertical-align:middle;text-align:center;">Credit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="vertical-align:middle;" class="pl-0">
+                                                <select class="form-control" name="credit_note_account_debit_account"  id="credit_note_account_debit_account" required>
+                                                <option></option>
+                                                @foreach($c_o_a_sorted as $coa)
+                                                <option title="{{$coa->coa_title}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                                @endforeach
+                                                </select>
+                                                <script>
+                                                $(document).ready(function(){
+                                                    document.getElementById('credit_note_account_debit_account').value="4";
+                                                })
+                                                </script>
+                                            </td>
+                                            <td style="vertical-align:middle;" class="pr-0">
+                                                <select class="form-control" name="credit_note_account_credit_account"  id="credit_note_account_credit_account" required>
+                                                <option></option>
+                                                @foreach($c_o_a_sorted as $coa)
+                                                <option title="{{$coa->coa_title}}" value="{{$coa->id}}">{{$coa->coa_name}}</option>
+                                                @endforeach
+                                                </select>
+                                                <script>
+                                                $(document).ready(function(){
+                                                    document.getElementById('credit_note_account_credit_account').value="2";
+                                                })
+                                                </script>
+                                            </td>
+                                        </tr>
+                                        
+                                    </tbody>
+                                </table>
+                            </div> 
+                            <div class="col-md-6 m-0 p-0 mt-3" style="display:none;">
+                                <div class="d-inline-flex">
+                                    <p class="fa fa-paperclip"></p>
+                                    <p class="p-0 ml-1">Maximum Size: 20MB</p>
+                                </div>
+                                <div class="input-group mb-3 p-0">
+                                    <div class="custom-file">
+                                        <input type="file" name="cn_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                                        <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
+                        <button id="creditnadd" class="btn btn-success rounded" type="submit">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        </div>
 <div class="modal fade p-0" id="refundreceiptmodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
 <form action="#" class="form-horizontal " id="add_refund_receipt_form" onsubmit="addRefundReceipt()" autocomplete="off">
 {{ csrf_field() }}
@@ -5628,7 +5420,30 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 p-0" >
                         <div class="col-md-2 p-0 pr-3">
                             <p>Bill No.</p>
-                            <input type="text" value="{{count($bill_transaction_count_new)+count($bill_transaction_count)+$bill_start_no}}" name="bill_bill_no" class="w-100 form-control" readonly required>
+                            <input type="text" value="{{count($bill_transaction_count_new)+count($bill_transaction_count)+$bill_start_no}}" onkeyup="setbill_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" id="bill_bill_no2" name="bill_bill_no" class="w-100 form-control" required>
+                            <script>
+                                function setbill_no_new(){
+                                    
+                                    var invoice_no_field=document.getElementById('bill_bill_no2').value;
+                                    $.ajax({
+                                        method: "POST",
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        },
+                                        url: "check_bill_no",
+                                        data: {invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                        success: function (data) {
+                                            if(data>0){
+                                                document.getElementById('bill_bill_no2').style.border="1px solid red";
+                                                document.getElementById('billadd2').disabled=true;
+                                            }else{
+                                                document.getElementById('bill_bill_no2').style.border="1px solid green";
+                                                document.getElementById('billadd2').disabled=false;
+                                            }
+                                        }
+                                    });
+                                }
+                            </script>
                         </div>
                         <div class="col-md-2 p-0 pr-3">
                             <p>Bill Date</p>
@@ -6009,7 +5824,7 @@ function getModal(Location,TTTTT,e,type,sales){
     @else
     $(document).ready(function(){
         //$("#add_supplier_credit_form :input").prop("disabled", true);
-        document.getElementById('CostCenterSupplierCredit').disabled=false;
+        //document.getElementById('CostCenterSupplierCredit').disabled=false;
         document.getElementById('suppliercreditclosemodalbutton').disabled=false;
         
     });
@@ -6028,200 +5843,271 @@ function getModal(Location,TTTTT,e,type,sales){
     }
 </script>
 <div class="modal fade p-0" id="suppliercreditmodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
-<form action="#" class="form-horizontal " id="add_supplier_credit_form" onsubmit="addSupplierCredit()" autocomplete="off">
-{{ csrf_field() }}
-<input id="item_count_scs" name="item_count_scs" value="0" hidden>
-<input id="account_count_scs" name="account_count_scs" value="0" hidden>
-    <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
-        <div class="modal-content" style="min-height: 100vh;">
-            <div class="modal-header">
-                <h5 class="modal-title">Supplier Credit</h5>
-                <button type="button" class="close" id="suppliercreditclosemodalbutton" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body p-4" id="result">
-                <div class="col-md-12 p-0 mb-4">
-                    <div class="my-3 p-0">
-                        <div class="col-md-3 p-0 pr-3">
-                            <p>Name</p>
-                            <select  name="sc_customer"  id="sc_customer" class="w-100 selectpicker" data-live-search="true">
-                                    <option value="">--Select Customer--</option>
-                                    {!! $customers_list_after_foreach !!}
-                                    </select>
-                        </div>
-                        <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
-                            <p>Cost Center</p>
-                            <select class="selectpicker" data-live-search="true" name="CostCenterSupplierCredit" onchange="EnableSupplierCreditInput(this)" id="CostCenterSupplierCredit" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
-                                <option value="">--Select Cost Center--</option>
-                                {!! $cc_list_after_foreach !!}
+    <form action="#" class="form-horizontal " id="add_supplier_credit_form" onsubmit="addSupplierCredit()" autocomplete="off">
+    {{ csrf_field() }}
+    <input id="item_count_scs" name="item_count_scs" value="0" hidden>
+    <input id="account_count_scs" name="account_count_scs" value="0" hidden>
+        <div class="modal-dialog modal-full" role="document" style="min-width: 100%; margin: 0;">
+            <div class="modal-content" style="min-height: 100vh;">
+                <div class="modal-header">
+                    <h5 class="modal-title">Supplier Credit</h5>
+                    <button type="button" class="close" id="suppliercreditclosemodalbutton" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4" id="result">
+                    <div class="col-md-12 p-0 mb-4">
+                        <div class="my-3 p-0">
+                            <div class="col-md-3 p-0  pr-3">
+                                <p>Supplier Credit No.</p>
+                                <input type="hidden" name="supplier_credit_bill_no" id="supplier_credit_bill_no" oninput="fetch_bill_info()">
+                                <input type="text" name="suppliers_credit_no" id="suppliers_credit_no" required class="form-control" onkeyup="setsupplier_credit_no_new()"  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                <script>
+                                    function supplier_credit_modal_open(id){
+                                        document.getElementById('supplier_credit_bill_no').value=id;
+                                        fetch_bill_info();
+                                    }
+                                    function fetch_bill_info(){
+                                        var supplier_credit_bill_no=document.getElementById('supplier_credit_bill_no').value;
+                                        if(supplier_credit_bill_no!=''){
+                                            document.getElementById('clear_lines_sc_account').disabled=false;
+                                            document.getElementById('clear_lines_sc_account').click();
+                                            $.ajax({
+                                                method: "POST",
+                                                headers: {
+                                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                                },
+                                                url: "check_bill_no",
+                                                data: {invoice_no_field:supplier_credit_bill_no,_token: '{{csrf_token()}}'},
+                                                success: function (data) {
+                                                    if(data>0){
+                                                        $.ajax({
+                                                            method: "POST",
+                                                            headers: {
+                                                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                                            },
+                                                            url: "get_bill_info_for_supplier_credit",
+                                                            data: {supplier_credit_bill_no:supplier_credit_bill_no,_token: '{{csrf_token()}}'},
+                                                            success: function (data) {
+                                                                console.log(data);
+                                                                document.getElementById('sc_customer').value=data['et_customer'];
+                                                                @foreach($JournalEntry as $JE)
+                                                                    if("{{$JE->other_no}}"==supplier_credit_bill_no && "{{$JE->je_transaction_type}}"=="Bill"){
+                                                                        document.getElementById('CostCenterSupplierCredit').value="{{$JE->je_cost_center}}";
+                                                                    }
+                                                                @endforeach
+                                                                
+                                                                document.getElementById('sc_reference_no').value=data['et_shipping_address'];
+                                                                document.getElementById('sc_reference_no_po').value=data['et_shipping_to'];
+                                                                document.getElementById('sc_reference_no_ci').value=data['et_shipping_via'];
+                                                                document.getElementById('sc_memo').value=data['et_memo'];
+                                                                document.getElementById('supplier_credit_account_debit_account').value=data['et_credit_account'];
+                                                                $.ajax({
+                                                                    method: "POST",
+                                                                    headers: {
+                                                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                                                    },
+                                                                    url: "get_bill_account_detail",
+                                                                    data: {supplier_credit_bill_no:supplier_credit_bill_no,_token: '{{csrf_token()}}'},
+                                                                    success: function (data) {
+                                                                        console.log(data);
+                                                                        for(var c=0;c<data.length;c++){
+                                                                            if(data[c]['et_ad_rate']=='1'){
+                                                                                var markup = '<tr class="sc_lines_account " id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input type="checkbox"  id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+' value="'+data[c]['et_ad_id']+'"></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
+                                                                                var rowcount=$('#sc_account_table tr').length;
+                                                                                $("#sc_account_table").append(markup);
+                                                                            }else{
+                                                                                var markup = '<tr class="sc_lines_account table-success" id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input style="display:none;" checked type="checkbox" id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+'></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
+                                                                                var rowcount=$('#sc_account_table tr').length;
+                                                                                $("#sc_account_table").append(markup);
+                                                                            }
+                                                                            
+                                                                            document.getElementById('select_account_sc'+rowcount).value=data[c]['et_ad_product'];
+                                                                            document.getElementById('select_description_sc'+rowcount).value=data[c]['et_ad_desc'];
+                                                                            document.getElementById('select_sc_amount'+rowcount).value=data[c]['et_ad_total'];
+                                                                            
+                                                                        }
+                                                                        $('#sc_customer').change();
+                                                                        refreshpicjer();
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            });  
+                                        }
+                                    }
+                                    function setsupplier_credit_no_new(){
+                                        var invoice_no_field=document.getElementById('suppliers_credit_no').value;
+                                        $.ajax({
+                                            method: "POST",
+                                            headers: {
+                                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                            },
+                                            url: "check_supplier_credit_no",
+                                            data: {invoice_no_field:invoice_no_field,_token: '{{csrf_token()}}'},
+                                            success: function (data) {
+                                                if(data>0){
+                                                    document.getElementById('suppliers_credit_no').style.border="1px solid red";
+                                                    document.getElementById('supplier_credit_button').disabled=true;
+                                                }else{
+                                                    document.getElementById('suppliers_credit_no').style.border="1px solid green";
+                                                    document.getElementById('supplier_credit_button').disabled=false;
+                                                }
+                                            }
+                                        });
+                                    }
+                                </script>
+                            </div>
+                            <div class="col-md-3 p-0 pr-3">
+                                <p>Name</p>
+                                <select  name="sc_customer"  id="sc_customer" class="w-100 selectpicker" data-live-search="true" disabled>
+                                <option value="">--Select Customer--</option>
+                                {!! $customers_list_after_foreach !!}
                                 </select>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
+                                <p>Cost Center</p>
+                                <select class="selectpicker" data-live-search="true" name="CostCenterSupplierCredit" onchange="EnableSupplierCreditInput(this)" id="CostCenterSupplierCredit" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}} disabled>
+                                    <option value="">--Select Cost Center--</option>
+                                    {!! $cc_list_after_foreach !!}
+                                    </select>
+                            </div>
+                            
+                            <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
+                                <h4 class="mr-2">CREDIT AMOUNT: </h4>
+                                <h4>PHP 0.00</h4>
+                            </div>
                         </div>
-                        <div class="col-md-3 p-0">
+                        <div class="col-md-12 p-0 mt-4 d-inline-flex">
+                            <div class="col-md-3 p-0 pr-3">
+                                <p>Mailing Address</p>
+                                <input type="text" name="sc_mail_address" id="sc_mail_address" class="w-100 form-control" disabled>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Payment Date</p>
+                                <input type="date" name="sc_date" class="w-100 form-control">
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Request Form</p>
+                                <input type="text" id="sc_reference_no" name="sc_reference_no" class="w-100 form-control" disabled>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Purchase Order</p>
+                                <input type="text" name="sc_reference_no_po" id="sc_reference_no_po" class="w-100 form-control" disabled>
+                            </div>
+                            <div class="col-md-2 p-0 pr-3">
+                                <p>Charge Invoice</p>
+                                <input type="text" name="sc_reference_no_ci" id="sc_reference_no_ci" class="w-100 form-control" disabled>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-12 p-0 mt-4 d-inline-flex">
-                        <div class="col-md-3 p-0 pr-3">
-                            <p>Mailing Address</p>
-                            <input type="text" name="sc_mail_address" id="sc_mail_address" class="w-100 form-control">
+                        <div class="col-md-12 mb-1 mt-3">
+                            <h4>Account Details</h4>
                         </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Payment Date</p>
-                            <input type="date" name="sc_date" class="w-100 form-control">
-                        </div>
-                        <div class="col-md-2 p-0 pr-3">
-                            <p>Reference No. </p>
-                            <input type="text" name="sc_reference_no" class="w-100 form-control">
-                        </div>
-                    </div>
-                    <div class="col-md-12 p-0 d-inline-flex justify-content-end" style="float:right;margin-right:5%;">
-                        <h4 class="mr-2">CREDIT AMOUNT: </h4>
-                        <h4 class="mr-3">PHP 0.00</h4>
-                    </div>
-                    <div class="col-md-12 mb-1 mt-3" style="padding-left:0px;">
-                        <h4>Account Details</h4>
-                    </div>
-                    <table class="table table-bordered table-responsive-md table-sm text-left font14 table-sm" id="sc_account_table">
-                        <thead>
+                        <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_account_table">
                             <tr>
-                                <th class="text-left" width="5%">#</th>
-                                <th class="text-left" width="20%">ACCOUNT</th>
-                                <th class="text-left" width="">DESCRIPTION</th>
-                                <th class="text-left" width="20%">AMOUNT</th>
-                                <th class="text-center" width="5%"></th>
+                                <th class="text-center"></th>
+                                <th class="text-left">#</th>
+                                <th class="text-left">ACCOUNT</th>
+                                <th class="text-left">DESCRIPTION</th>
+                                <th class="text-left">AMOUNT</th>
+                                
                             </tr>
-                        </thead>
-                        <tbody id="sc_account_table_tbody">
-
-                        </tbody>
-                        
-                    </table>
-                    <div class="col-md-12 p-0 mt-4">
-                        <div class="float-left">
-                            <div class="d-inline-flex">
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sc_account">Add Items</button>
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sc_account">Clear All Items</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 mb-1 mt-4" style="display:none;">
-                        <h4>Item Details</h4>
-                    </div>
-                    <table style="display:none;" class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_item_table">
-                        <tr>
-                            <th class="text-left">#</th>
-                            <th class="text-left">PRODUCT/SERVICE</th>
-                            <th class="text-left">DESCRIPTION</th>
-                            <th class="text-center">QTY</th>
-                            <th class="text-left">RATE</th>
-                            <th class="text-left">AMOUNT</th>
-                            <th class="text-center"></th>
-                        </tr>
-                    </table>
-                    <div class="col-md-12 p-0" style="display:none;">
-                        <div class="float-left">
-                            <div class="d-inline-flex">
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sc_item">Add Items</button>
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sc_item">Clear All Items</button>
-                            </div>
-                        </div>
-                        <div class="float-right mr-5">
-                            <div class="d-inline-flex mr-4">
-                                <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
-                                <p class="mb-0 text-dark font-weight-bold">PHP 0.00</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 p-0 mt-4">
-                        <div class="col-md-6 pl-0">
-                            <p>Memo</p>
-                            <textarea rows="3" name="sc_memo" class="w-100 form-control"></textarea>
-                        </div>
-                        <div class="col-md-6 m-0 pr-0" style="display:none;">
-                            <div class="d-inline-flex">
-                                <p class="fa fa-paperclip"></p>
-                                <p class="p-0 ml-1">Maximum Size: 20MB</p>
-                            </div>
-                            <div class="input-group mb-3 p-0">
-                                <div class="custom-file">
-                                    <input type="file" name="sc_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                                    <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
+                        </table>
+                        <div class="col-md-12 p-0" style="display:none;">
+                            <div class="float-left">
+                                <div class="d-inline-flex">
+                                    {{-- <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sc_account">Add Items</button> --}}
+                                    <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sc_account">Clear All Items</button>
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-12 mb-1 mt-4" style="display:none;">
+                            <h4>Item Details</h4>
+                        </div>
+                        <table style="display:none;" class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_item_table">
+                            <tr>
+                                <th class="text-left">#</th>
+                                <th class="text-left">PRODUCT/SERVICE</th>
+                                <th class="text-left">DESCRIPTION</th>
+                                <th class="text-center">QTY</th>
+                                <th class="text-left">RATE</th>
+                                <th class="text-left">AMOUNT</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </table>
+                        <div class="col-md-12 p-0" style="display:none;">
+                            <div class="float-left" >
+                                <div class="d-inline-flex">
+                                    <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_sc_item">Add Items</button>
+                                    <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_sc_item">Clear All Items</button>
+                                </div>
+                            </div>
+                            <div class="float-right mr-5">
+                                <div class="d-inline-flex mr-4">
+                                    <p class="mb-0 pr-4 text-dark font-weight-bold">TOTAL</p>
+                                    <p class="mb-0 text-dark font-weight-bold">PHP 0.00</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 p-0 mt-4">
+                            <div class="col-md-6 pl-0">
+                                <p>Memo</p>
+                                <textarea rows="3" name="sc_memo" id="sc_memo" class="w-100 form-control" required></textarea>
+                            </div>
+                            <div class="col-md-6 m-0 pr-0" style="display:none;">
+                                <div class="d-inline-flex">
+                                    <p class="fa fa-paperclip"></p>
+                                    <p class="p-0 ml-1">Maximum Size: 20MB</p>
+                                </div>
+                                <div class="input-group mb-3 p-0">
+                                    <div class="custom-file">
+                                        <input type="file" name="sc_attachment" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                                        <label class="custom-file-label bg-transparent" for="inputGroupFile01">Choose file</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 p-0 mt-4">
+                            <table class="table table-light">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th colspan="2" style="vertical-align:middle;text-align:center;">Accounts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="vertical-align:middle;text-align:center;">Debit</td>
+                                        <td style="vertical-align:middle;" class="pr-0">
+                                            <select class="form-control selectpicker" data-live-search="true" name="supplier_credit_account_debit_account"  id="supplier_credit_account_debit_account" required disabled>
+                                            <option value="" selected>--Select Account--</option>
+                                            @foreach($c_o_a_sorted as $coa)
+                                            @if ($coa->id=="3")
+                                            <option value="{{$coa->id}}" selected>{{$coa->coa_name}}</option> 
+                                            @else
+                                            <option value="{{$coa->id}}">{{$coa->coa_name}}</option>  
+                                            @endif
+                                            
+                                            @endforeach
+                                            </select>
+                                            
+                                        </td>
+                                    </tr>
+                                    
+                                </tbody>
+                            </table>
+                        </div> 
                     </div>
-                    <div class="col-md-4 p-0 mt-4">
-                        <table class="table table-light table-sm mb-0">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th colspan="2" style="vertical-align:middle;text-align:center;">Debit</th>
-                                </tr>
-                            </thead>
-                        </table>
-                        <button type="button" style="display:none;" id="supplier_credit_debit_account_code_button"></button>
-                        <button type="button" style="display:none;" id="supplier_credit_debit_account_account_button"></button>
-                        <script>
-                        function set_supplier_credit_account_code_account(origin,destination){
-                            var code=document.getElementById(origin).value;
-                            document.getElementById(destination).value=code;
-                            if(destination=="supplier_credit_account_debit_account"){
-                                document.getElementById('supplier_credit_debit_account_account_button').click();
-                            }else{
-                                document.getElementById('supplier_credit_debit_account_code_button').click();
-                            }
-                            
-                        }
-                        </script>
-                        <table class="table table-light table-sm" id="supplier_credit_debit_account_table">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th  style="vertical-align:middle;text-align:center;"width="30%">Code</th>
-                                    <th  style="vertical-align:middle;text-align:center;"width="70%">Account</th>
-                                </tr>
-                            </thead>
-                            <tbody id="supplier_credit_debit_account_table_body">
-                                <tr>
-                                    <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" onchange="set_supplier_credit_account_code_account('supplier_credit_account_debit_account_code','supplier_credit_account_debit_account')" data-live-search="true" name="supplier_credit_account_debit_account_code"  id="supplier_credit_account_debit_account_code" required>
-                                        <option value="">--Select Account--</option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        @if ($coa->id=="3")
-                                        <option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option> 
-                                        @else
-                                        <option value="{{$coa->id}}">{{$coa->coa_code}}</option>  
-                                        @endif
-                                        
-                                        @endforeach
-                                        </select>
-                                    </td>
-                                    <td style="vertical-align:middle;" class="pr-0">
-                                        <select class="form-control selectpicker" onchange="set_supplier_credit_account_code_account('supplier_credit_account_debit_account','supplier_credit_account_debit_account_code')" data-live-search="true" name="supplier_credit_account_debit_account"  id="supplier_credit_account_debit_account" required>
-                                        <option value="">--Select Account--</option>
-                                        @foreach($c_o_a_sorted as $coa)
-                                        @if ($coa->id=="3")
-                                        <option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option> 
-                                        @else
-                                        <option value="{{$coa->id}}">{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>  
-                                        @endif
-                                        
-                                        @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                
-                            </tbody>
-                        </table>
-                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success rounded" id="supplier_credit_button" type="submit">Save</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                <button class="btn btn-success rounded" type="submit">Save</button>
-            </div>
         </div>
+        </form>
     </div>
-    </form>
-</div>
 <div class="modal fade p-0" id="creditcardcreditmodal" tabindex="-1" role="dialog" aria-hidden="true" style="">
 <form action="#" class="form-horizontal " id="add_card_credit_form" onsubmit="addCardCredit()" autocomplete="off">
 {{ csrf_field() }}
@@ -7077,7 +6963,7 @@ function addCardCreditedit(){
                                 initialheight=dragY;
                                 
                                 if(initialheight>initialheight2){
-                                    initialheight2=dragY+parseInt(1);
+                                    initialheight2=dragY+parseFloat(1);
                                 }else{
                                     initialheight2=dragY-1;
                                 }
@@ -11396,7 +11282,7 @@ function edit_journal_entries(je_no){
     function editInvoice(){
         $('#total_balance_edit').val($('#invoicetotal_edit').text());
         $(".invoice_lines_edit").each(function() {
-            $("#product_count_edit").val(parseInt($("#product_count_edit").val())+1);
+            $("#product_count_edit").val(parseFloat($("#product_count_edit").val())+1);
         });
         var counter = 0;
         var checker = 0;
@@ -11443,7 +11329,7 @@ function edit_journal_entries(je_no){
         $('#total_balance').val($('#invoicetotal').attr('title'));
            
         $(".invoice_lines").each(function() {
-            $("#product_count").val(parseInt($("#product_count").val())+1);
+            $("#product_count").val(parseFloat($("#product_count").val())+1);
         });
         
         var counter = 0;
@@ -11530,7 +11416,7 @@ function edit_journal_entries(je_no){
         $('#total_balance_estimate').val($('#estimatetotal').attr('title'));
         
         $(".estimate_lines").each(function() {
-            $("#product_count_estimate").val(parseInt($("#product_count_estimate").val())+1);
+            $("#product_count_estimate").val(parseFloat($("#product_count_estimate").val())+1);
         });
 
         var counter = 0;
@@ -11583,80 +11469,87 @@ function edit_journal_entries(je_no){
         document.getElementById('salesrcustomer').disabled=false;
         document.getElementById('CostCenterSalesReceipt').disabled=false;
         $('#total_balance_sales_receipt').val($('#sales_receipttotal').attr('title'));
-        var amountreceived_sr_from_cheque=document.getElementById('amountreceived_sr_from_cheque').value;
-        var amountreceived_sr=document.getElementById('amountreceived_sr').value;
-        var totalpayments=parseFloat(amountreceived_sr)+parseFloat(amountreceived_sr_from_cheque);
         
-        for(var c=1;c<=additionalchequecount;c++){
-            totalpayments=parseFloat(totalpayments)+parseFloat(document.getElementById('amountreceived_sr_from_cheque'+c).value);
-        }
+        var amountreceived_sr=document.getElementById('amountreceived_sr').value;
+        var totalpayments=parseFloat(amountreceived_sr);
+        
+        
         console.log(totalpayments+" "+$('#big_sales_receiptbalance').attr('title'));
         if(totalpayments<=parseFloat($('#big_sales_receiptbalance').attr('title'))){
-            console.log(totalpayments+" totalpayments");
-            $(".sales_receipt_lines").each(function() {
-                $("#product_count_sales_receipt").val(parseInt($("#product_count_sales_receipt").val())+1);
-            });
+            var sales_receipt_debit=document.getElementById('hiddentotaldebitamountsalesreceipt').value;
+            var sales_receipt_credit=document.getElementById('hiddentotalcredtiamountsalesreceipt').value;
+            if(sales_receipt_debit==sales_receipt_credit){
+                console.log(totalpayments+" totalpayments");
+                $(".sales_receipt_lines").each(function() {
+                    $("#product_count_sales_receipt").val(parseFloat($("#product_count_sales_receipt").val())+1);
+                });
 
-            
-            var counter = 0;
-            var checker = 0;
-
-            $(".sales_receipt_lines").find('.sales_receipt_data').each(function() {
-                if( typeof( $(this).attr('id') ) != 'undefined' ) {
-                var id = $(this).attr("id");
-                var name = id.replace(id.match(/(\d+)/g)[0], '').trim();  
                 
-                $(this).attr("name", name+counter);
-                
-                checker++;
-                if(checker%4==0){
-                    counter++;
-                }
-                }
-            });
-            
+                var counter = 0;
+                var checker = 0;
 
-            $.ajax({
-                method: "POST",
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: "{{ route('add_sales_receipt') }}",
-                dataType: "text",
-                data: $('#add_sales_receipt_form').serialize(),
-                success: function (data) {
-                    console.log(data);
-                    document.getElementById('salesrcustomer').disabled=false;
-                    document.getElementById('CostCenterSalesReceipt').disabled=false;
-                    //swal("Done!", "Added sales receipt", "success");
-                    swal({title: "Done!", text:"Added sales receipt", type: 
-                    "success"}).then(function(){
-                   
-                    location.reload();                                    
-                    });
-                    if(document.getElementById('reload_sr').value=="1"){
-                        setSalesReceiptinJournalEntry($("#product_count_sales_receipt").val(),data,"Sales Receipt",$("#CostCenterSalesReceipt").val());
-                    }else{
-                        $("#product_count_sales_receipt").val('0');
-                        checker = 0;
-                        counter = 0;
-                        $('#add_sales_receipt_form')[0].reset();
-                        $('.sales_receipt_lines').remove();
-                        
-                        sales_table.ajax.reload();
-                        sales_table_invoice.ajax.reload();
+                $(".sales_receipt_lines").find('.sales_receipt_data').each(function() {
+                    if( typeof( $(this).attr('id') ) != 'undefined' ) {
+                    var id = $(this).attr("id");
+                    var name = id.replace(id.match(/(\d+)/g)[0], '').trim();  
+                    
+                    $(this).attr("name", name+counter);
+                    
+                    checker++;
+                    if(checker%4==0){
+                        counter++;
                     }
+                    }
+                });
+                
+                
+                $.ajax({
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: "{{ route('add_sales_receipt') }}",
+                    dataType: "text",
+                    data: $('#add_sales_receipt_form').serialize(),
+                    success: function (data) {
+                        console.log(data);
+                        document.getElementById('salesrcustomer').disabled=false;
+                        document.getElementById('CostCenterSalesReceipt').disabled=false;
+                        //swal("Done!", "Added sales receipt", "success");
+                        swal({title: "Done!", text:"Added sales receipt", type: 
+                        "success"}).then(function(){
                     
-                    
-                },
-                error: function (data) {
-                    document.getElementById('salesrcustomer').disabled=false;
-                    document.getElementById('CostCenterSalesReceipt').disabled=false;
-                    swal("Error!", "Sales receipt failed", "error");
-                }
-            });
+                        location.reload();                                    
+                        });
+                        if(document.getElementById('reload_sr').value=="1"){
+                            setSalesReceiptinJournalEntry($("#product_count_sales_receipt").val(),data,"Sales Receipt",$("#CostCenterSalesReceipt").val());
+                        }else{
+                            $("#product_count_sales_receipt").val('0');
+                            checker = 0;
+                            counter = 0;
+                            $('#add_sales_receipt_form')[0].reset();
+                            $('.sales_receipt_lines').remove();
+                            
+                            sales_table.ajax.reload();
+                            sales_table_invoice.ajax.reload();
+                        }
+                        
+                        
+                    },
+                    error: function (data) {
+                        document.getElementById('salesrcustomer').disabled=false;
+                        document.getElementById('CostCenterSalesReceipt').disabled=false;
+                        swal("Error!", "Sales receipt failed", "error");
+                    }
+                });
+            }else{
+                swal("Error!", "Account Debit and Credit not Balanced", "error");
+            }
+            
+        
         }else{
-            alert('Amount Exceed Total Balance');
+            swal("Error!", "Amount Exceed Total Balance", "error");
+            
         }
         
 
@@ -11667,7 +11560,7 @@ function edit_journal_entries(je_no){
         $('#total_balance_refund_receipt').val($('#refund_receipttotal').text());
 
         $(".refund_receipt_lines").each(function() {
-            $("#product_count_refund_receipt").val(parseInt($("#product_count_refund_receipt").val())+1);
+            $("#product_count_refund_receipt").val(parseFloat($("#product_count_refund_receipt").val())+1);
         });
 
         var counter = 0;
@@ -11717,7 +11610,7 @@ function edit_journal_entries(je_no){
         $('#total_balance_delayed_charge').val($('#delayed_chargetotal').text());
 
         $(".delayed_charge_lines").each(function() {
-            $("#product_count_delayed_charge").val(parseInt($("#product_count_delayed_charge").val())+1);
+            $("#product_count_delayed_charge").val(parseFloat($("#product_count_delayed_charge").val())+1);
         });
 
         var counter = 0;
@@ -11767,7 +11660,7 @@ function edit_journal_entries(je_no){
     $('#total_balance_delayed_credit').val($('#delayed_credittotal').text());
 
     $(".delayed_credit_lines").each(function() {
-        $("#product_count_delayed_credit").val(parseInt($("#product_count_delayed_credit").val())+1);
+        $("#product_count_delayed_credit").val(parseFloat($("#product_count_delayed_credit").val())+1);
     });
 
     var counter = 0;
@@ -11817,7 +11710,7 @@ function edit_journal_entries(je_no){
         $('#total_balance_credit_note').val($('#credit_notetotal').attr('title'));
 
         $(".credit_note_lines").each(function() {
-            $("#product_count_credit_note").val(parseInt($("#product_count_credit_note").val())+1);
+            $("#product_count_credit_note").val(parseFloat($("#product_count_credit_note").val())+1);
         });
 
         var counter = 0;
@@ -11873,11 +11766,11 @@ function addExpense(){
     //$('#total_balance').val($('#invoicetotal').text());
     
     $(".expense_lines_item").each(function() {
-        $("#item_count_expenses").val(parseInt($("#item_count_expenses").val())+1);
+        $("#item_count_expenses").val(parseFloat($("#item_count_expenses").val())+1);
     });
 
     $(".expense_lines_account").each(function() {
-        $("#account_count_expenses_add").val(parseInt($("#account_count_expenses_add").val())+1);
+        $("#account_count_expenses_add").val(parseFloat($("#account_count_expenses_add").val())+1);
     });
 
     var counter = 0;
@@ -11947,11 +11840,11 @@ function addCheque(){
     //$('#total_balance').val($('#invoicetotal').text());
 
     $(".cheque_lines_item").each(function() {
-        $("#item_count_cheques").val(parseInt($("#item_count_cheques").val())+1);
+        $("#item_count_cheques").val(parseFloat($("#item_count_cheques").val())+1);
     });
 
     $(".cheque_lines_account").each(function() {
-        $("#account_count_cheques").val(parseInt($("#account_count_cheques").val())+1);
+        $("#account_count_cheques").val(parseFloat($("#account_count_cheques").val())+1);
     });
 
     var counter = 0;
@@ -12020,11 +11913,11 @@ function addBill(){
 //$('#total_balance').val($('#invoicetotal').text());
 
 $(".bill_lines_item").each(function() {
-    $("#item_count_bills").val(parseInt($("#item_count_bills").val())+1);
+    $("#item_count_bills").val(parseFloat($("#item_count_bills").val())+1);
 });
 
 $(".bill_lines_account").each(function() {
-    $("#account_count_bills").val(parseInt($("#account_count_bills").val())+1);
+    $("#account_count_bills").val(parseFloat($("#account_count_bills").val())+1);
 });
 
 var counter = 0;
@@ -12103,11 +11996,11 @@ function addPurchaseOrder(){
 //$('#total_balance').val($('#invoicetotal').text());
 
 $(".po_lines_item").each(function() {
-    $("#item_count_pos").val(parseInt($("#item_count_pos").val())+1);
+    $("#item_count_pos").val(parseFloat($("#item_count_pos").val())+1);
 });
 
 $(".po_lines_account").each(function() {
-    $("#account_count_pos").val(parseInt($("#account_count_pos").val())+1);
+    $("#account_count_pos").val(parseFloat($("#account_count_pos").val())+1);
 });
 
 var counter = 0;
@@ -12169,21 +12062,22 @@ $.ajax({
 }
 
 function addSupplierCredit(){
+    $("#add_supplier_credit_form :input").prop("disabled", false);
 
 //$('#total_balance').val($('#invoicetotal').text());
 
 $(".sc_lines_item").each(function() {
-    $("#item_count_scs").val(parseInt($("#item_count_scs").val())+1);
+    $("#item_count_scs").val(parseFloat($("#item_count_scs").val())+1);
 });
 
 $(".sc_lines_account").each(function() {
-    $("#account_count_scs").val(parseInt($("#account_count_scs").val())+1);
+    $("#account_count_scs").val(parseFloat($("#account_count_scs").val())+1);
 });
 
 var counter = 0;
 var checker = 0;
 
-var counter1 = 0;
+var counter1 = 1;
 var checker1 = 0;
 
 $(".sc_lines_item").find('.sc_data').each(function() {
@@ -12224,17 +12118,21 @@ $.ajax({
     dataType: "text",
     data: $('#add_supplier_credit_form').serialize(),
     success: function (data) {
+        console.log(data);
         swal("Done!", "Added supplier credit", "success");
         //$('#Vouhcermooodall').click();
-        $("#item_count_scs").val('0');
-        $("#account_count_scs").val('0');
-        checker = 0;
-        counter = 0;
-        $('#add_supplier_credit_form')[0].reset();
-        $('.sc_lines_item').remove();
-        $('.sc_lines_account').remove();
-        sales_table.ajax.reload();
-        sales_table_invoice.ajax.reload();
+        // $("#item_count_scs").val('0');
+        // $("#account_count_scs").val('0');
+        // checker = 0;
+        // counter = 0;
+        // $('#add_supplier_credit_form')[0].reset();
+        // $('.sc_lines_item').remove();
+        // $('.sc_lines_account').remove();
+        // sales_table.ajax.reload();
+        // sales_table_invoice.ajax.reload();
+        location.reload();
+        $("#add_supplier_credit_form :input").prop("disabled", true);
+        document.getElementById('sc_memo').disabled=false;
         location.reload();
     },
     error: function (data) {
@@ -12250,11 +12148,11 @@ function addCardCredit(){
 //$('#total_balance').val($('#invoicetotal').text());
 
 $(".cc_lines_item").each(function() {
-    $("#item_count_ccs").val(parseInt($("#item_count_ccs").val())+1);
+    $("#item_count_ccs").val(parseFloat($("#item_count_ccs").val())+1);
 });
 
 $(".cc_lines_account").each(function() {
-    $("#account_count_ccs").val(parseInt($("#account_count_ccs").val())+1);
+    $("#account_count_ccs").val(parseFloat($("#account_count_ccs").val())+1);
 });
 
 var counter = 0;
@@ -12320,11 +12218,11 @@ $.ajax({
 //$('#total_balance').val($('#invoicetotal').text());
 
 $(".cc_lines_item").each(function() {
-    $("#item_count_ccs").val(parseInt($("#item_count_ccs").val())+1);
+    $("#item_count_ccs").val(parseFloat($("#item_count_ccs").val())+1);
 });
 
 $(".cc_lines_account").each(function() {
-    $("#account_count_ccs").val(parseInt($("#account_count_ccs").val())+1);
+    $("#account_count_ccs").val(parseFloat($("#account_count_ccs").val())+1);
 });
 
 var counter = 0;
@@ -12630,7 +12528,7 @@ function removeComma(str){
         });
 
         Date.prototype.addDays = function(days) {
-            this.setDate(this.getDate() + parseInt(days));
+            this.setDate(this.getDate() + parseFloat(days));
             return this;
         };
 
@@ -12945,7 +12843,7 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_credit_account_code'+accounttablelength+'" onchange="setAccount_and_Code2(this)" name="invoice_account_credit_account_code'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc_code" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
+                if(""==""){
                     if('{{$coa->id}}'=="4"){
                         markup=markup+'<option value="{{$coa->id}}" selected>{{$coa->coa_code}}</option>';
                     }else{
@@ -12959,7 +12857,7 @@ function removeComma(str){
             markup=markup+'<td class="pt-3-half">';
             markup=markup+'<select id="invoice_account_credit_account'+accounttablelength+'" onchange="setAccount_and_Code_code2(this)" name="invoice_account_credit_account'+accounttablelength+'" class="w-100 selectpicker invoice_credit_acc" data-live-search="true" required>';
             @foreach($c_o_a_sorted as $coa)
-                if('{{$coa->coa_account_type}}'=="Revenue" || '{{$coa->coa_code}}'=="136" || '{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}'=="Cash Clearing Account"){
+                if(""==""){
                     if('{{$coa->id}}'=="4"){
                         markup=markup+'<option value="{{$coa->id}}" selected>{{preg_replace( "/\r|\n/", "", $coa->coa_name )}}</option>';
                     }else{
