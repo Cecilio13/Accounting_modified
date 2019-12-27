@@ -493,7 +493,7 @@
 
             <div class="col-md-12 pl-0 pr-0 mt-3">
                 <table class="table table-bordered" style="background-color:white;" id="table_supplier_approval">
-                    <<thead class="thead-dark">
+                    <thead class="thead-dark">
                         <tr>
                             <th style="vertical-align:middle;">Supplier ID</th>
                             <th style="vertical-align:middle;">Name</th>

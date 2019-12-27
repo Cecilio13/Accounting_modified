@@ -39,69 +39,7 @@
                 </div>
             </div>
             </div> -->
-            <div class="modal fade" id="import_bill_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog  modal-sm" role="document">
-                    <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Import Bill</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" style="text-align:center;">
-                        <style>
-                        #excel-uploadbill{
-                            display: none;
-                        }
-                        </style>
-                        <input id="excel-uploadbill" type="file" onchange="UploadMassBill()"  accept=".xlsx" >
-                        <label for="excel-uploadbill" style="opacity:1;cursor:pointer;border-radius:10px;" id="FIleImportExcelLabel" class="custom-excel-upload btn btn-primary">
-                        <span class="glyphicon glyphicon-user"></span> IMPORT FROM EXCEL</span>
-                        </label>
-                        <script>
-                            function UploadMassBill(){
-                                document.getElementById('import_overlay').style.display="block";
-                                var file = $('#excel-uploadbill')[0].files[0]
-                                var fd = new FormData();
-                                fd.append('theFile', file);
-                                fd.append('_token','{{csrf_token()}}');
-                                $.ajax({
-                                    url: 'UploadMassBill',
-                                    type: 'POST',
-                                    processData: false,
-                                    contentType: false,
-                                    data: fd,
-                                    dataType:"json",
-                                    success: function (data, status, jqxhr) {
-                                    //alert(data.Success);
-                                    console.log(data.Extra);
-                                    var LOG="";
-                                    if(data.Error_Log!=""){
-                                    LOG=" \n\nSkip Log : \n"+data.Error_Log;
-                                    }
-                                    alert("Total number Of Data : "+data.Total+"\nData Saved : "+data.Success+" \nData Skipped : "+data.Skiped+LOG);
-                                    document.getElementById('import_overlay').style.display="none";
-                                    location.reload();
-                                    },
-                                    error: function (jqxhr, status, msg) {
-                                    //error code
-                                    alert(jqxhr.status +" message"+msg+" status:"+status);
-                                    alert(jqxhr.responseText);
-                                    document.getElementById('import_overlay').style.display="none";
-                                    }
-                                });
-                                document.getElementById("excel-uploadbill").value = "";
-                                //location.reload();
-                            }
-                        </script>
-                    </div>
-                    <div class="modal-footer">
-                        <a class="btn btn-success" href="GetInvoiceExcelTemplateBill">Download Excel Template</a>
-                        
-                    </div>
-                    </div>
-                </div>
-                </div>
+            
     </div>
     <div class="card-body">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
