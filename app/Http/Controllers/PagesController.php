@@ -42,22 +42,23 @@ class PagesController extends Controller
     
     public function index(\Illuminate\Http\Request $request){
         
-        $emailll='test_acc@gmail.com';
-        $passww="test_acc";
-        $sss=$passww;
-        $arr2 = str_split($passww);
-        $length=1;
-        $dencrypted="";
-        $userdata = array(
-            'email' => $emailll ,
-            'password' => $passww
-        );
-        if (Auth::attempt($userdata)){
-            return redirect()->intended('/home');
+        // $emailll='test_acc@gmail.com';
+        // $passww="test_acc";
+        // $sss=$passww;
+        // $arr2 = str_split($passww);
+        // $length=1;
+        // $dencrypted="";
+        // $userdata = array(
+        //     'email' => $emailll ,
+        //     'password' => $passww
+        // );
+        // if (Auth::attempt($userdata)){
+        //     return redirect()->intended('/home');
 
-        }else{
-            return redirect()->intended('/login');
-        }
+        // }else{
+        //     return redirect()->intended('/login');
+        // }
+        return redirect()->intended('/login');
         // $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
         // $db = DB::select($query, ['consmanagementsys']);
         // if(empty($db)){

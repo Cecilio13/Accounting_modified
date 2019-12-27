@@ -11,6 +11,31 @@ use \setasign\Fpdi\Fpdi;
 |
 */
 
+Route::get('api/get_user_current_access', 'ApiController@get_user_current_access');
+Route::get('api/get_cost_center_list', 'ApiController@get_cost_center_list');
+Route::get('api/get_users_count', 'ApiController@get_users_count');
+Route::get('api/getBankInfo', 'ApiController@getBankInfo');
+Route::get('api/getBanks', 'ApiController@getBanks');
+Route::get('api/getSettingAdvance', 'ApiController@getSettingAdvance');
+Route::get('api/getSettingAdvanceNumberring', 'ApiController@getSettingAdvanceNumberring');
+Route::get('api/getSettingExpense', 'ApiController@getSettingExpense');
+Route::get('api/getSettingSales', 'ApiController@getSettingSales');
+Route::get('api/getSettingCompany', 'ApiController@getSettingCompany');
+Route::get('api/getAccount', 'ApiController@getAccount');
+Route::get('api/students', 'ApiController@getAllStudents');
+Route::get('api/getDashboardData', 'ApiController@getDashboardData');
+Route::post('api/update_setting_company', 'ApiController@update_setting_company');
+Route::post('api/update_setting_sales', 'ApiController@update_setting_sales');
+Route::post('api/update_setting_expense', 'ApiController@update_setting_expense');
+Route::post('api/update_setting_advance', 'ApiController@update_setting_advance');
+Route::post('api/add_bank', 'ApiController@add_bank');
+Route::post('api/update_bank', 'ApiController@update_bank');
+Route::post('api/delete_bank', 'ApiController@delete_bank');
+Route::post('api/deny_user', 'ApiController@deny_user');
+Route::post('api/approve_user', 'ApiController@approve_user');
+Route::post('api/update_user_access', 'ApiController@update_user_access');
+
+
 Route::group(['middleware'=>['auth']], function() {
     
     Route::post('/get_bill_account_detail', 'GetController@get_bill_account_detail');
@@ -327,7 +352,12 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/UploadMassJournalEntry', 'ChartofAccountsController@UploadMassJournalEntry')->name('UploadMassJournalEntry');
     Route::post('/UploadMassInvoice', 'ChartofAccountsController@UploadMassInvoice')->name('UploadMassInvoice');
     Route::post('/UploadMassBIDQuot', 'ChartofAccountsController@UploadMassBIDQuot')->name('UploadMassBIDQuot');
+    Route::post('/UploadMassBill', 'ChartofAccountsController@UploadMassBill')->name('UploadMassBill');
     
+    
+    
+    
+    Route::get('/GetInvoiceExcelTemplateBill', 'ChartofAccountsController@GetInvoiceExcelTemplateBill')->name('GetInvoiceExcelTemplateBill');
     
     Route::post('/export_ledger_to_excel', 'ChartofAccountsController@export_ledger_to_excel')->name('export_ledger_to_excel');
     Route::get('/GetInvoiceExcelTemplate', 'ChartofAccountsController@GetInvoiceExcelTemplate')->name('GetInvoiceExcelTemplate');

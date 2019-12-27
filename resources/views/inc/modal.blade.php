@@ -13,7 +13,7 @@ $customers_list_after_foreach.="<option  value='".$customer->customer_id."'>".($
 @endforeach
 @foreach ($cost_center_list as $list)
 <?php
-$cc_list_after_foreach.="<option  value='".$list->cc_no."'>".$list->cc_name."</option>";
+$cc_list_after_foreach.="<option  value='".$list->cc_no."'>".$list->cc_name_code." - ".$list->cc_name."</option>";
 ?>
 @endforeach
 <script>
@@ -1386,8 +1386,6 @@ function exporttoexcel(table_id){
                                 <option>Net 60</option>
                             </datalist>
                         </div>
-                        
-                        
                     </div>
                     <div class="col-md-12 p-0 mb-4">
                         <div class="col-md-2 p-0 pr-3">
@@ -5975,13 +5973,13 @@ function getModal(Location,TTTTT,e,type,sales){
                                     </select>
                             </div>
                             
-                            <div class="col-md-4 p-0 d-inline-flex center-content" style="text-align:center;">
-                                <h4 class="mr-2">CREDIT AMOUNT: </h4>
-                                <h4>PHP 0.00</h4>
+                            <div class="col-md-4 p-0" style="text-align:center;">
+                                <h5 class="mr-3" style="float:right;">CREDIT AMOUNT: PHP 0.00</h5>
+                                
                             </div>
                         </div>
                         <div class="col-md-12 p-0 mt-4 d-inline-flex">
-                            <div class="col-md-3 p-0 pr-3">
+                            <div class="col-md-2 p-0 pr-3">
                                 <p>Mailing Address</p>
                                 <input type="text" name="sc_mail_address" id="sc_mail_address" class="w-100 form-control" disabled>
                             </div>
@@ -6003,16 +6001,15 @@ function getModal(Location,TTTTT,e,type,sales){
                             </div>
                         </div>
                         <div class="col-md-12 mb-1 mt-3">
-                            <h4>Account Details</h4>
+                            <h5 class="mt-2 mb-2">Account Details</h5>
                         </div>
                         <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_account_table">
                             <tr>
-                                <th class="text-center"></th>
-                                <th class="text-left">#</th>
-                                <th class="text-left">ACCOUNT</th>
-                                <th class="text-left">DESCRIPTION</th>
-                                <th class="text-left">AMOUNT</th>
-                                
+                                <th width="3%" class="text-center"></th>
+                                <th width="4%" class="text-left">#</th>
+                                <th width="37%" class="text-left">ACCOUNT</th>
+                                <th width="40%" class="text-left">DESCRIPTION</th>
+                                <th width="20%" class="text-left">AMOUNT</th>
                             </tr>
                         </table>
                         <div class="col-md-12 p-0" style="display:none;">

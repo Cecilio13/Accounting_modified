@@ -15,7 +15,7 @@
         @include('inc.side')
         </aside>
         
-        <div id="right-panel" class="right-panel">
+        <div id="right-panel" class="right-panel" >
             
                 <header id="header" class="header">
                         @include('inc.nav')
