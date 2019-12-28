@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use File;
+use Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -86,12 +87,1196 @@ use App\Clients;
 use App\BankEdits;
 use App\UserCostCenterAccess;
 use App\StCreditNote;
+use App\ExpenseTransaction;
+
+
+use App\EtItemDetail;
+use App\EtAccountDetail;
+use App\PayBill;
+use App\VoucherTransaction;
+use App\VoucherJournalEntry;
+
+use App\CostCenterEdit;
+use App\BudgetsEdit;
+use App\COAEdits;
+use App\ProductAndServicesEdit;
+use App\CustomerEdit;
+use App\ExpenseTransactionEdit;
+use App\EtItemDetailEdit;
+use App\ETAccountDetailEdit;
+use App\StInvoiceEdit;
+use App\SalesTransactionEdit;
+use App\StCreditNoteEdit;
+use App\ExpenseTransactionNew;
+use App\EtItemDetailNew;
+use App\ETAccountDetailNew;
 class ApiController extends Controller
 {
     public function __construct(){
         header('Access-Control-Allow-Origin: *');
         header('Content-type: application/x-www-form-urlencoded');
         
+    }
+    public function delete_pending_bid_request(Request $request){
+        $budget_edit_no=$request->id;
+        $BudgetEdits= BudgetsEdit::where([
+            ['budget_no', '=', $budget_edit_no]
+        ])->first();
+        $cost_center=$BudgetEdits->budget_cost_center;
+        $BudgetEdits->edit_status="1";
+        if($BudgetEdits->save()){
+            // $AuditLog= new AuditLog;
+            // $AuditLogcount=AuditLog::count()+1;
+            // $CostCenter= CostCenter::where([
+            //     ['cc_no', '=', $cost_center]
+            // ])->first();
+            // $userid = Auth::user()->id;
+            // $username = Auth::user()->name;
+            // $eventlog="Denied Pending Bid of Quotation Edit Request of.".$CostCenter->cc_name."(".$CostCenter->cc_name_code.")";
+            // $AuditLog->log_id=$AuditLogcount;
+            // $AuditLog->log_user_id=$username;
+            // $AuditLog->log_event=$eventlog;
+            // $AuditLog->log_name="";
+            // $AuditLog->log_transaction_date="";
+            // $AuditLog->log_amount="";
+            // $AuditLog->save();
+        }
+        
+    }
+    public function approve_pending_bid_request(Request $request){
+        $budget_edit_no=$request->id;
+        $BudgetEdits= BudgetsEdit::where([
+            ['budget_no', '=', $budget_edit_no]
+        ])->first();
+        $cost_center=$BudgetEdits->budget_cost_center;
+        $budget=$BudgetEdits->budget_month;
+        $Budget= Budgets::where([
+            ['budget_cost_center', '=', $cost_center],
+            ['budget_type', '=', "Bid of Quotation"]
+        ])->first();
+        if(empty($Budget)){
+            $Budget = new Budgets;
+        }
+        $Budget->budget_month=$budget;
+        if($Budget->save()){
+            $Cost_Center=CostCenter::find($cost_center);
+            $Cost_Center->cc_use_quotation='Yes';
+            $Cost_Center->save();
+            $BudgetEdits->edit_status="1";
+            $BudgetEdits->save();
+            $CostCenter= CostCenter::where([
+                ['cc_no', '=', $cost_center]
+            ])->first();
+            // $AuditLog= new AuditLog;
+            // $AuditLogcount=AuditLog::count()+1;
+            // $userid = Auth::user()->id;
+            // $username = Auth::user()->name;
+            // $eventlog="Approved Pending Bid of Quotation Edit Request of.".$CostCenter->cc_name."(".$CostCenter->cc_name_code.")";
+            // $AuditLog->log_id=$AuditLogcount;
+            // $AuditLog->log_user_id=$username;
+            // $AuditLog->log_event=$eventlog;
+            // $AuditLog->log_name="";
+            // $AuditLog->log_transaction_date="";
+            // $AuditLog->log_amount="";
+            // $AuditLog->save();
+            
+        } 
+    }
+    public function update_expense_edit(Request $request){
+        $expense_transactionedit =ExpenseTransactionEdit::where([
+            ['et_no','=',$request->id],
+            ['et_type','=',$request->type]
+        ])->first();
+        $expense_transaction =ExpenseTransaction::where([
+            ['et_no','=',$request->id],
+            ['et_type','=',$request->type]
+        ])->first();
+        if(!empty($expense_transaction)){
+            
+            $expense_transaction->et_customer = $expense_transactionedit->et_customer;
+            $expense_transaction->et_terms = $expense_transactionedit->et_terms;
+            $expense_transaction->et_bill_no = $expense_transactionedit->et_bill_no;
+            $expense_transaction->et_billing_address = $expense_transactionedit->et_billing_address;
+            $expense_transaction->et_date = $expense_transactionedit->et_date;
+            $expense_transaction->et_due_date = $expense_transactionedit->et_due_date;
+            $expense_transaction->et_reference_no = $expense_transactionedit->et_reference_no;
+            $expense_transaction->et_memo = $expense_transactionedit->et_memo;
+            $expense_transaction->et_type = $expense_transactionedit->et_type;
+
+            $expense_transaction->et_shipping_address = $expense_transactionedit->et_shipping_address;
+            $expense_transaction->et_shipping_to = $expense_transactionedit->et_shipping_to;
+            $expense_transaction->et_shipping_via = $expense_transactionedit->et_shipping_via;
+            $expense_transaction->et_credit_account = $expense_transactionedit->et_credit_account;
+            
+            $expense_transaction->save();
+
+            DB::table('et_account_details')->where([
+                ['et_ad_no','=', $request->id],
+                ['et_ad_type','=', $request->type]
+            ])->update([
+                'et_ad_no'=>'OK'
+            ]);
+            DB::table('et_item_details')->where([
+                ['et_id_no','=', $request->id]
+            ])->update([
+                'et_id_no'=>'OK'
+            ]);
+            //DB::table('st_credit_notes')->where('st_cn_no', $request->id)->delete();
+            $journalforcostcenter=DB::table('journal_entries')->where([['other_no','=',$request->id]],[['remark','!=','NULLED']] )->get();
+            $Costtttsasdasd="";
+            $JJJJNNNNOOO="";
+            foreach($journalforcostcenter as $sacxzxcasd){
+                $JJJJNNNNOOO=$sacxzxcasd->je_no;
+                $Costtttsasdasd=$sacxzxcasd->je_cost_center;
+            }
+            $totalamount=0;
+            DB::table('journal_entries')->where('other_no', $request->id)->update([
+                'remark'=>'NULLED'
+            ]);
+            $et_accounteditr=DB::table('et_account_details_edits')->where([
+                ['et_ad_no','=', $request->id],
+                ['edit_status','=', "0"]
+            ])->get();
+            $je_id_no=0;
+            foreach($et_accounteditr as $ets){
+                $et_account = new EtAccountDetail;
+                $et_account->et_ad_no = $request->id;
+                $et_account->et_ad_product = $ets->et_ad_product;
+                $et_account->et_ad_desc = $ets->et_ad_desc;
+                $et_account->et_ad_qty = $ets->et_ad_qty;
+                $et_account->et_ad_total = $ets->et_ad_total;
+                $et_account->et_ad_type =$expense_transactionedit->et_type;
+                if($expense_transactionedit->et_type=="Supplier credit"){
+                    $totalamount-=$ets->et_ad_total;
+                    $JDate=$expense_transactionedit->et_date;
+                    $JNo=$request->id;
+                    $JMemo=$expense_transactionedit->et_memo;
+                    $account=$expense_transactionedit->et_credit_account;
+                    $debit= -$ets->et_ad_total;
+                    $credit= "";
+                    $description=$ets->et_ad_desc;
+                    $name="";
+
+                    $journal_entries = new  JournalEntry;
+                    $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+                    $je_id_no++;
+                    $journal_entries->je_id = $je_id_no;
+                    
+                    $journal_entries->je_no=$JJJJNNNNOOO;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->save();
+
+                    $JDate=$expense_transactionedit->et_date;
+                    $JNo=$request->id;
+                    $JMemo=$expense_transactionedit->et_memo;
+                    $account=$ets->et_ad_product;
+                    $debit= "";
+                    $credit=-$ets->et_ad_total;
+                    $description=$ets->et_ad_desc;
+                    $name="";
+                        
+
+                    $journal_entries = new  JournalEntry;
+                    $je_id_no++;
+                    $journal_entries->je_id = $je_id_no;
+                    $journal_entries->je_no=$JJJJNNNNOOO;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->save();
+                }else{
+                    $totalamount+=$ets->et_ad_total;
+                    
+                    $JDate=$expense_transactionedit->et_date;
+                    $JNo=$request->id;
+                    $JMemo=$expense_transactionedit->et_memo;
+                    $account=$ets->et_ad_product;
+                    $debit= $ets->et_ad_total;
+                    $credit= "";
+                    $description=$ets->et_ad_desc;
+                    $name="";
+
+                    $journal_entries = new  JournalEntry;
+                    $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+                    $je_id_no++;
+                    $journal_entries->je_id = $je_id_no;
+                    $journal_entries->je_no=$JJJJNNNNOOO;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Bill";
+                    $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->save();
+
+                    $JDate=$expense_transactionedit->et_date;
+                    $JNo=$request->id;
+                    $JMemo=$expense_transactionedit->et_memo;
+                    $account=$expense_transactionedit->et_credit_account;
+                    $debit= "";
+                    $credit= $ets->et_ad_total;
+                    $description=$ets->et_ad_desc;
+                    $name="";
+                        
+
+                    $journal_entries = new  JournalEntry;
+                    $je_id_no++;
+                    $journal_entries->je_id = $je_id_no;
+                    $journal_entries->je_no=$JJJJNNNNOOO;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Bill";
+                    $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->save();
+
+                }
+                
+                if($et_account->save()){
+                    
+                }
+                
+                
+            }
+            $totalamoun2t=0;
+            foreach($et_accounteditr as $ets){
+                if($expense_transactionedit->et_type="Bill"){
+                    $totalamoun2t+=$ets->et_ad_total;
+
+                }
+            }
+            $expense_transaction =ExpenseTransaction::find($request->id);
+            $expense_transaction->bill_balance=$totalamoun2t;
+            $expense_transaction->save();
+
+
+            $customer = Customers::find($expense_transactionedit->et_customer);
+            // $AuditLog= new AuditLog;
+            // $AuditLogcount=AuditLog::count()+1;
+            // $userid = Auth::user()->id;
+            // $username = Auth::user()->name;
+            // $eventlog="Updated ".$expense_transactionedit->et_type." No. ".$request->id;
+            // $AuditLog->log_id=$AuditLogcount;
+            // $AuditLog->log_user_id=$username;
+            // $AuditLog->log_event=$eventlog;
+            // $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
+            // $AuditLog->log_transaction_date=$expense_transactionedit->et_date;
+            // $AuditLog->log_amount=$totalamount;
+            // $AuditLog->save();
+            $exnew=ExpenseTransactionNew::where([
+                ['et_no','=',$request->id],
+                ['et_type','=','Bill']
+            ])->first();
+            $exnew->et_status="OK";
+            $exnew->save();
+            DB::table('et_account_details_edits')->where([
+                ['et_ad_no','=', $request->id],
+                ['et_ad_type','=', $request->type]
+            ])->update([
+                'edit_status'=>'OK'
+            ]);
+            DB::table('et_item_details_edits')->where([
+                ['et_id_no','=', $request->id]
+            ])->update([
+                'edit_status'=>'OK'
+            ]);
+            $asdasd =ExpenseTransactionEdit::where([
+                ['et_no','=',$request->id],
+                ['et_type','=',$request->type]
+            ])->first();
+            $asdasd->edit_status = "OK";
+            $asdasd->save();
+        }
+    }
+    public function delete_expense_edit(Request $request){
+            
+            $asdasd =ExpenseTransactionEdit::where([
+                ['et_no','=',$request->id],
+                ['et_type','=',$request->type]
+            ])->first();
+            $asdasd->edit_status = "OK";
+            $asdasd->save();
+
+            DB::table('et_account_details_edits')->where([
+                ['et_ad_no','=', $request->id],
+                ['et_ad_type','=', $request->type]
+            ])->update([
+                'edit_status'=>'OK'
+            ]);
+            DB::table('et_item_details_edits')->where([
+                ['et_id_no','=', $request->id]
+            ])->update([
+                'edit_status'=>'OK'
+            ]);
+    }
+    public function update_credit_note_edit2(Request $request){
+        $sales_transactionedit =SalesTransactionEdit::find($request->id);
+        $sales_transaction =SalesTransaction::find($request->id);
+        if(!empty($sales_transaction)){
+            $sales_transaction->st_date = $sales_transactionedit->st_date;
+            $sales_transaction->st_type = $sales_transactionedit->st_type;
+            //$sales_transaction->st_term = $sales_transactionedit->st_term;
+            $sales_transaction->st_customer_id = $sales_transactionedit->st_customer_id;
+            //$sales_transaction->st_due_date = $sales_transactionedit->st_due_date;
+            $sales_transaction->st_email = $sales_transactionedit->st_email;
+            $sales_transaction->st_send_later = $sales_transactionedit->st_send_later;
+            $sales_transaction->st_bill_address = $sales_transactionedit->st_bill_address;
+            $sales_transaction->st_note = $sales_transactionedit->st_note;
+            $sales_transaction->st_memo = $sales_transactionedit->st_memo;
+            $sales_transaction->st_amount_paid = $sales_transactionedit->st_amount_paid;
+            $sales_transaction->save();
+
+            
+            
+            $csasd="";
+            $value;
+            $customer = Customers::find($sales_transactionedit->st_customer_id);
+            DB::table('st_credit_notes')->where('st_cn_no', $request->id)->delete();
+            $journalforcostcenter=DB::table('journal_entries')->where('other_no', $request->id)->get();
+            $Costtttsasdasd="";
+            $JJJJNNNNOOO="";
+            foreach($journalforcostcenter as $sacxzxcasd){
+                $JJJJNNNNOOO=$sacxzxcasd->je_no;
+                $Costtttsasdasd=$sacxzxcasd->je_cost_center;
+            }
+            
+            DB::table('journal_entries')->where('other_no', $request->id)->delete();
+            //$st_invoiceedit =StInvoiceEdit::find($request->id);
+            $st_invoiceedit=DB::table('st_credit_notes_edits')->where('st_cn_no', $request->id)->get();
+            $c=0;
+
+            
+
+            foreach($st_invoiceedit as $st_iss){
+                $st_credit_note = new StCreditNote;
+                
+                $st_credit_note->st_cn_no = $request->id;
+                $st_credit_note->st_cn_product = $st_iss->st_cn_product;
+                $st_credit_note->st_cn_desc = $st_iss->st_cn_desc;
+                $st_credit_note->st_cn_qty = $st_iss->st_cn_qty;
+                
+                $st_credit_note->st_cn_rate = $st_iss->st_cn_rate;
+                $st_credit_note->st_cn_total = $st_iss->st_cn_total;
+                $st_credit_note->save();
+                $product = ProductsAndServices::find($st_iss->st_cn_product);
+                $email_array = explode(',', $sales_transactionedit->st_email);
+
+                $value[$c-1] = [
+                    'type' => 'Credit Note',
+                    'name' => $customer->display_name,
+                    'email' => $email_array,
+                    'title' => 'CREDIT NOTE',
+                    'note' => '',
+                    'memo' => '',
+                    'product_name' =>!empty($product)? $product->product_name : '',
+                    'product_description' => $st_iss->st_cn_desc,
+                    'product_quantity' => $st_iss->st_cn_qty,
+                    'product_rate' => $st_iss->st_cn_rate,
+                    'product_total' => $st_iss->st_cn_total,
+                    'credit_total' => $st_iss->st_cn_total,
+                ];
+                
+                $jounalcount=$JJJJNNNNOOO;
+                $JDate=$sales_transactionedit->st_date;
+                $JNo=$jounalcount;
+                $JMemo=$sales_transactionedit->st_memo;
+                $account="2";
+                $debit= $st_iss->st_cn_total;
+                $credit= "";
+                $description=$st_iss->st_cn_desc;
+                $name=$customer->display_name;
+                
+                
+                $journal_entries = new  JournalEntry;
+                $journal_entries_count=JournalEntry::count()+1;
+                $journal_entries->je_id = "1";
+                $journal_entries->je_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Credit Note";
+                $journal_entries->je_cost_center=$Costtttsasdasd;
+                $journal_entries->other_no=$request->id;
+                $journal_entries->save();
+
+                $JDate=$sales_transactionedit->st_date;
+                $JNo=$jounalcount;
+                $JMemo=$sales_transactionedit->st_memo;
+                $account="4";
+                $debit= "";
+                $credit= $st_iss->st_cn_total;
+                $description=$st_iss->st_cn_desc;
+                $name=$customer->display_name;
+                
+
+                $journal_entries = new  JournalEntry;
+                $journal_entries_count=JournalEntry::count()+1;
+                $journal_entries->je_id = "2";
+                $journal_entries->je_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Credit Note";
+                $journal_entries->other_no=$request->id;
+                $journal_entries->je_cost_center=$Costtttsasdasd;
+                $journal_entries->save();
+                $c++;
+            }
+            if($sales_transactionedit->st_send_later=="yes"){
+                Mail::send(['text'=>'mail'], $value, function($message) use ($value)
+                {
+                    $company = Company::first();
+                    $sales = Sales::first();
+                    $expenses = Expenses::first();
+                    $advance = Advance::first();
+                    
+                    $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
+                    $attachment = $pdf->stream('credit_notice.pdf');
+                    $message->attachData($attachment, 'credit_note.pdf');
+        
+                    $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Invoice for '.$value[0]['name']);
+                    $message->from('floydignified@gmail.com','Floyd Matabilas');
+                });
+            }
+            
+            DB::table('st_credit_notes_edits')->where('st_cn_no', $request->id)->delete();
+            DB::table('sales_transaction_edits')->where('st_no', $request->id)->delete();
+        }
+    }
+    public function delete_credit_note_edit(Request $request){
+        DB::table('st_credit_notes_edits')->where('st_cn_no', $request->id)->delete();
+        DB::table('sales_transaction_edits')->where('st_no', $request->id)->delete();
+    }
+    public function update_invoice_edit2(Request $request){
+        
+
+        $sales_transactionedit =SalesTransactionEdit::where([
+            ['st_no','=',$request->id],
+            ['st_type','=','Invoice'],
+            ['st_location','=',$request->location],
+            ['st_invoice_type','=',$request->type]
+        ])->first();
+        $sales_transaction =SalesTransaction::where([
+            ['st_no','=',$request->id],
+            ['st_type','=','Invoice'],
+            ['st_location','=',$request->location],
+            ['st_invoice_type','=',$request->type]
+        ])->first();
+        //return $sales_transaction;
+        $debit_account="";
+        $credit_account="";
+        if(!empty($sales_transaction)){
+            $sales_transaction->st_date = $sales_transactionedit->st_date;
+            $sales_transaction->st_type = $sales_transactionedit->st_type;
+            $sales_transaction->st_term = $sales_transactionedit->st_term;
+            $sales_transaction->st_customer_id = $sales_transactionedit->st_customer_id;
+            $sales_transaction->st_due_date = $sales_transactionedit->st_due_date;
+            $sales_transaction->st_email = $sales_transactionedit->st_email;
+            $sales_transaction->st_send_later = $sales_transactionedit->st_send_later;
+            $sales_transaction->st_bill_address = $sales_transactionedit->st_bill_address;
+            $sales_transaction->st_note = $sales_transactionedit->st_note;
+            $sales_transaction->st_memo = $sales_transactionedit->st_memo;
+            $sales_transaction->st_balance = $sales_transactionedit->st_balance;
+            $sales_transaction->st_location = $sales_transactionedit->st_location;
+            $sales_transaction->st_invoice_type = $sales_transactionedit->st_invoice_type;
+            $sales_transaction->st_invoice_job_order = $sales_transactionedit->st_invoice_job_order;
+            $sales_transaction->st_invoice_work_no = $sales_transactionedit->st_invoice_work_no;
+            $sales_transaction->st_debit_account = $sales_transactionedit->st_debit_account;
+            $sales_transaction->st_credit_account = $sales_transactionedit->st_credit_account;
+            $sales_transaction->save();
+            
+            $csasd="";
+            $value;
+            $customer = Customers::find($sales_transactionedit->st_customer_id);
+            $customer_name="";
+            if ($customer->display_name!=""){
+                $customer_name=$customer->display_name;
+            }else{
+                if ($customer->company_name!=""){
+                    $customer_name=$customer->company_name;
+                }else{
+                    $customer_name=$customer->f_name." ".$customer->l_name;
+                }
+            }
+            // StInvoice::where([
+            //     ['st_i_no','=',$request->id],
+            //     ['st_p_location','=',$request->location],
+            //     ['st_p_invoice_type','=',$request->type]
+            // ])->delete();
+            $journalforcostcenter=DB::table('journal_entries')->where('other_no', $request->id)->get();
+            
+            //$st_invoiceedit =StInvoiceEdit::find($request->id);
+            $st_invoiceedit=DB::table('st_invoice_edit')->where([
+                ['st_i_no','=',$request->id],
+                ['st_p_location','=',$request->location],
+                ['st_p_invoice_type','=',$request->type],
+                ['edit_status','=','0']
+            ])->get();
+            $c=0;
+            DB::table('journal_entries')->where([
+                ['other_no', $request->id],
+                ['je_invoice_location_and_type','=',$request->location." ".$request->type]
+            ])->update([
+                'remark'=>'NULLED'
+            ]);
+            $je_id_no=0;
+            foreach($st_invoiceedit as $st_iss){
+                $Costtttsasdasd="";
+                $JJJJNNNNOOO="";
+                foreach($journalforcostcenter as $sacxzxcasd){
+                    $JJJJNNNNOOO=$sacxzxcasd->je_no;
+                    $Costtttsasdasd=$sacxzxcasd->je_cost_center;
+                }
+                $st_invoice =StInvoice::where([
+                    ['st_i_no','=',$request->id],
+                    ['st_p_location','=',$request->location],
+                    ['st_p_invoice_type','=',$request->type],
+                    ['st_i_item_no','=',$st_iss->st_i_item_no]
+                ])->first();
+                if(empty($st_invoice)){
+                    $st_invoice = new StInvoice;
+                }
+                $st_invoice->st_i_no = $request->id;
+                $st_invoice->st_i_item_no = $st_iss->st_i_item_no;
+                $st_invoice->st_i_product = $st_iss->st_i_product;
+                $st_invoice->st_i_desc = $st_iss->st_i_desc;
+                $st_invoice->st_i_qty = $st_iss->st_i_qty;
+                
+                $st_invoice->st_i_rate = $st_iss->st_i_rate;
+                $st_invoice->st_i_total = $st_iss->st_i_total;
+                $st_invoice->st_p_location = $st_iss->st_p_location;
+                $st_invoice->st_p_invoice_type = $st_iss->st_p_invoice_type;
+                $st_invoice->st_p_cost_center = $st_iss->st_p_cost_center;
+                $st_invoice->st_p_debit=$st_iss->st_p_debit;
+                $st_invoice->st_p_credit=$st_iss->st_p_credit;
+                $st_invoice->save();
+
+
+                $product = ProductsAndServices::find($st_iss->st_i_product);
+                $email_array = explode(',', $sales_transactionedit->st_email);
+
+                $value[$c-1] = [
+                    'type' => 'Invoice',
+                    'name' => $customer_name,
+                    'email' => $email_array,
+                    'title' => 'INVOICE',
+                    'note' => '',
+                    'memo' => '',
+                    'product_name' => !empty($product)? $product->product_name : '',
+                    'product_description' => $st_iss->st_i_desc,
+                    'product_quantity' => $st_iss->st_i_qty,
+                    'product_rate' => $st_iss->st_i_rate,
+                    'product_total' => $st_iss->st_i_total,
+                    'credit_total' => $st_iss->st_i_total,
+                ];
+                $jounalcount=$JJJJNNNNOOO;
+                $JDate=$sales_transactionedit->st_date;
+                $JNo=$jounalcount;
+                $JMemo=$sales_transactionedit->st_memo;
+                $account=$st_iss->st_p_debit;
+                $debit= $st_iss->st_i_total;
+                $credit= "";
+                $description=$st_iss->st_i_desc;
+                $name=$customer_name;
+                
+                $je_id_no++;
+                $journal_entries = new  JournalEntry;
+                $journal_entries_count=JournalEntry::count()+1;
+                $journal_entries->je_id =$je_id_no ;
+                $journal_entries->je_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Invoice";
+                $journal_entries->je_invoice_location_and_type=$request->location." ".$request->type;
+                $journal_entries->je_cost_center=$st_iss->st_p_cost_center;
+                $journal_entries->other_no=$request->id;
+                $journal_entries->save();
+
+                $JDate=$sales_transactionedit->st_date;
+                $JNo=$jounalcount;
+                $JMemo=$sales_transactionedit->st_memo;
+                $account=$st_iss->st_p_credit;
+                $debit= "";
+                $credit= $st_iss->st_i_total;
+                $description=$st_iss->st_i_desc;
+                $name=$customer_name;
+                
+                $je_id_no++;
+                $journal_entries = new  JournalEntry;
+                $journal_entries_count=JournalEntry::count()+1;
+                $journal_entries->je_id = $je_id_no;
+                $journal_entries->je_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Invoice";
+                $journal_entries->je_invoice_location_and_type=$request->location." ".$request->type;
+                $journal_entries->other_no=$request->id;
+                $journal_entries->je_cost_center=$st_iss->st_p_cost_center;
+                $journal_entries->save();
+                $c++;
+            }
+            
+            $st_invoiceedit=SalesTransactionEdit::where([
+                ['st_no','=',$request->id],
+                ['st_location','=',$request->location],
+                ['st_invoice_type','=',$request->type]
+            ])->first();
+            $st_invoiceedit->edit_status = "OK";
+            $st_invoiceedit->save();
+            DB::table('st_invoice_edit')->where([
+                ['st_i_no','=',$request->id],
+                ['st_p_location','=',$request->location],
+                ['st_p_invoice_type','=',$request->type]
+            ])->update([
+                'edit_status'=>'OK'
+            ]);
+            //DB::table('st_invoice_edit')->where('st_i_no', $request->id)->delete();
+            //DB::table('sales_transaction_edits')->where('st_no', $request->id)->delete();
+        }
+        
+
+    
+    }
+    public function delete_invoice_edit(Request $request){
+        DB::table('st_invoice_edit')->where([
+            ['st_i_no','=',$request->id],
+            ['st_p_location','=',$request->location],
+            ['st_p_invoice_type','=',$request->type]
+        ])->update([
+            'edit_status'=>'OK'
+        ]);
+        $st_invoiceedit=SalesTransactionEdit::where([
+            ['st_no','=',$request->id],
+            ['st_location','=',$request->location],
+            ['st_invoice_type','=',$request->type]
+        ])->first();
+        $st_invoiceedit->edit_status = "OK";
+        $st_invoiceedit->save();
+    }
+    public function update_prod_edit(Request $request){
+        $useredit=ProductAndServicesEdit::find($request->id);
+        $user=ProductsAndServices::find($request->id);
+        if(!empty($user)){
+            $user->product_name=$useredit->product_name;
+            $user->product_sku=$useredit->product_sku;
+            $user->product_type=$useredit->product_type;
+            $user->product_sales_description=$useredit->product_sales_description;
+            $user->product_sales_price=$useredit->product_sales_price;
+            $user->product_cost=$useredit->product_cost;
+            $user->product_qty=$useredit->product_qty;
+            $user->product_reorder_point=$useredit->product_reorder_point;
+            if($user->save()){
+                $useredit->edit_status="1";
+                $useredit->save();
+            }
+        }
+        
+
+    }
+    public function delete_prod_edit(Request $request){
+        $useredit=ProductAndServicesEdit::find($request->id);
+        $useredit->edit_status="1";
+        $useredit->save();
+    }
+    public function update_Supplier_edit(Request $request){
+        $customeredit =CustomerEdit::find($request->id);
+        $customer =Customers::find($request->id);
+        if(!empty($customer)){
+            $customer->f_name = $customeredit->f_name;
+            $customer->l_name = $customeredit->l_name;
+            $customer->email = $customeredit->email;
+            $customer->company = $customeredit->company;
+            $customer->phone = $customeredit->phone;
+            $customer->mobile = $customeredit->mobile;
+            $customer->fax = $customeredit->fax;
+            $customer->display_name = $customeredit->display_name;
+            $customer->other = $customeredit->other;
+            $customer->website = $customeredit->website;
+            $customer->street = $customeredit->street;
+            $customer->city = $customeredit->city;
+            $customer->state = $customeredit->state;
+            $customer->postal_code = $customeredit->postal_code;
+            $customer->country = $customeredit->country;
+            $customer->payment_method = $customeredit->payment_method;
+            $customer->terms = $customeredit->terms;
+            $customer->opening_balance = $customeredit->opening_balance;
+            $customer->as_of_date = $customeredit->as_of_date;
+            $customer->account_no = $customeredit->account_no;
+            $customer->business_id_no = $customeredit->business_id_no;
+            $customer->notes = $customeredit->notes;
+            $customer->attachment = $customeredit->attachment;
+            $customer->tin_no=$customeredit->tin_no;
+            $customer->tax_type=$customeredit->tax_type;
+            $customer->vat_value=$customeredit->vat_value;
+            $customer->supplier_active="1";
+            $customer->account_type="Supplier";
+            $customer->business_style=$customeredit->business_style;
+            if($customer->save()){
+                $customeredit->edit_status="1";
+                $customeredit->save();
+            }
+
+        }
+        
+        
+    }
+    public function delete_Supplier_edit(Request $request){
+        $customeredit =CustomerEdit::find($request->id);
+        $customeredit->edit_status="1";
+        $customeredit->save();
+    }
+    public function update_Customer_edit(Request $request){
+        $customeredit = CustomerEdit::find($request->id);
+        $customer = Customers::find($request->id);
+        if(!empty($customer)){
+            $customer->f_name = $customeredit->f_name;
+            $customer->l_name = $customeredit->l_name;
+            $customer->email = $customeredit->email;
+            $customer->company = $customeredit->company;
+            $customer->phone = $customeredit->phone;
+            $customer->mobile = $customeredit->mobile;
+            $customer->fax = $customeredit->fax;
+            $customer->display_name = $customeredit->display_name;
+            $customer->other = $customeredit->other;
+            $customer->website = $customeredit->website;
+            $customer->street = $customeredit->street;
+            $customer->city = $customeredit->city;
+            $customer->state = $customeredit->state;
+            $customer->postal_code = $customeredit->postal_code;
+            $customer->country = $customeredit->country;
+            $customer->payment_method = $customeredit->payment_method;
+            $customer->terms = $customeredit->terms;
+            $customer->opening_balance = $customeredit->opening_balance;
+            $customer->as_of_date = $customeredit->as_of_date;
+            $customer->account_no = $customeredit->account_no;
+            $customer->business_id_no = $customeredit->business_id_no;
+            $customer->notes = $customeredit->notes;
+            $customer->tin_no=$customeredit->tin_no;
+            $customer->withhold_tax=$customeredit->withhold_tax;
+            $customer->business_style=$customeredit->business_style;
+            if($customer->save()){
+                $customeredit->edit_status="1";
+                $customeredit->save();
+            }
+        }
+        
+    }
+    public function delete_Customer_edit(Request $request){
+        $customeredit = CustomerEdit::find($request->id);
+        $customeredit->edit_status="1";
+        $customeredit->save();
+    }
+    public function update_CC_edit(Request $request){
+        $costcenterEdit=CostCenterEdit::find($request->id);
+        $costcenter=CostCenter::find($request->id);
+       
+        if(!empty($costcenter)){
+            $costcenter->cc_type_code=$costcenterEdit->cc_type_code; 
+            $costcenter->cc_type=$costcenterEdit->cc_type; 
+            $costcenter->cc_name_code=$costcenterEdit->cc_name_code; 
+            $costcenter->cc_name=$costcenterEdit->cc_name;
+            $costcenter->cc_status=$costcenterEdit->cc_status;  
+            if($costcenter->save()){
+                $costcenterEdit->edit_status="1";
+                $costcenterEdit->save();
+            }
+        }
+        
+        
+    }
+    public function delete_CC_edit(Request $request){
+        $costcenterEdit=CostCenterEdit::find($request->id);
+        $costcenterEdit->edit_status="1";
+        $costcenterEdit->save();
+    }
+    public function update_COA_edit(Request $request){
+        $ChartEdit=COAEdits::find($request->id);
+        $Chart=ChartofAccount::find($request->id);
+        if(!empty($Chart)){
+            $new_balance=0;
+            $beg_balance_new=$Chart->coa_beginning_balance-$ChartEdit->coa_beginning_balance;
+            $new_balance=$Chart->coa_balance-$beg_balance_new;
+            $Chart->coa_account_type=$ChartEdit->coa_account_type;
+            $Chart->coa_detail_type=$ChartEdit->coa_detail_type;
+            $Chart->coa_name=$ChartEdit->coa_name;
+            $Chart->coa_sub_account=$ChartEdit->coa_sub_account;
+            $Chart->coa_description=$ChartEdit->coa_description;
+            $Chart->coa_code=$ChartEdit->coa_code;
+            $Chart->coa_balance=$new_balance;
+            $Chart->normal_balance=$ChartEdit->normal_balance;
+            $Chart->coa_beginning_balance=$ChartEdit->coa_beginning_balance;
+            $Chart->coa_as_of_date=$ChartEdit->coa_as_of_date;
+            $Chart->coa_title=$ChartEdit->coa_title;
+            $Chart->coa_active=$ChartEdit->coa_active;
+            $Chart->coa_cc=$ChartEdit->coa_cc;
+            if($Chart->save()){
+                $ChartEdit->edit_status="1";
+                $ChartEdit->save();
+            }
+        }
+        
+        
+    }
+    public function delete_COA_edit(Request $request){
+        $ChartEdit=COAEdits::find($request->id);
+        $ChartEdit->edit_status="1";
+        $ChartEdit->save();
+    }
+    public function update_bank_edit(Request $request){
+
+        $BankEdit =BankEdits::find($request->id);
+        $Bank =Bank::find($request->id);
+        if(!empty($Bank)){
+
+            $Bank->bank_name=$BankEdit->bank_name;
+            $Bank->bank_code=$BankEdit->bank_code;
+            $Bank->bank_branch=$BankEdit->bank_branch;
+            $Bank->bank_account_no=$BankEdit->bank_account_no;
+            $Bank->bank_remark=$BankEdit->bank_remark;
+            $Bank->bank_status=$BankEdit->bank_status;
+            if($Bank->save()){
+                $BankEdit->edit_status="1";
+                $BankEdit->save();
+            }
+        }
+        
+    }
+    public function delete_bank_edit(Request $request){
+        $BankEdit =BankEdits::find($request->id);
+        $BankEdit->edit_status="1";
+        $BankEdit->save();
+    }
+    public function deny_pending_bill(Request $request){
+        $exnew=ExpenseTransactionNew::where([
+            ['et_no','=',$request->id],
+            ['et_type','=','Bill']
+        ])->first();
+        $exnew->et_status="OK";
+        $exnew->save();
+    }
+    public function approve_pending_bill(Request $request){
+        $et =ExpenseTransactionNew::where([
+            ['et_no','=',$request->id],
+            ['et_type','=','Bill']
+        ])->get();
+        if(!empty($et)){
+            $expense_transaction = new ExpenseTransaction;
+            $expense_transaction->et_no = $et[0]->et_no;
+            $expense_transaction->et_customer =$et[0]->et_customer;
+            $expense_transaction->et_terms = $et[0]->et_terms;
+            $expense_transaction->et_billing_address = $et[0]->et_billing_address;
+            $expense_transaction->et_bill_no =$et[0]->et_bill_no;
+            $expense_transaction->et_date = $et[0]->et_date;
+            $expense_transaction->et_due_date = $et[0]->et_due_date;
+            $expense_transaction->et_memo = $et[0]->et_memo;
+            $expense_transaction->et_attachment = $et[0]->et_attachment;
+            $expense_transaction->et_shipping_address = $et[0]->et_shipping_address;
+            $expense_transaction->et_shipping_to = $et[0]->et_shipping_to;
+            $expense_transaction->et_shipping_via =$et[0]->et_shipping_via;
+            $expense_transaction->et_credit_account=$et[0]->et_credit_account;
+            $expense_transaction->et_type = $et[0]->et_type;
+            $expense_transaction->save();
+
+            
+            $customer = Customers::find($et[0]->et_customer);
+            $customer_name="";
+            if ($customer->display_name!=""){
+                $customer_name=$customer->display_name;
+            }else{
+                if ($customer->company_name!=""){
+                    $customer_name=$customer->company_name;
+                }else{
+                    $customer_name=$customer->f_name." ".$customer->l_name;
+                }
+            }
+            $totalamount=0;
+            $et_a =EtAccountDetailNew::where([
+                ['et_ad_no','=',$request->id],
+                ['et_ad_type','=','Bill']
+            ])->get();
+            foreach($et_a as $ee){
+                $et_account = new EtAccountDetail;
+                $et_account->et_ad_no = $ee->et_ad_no ;
+                $et_account->et_ad_product = $ee->et_ad_product ;
+                $et_account->et_ad_desc = $ee->et_ad_desc;
+                $et_account->et_ad_total = $ee->et_ad_total;
+                $et_account->et_ad_rate = $ee->et_ad_rate;
+                $et_account->et_ad_qty = $ee->et_ad_qty;
+                $et_account->et_ad_type = $ee->et_ad_type;
+                $totalamount+=$ee->et_ad_total;
+                $et_account->save(); 
+
+
+                $JDate=$et[0]->et_date;
+                $JNo=$et[0]->et_no;
+                $JMemo=$et[0]->et_memo;
+                $account=$ee->et_ad_product;
+                $debit= $ee->et_ad_total;
+                $credit= "";
+                $description=$ee->et_ad_desc;
+                $name=$customer_name;
+
+                $journal_entries = new  JournalEntry;
+                $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+                $journal_entries->je_id = "1";
+                $journal_entries->je_no=$journal_entries_count;
+                $journal_entries->other_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Bill";
+                
+                
+                $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                $journal_entries->save();
+
+                $JDate=$et[0]->et_date;
+                $JNo=$et[0]->et_no;
+                $JMemo=$et[0]->et_memo;
+                $account=$et[0]->et_credit_account;
+                $debit= "";
+                $credit= $ee->et_ad_total;
+                $description=$ee->et_ad_desc;
+                $name=$customer_name;
+                    
+
+                $journal_entries = new  JournalEntry;
+                
+                $journal_entries->je_id = "2";
+                $journal_entries->je_no=$journal_entries_count;
+                $journal_entries->other_no=$JNo;
+                $journal_entries->je_account=$account;
+                $journal_entries->je_debit=$debit;
+                $journal_entries->je_credit=$credit;
+                $journal_entries->je_desc=$description;
+                $journal_entries->je_name=$name;
+                $journal_entries->je_memo=$JMemo;
+                $journal_entries->created_at=$JDate;
+                $journal_entries->je_attachment=$JDate;
+                $journal_entries->je_transaction_type="Bill";
+                
+                $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                $journal_entries->save();
+                // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+                // $customer->save();
+            }
+            $expense_transaction =ExpenseTransaction::where([
+                ['et_no','=',$request->id],
+                ['et_type','=','Bill']
+            ])->first();
+            $expense_transaction->bill_balance=$totalamount;
+            $customer->opening_balance = $customer->opening_balance + $totalamount;
+            $customer->save();
+            $expense_transaction->save();
+            //check for error
+            // $customer = Customers::find($et[0]->et_customer);
+            // $AuditLog= new AuditLog;
+            // $AuditLogcount=AuditLog::count()+1;
+            // $userid = Auth::user()->id;
+            // $username = Auth::user()->name;
+            // $eventlog="Added Bill No. ".$request->id;
+            // $AuditLog->log_id=$AuditLogcount;
+            // $AuditLog->log_user_id=$username;
+            // $AuditLog->log_event=$eventlog;
+            // $AuditLog->log_name=$customer_name;
+            // $AuditLog->log_transaction_date=$et[0]->et_date;
+            // $AuditLog->log_amount=$totalamount;
+            // $AuditLog->save();
+            $exnew =ExpenseTransactionNew::where([
+                ['et_no','=',$request->id],
+                ['et_type','=','Bill']
+            ])->first();
+            $exnew->et_status="OK";
+            $exnew->save();
+            // ETAccountDetailNew::where([
+            //     ['et_ad_no','=',$request->id],
+            //     ['et_ad_type','=','Bill']
+            // ])->delete();
+        }
+    }
+    public function get_all_pending_transaction_request(Request $request){
+
+        $bankedits=BankEdits::where([
+            ['edit_status','=','0']
+        ])->get();
+        $bankeditscount=BankEdits::where([
+            ['edit_status','=','0']
+        ])->count();
+
+        $costcenteredit=CostCenterEdit::where([
+            ['edit_status','=','0']
+        ])->get();
+        $costcentereditcount=CostCenterEdit::where([
+            ['edit_status','=','0']
+        ])->count();
+
+        $budgetedit=DB::connection('mysql')->select("SELECT *  FROM budget_edits
+        LEFT JOIN chart_of_accounts ON chart_of_accounts.id=budget_edits.budget_chart_of_accounts WHERE edit_status!='1'");
+        
+        $budgeteditcount=BudgetsEdit::where([
+            ['edit_status','!=','1']
+        ])->count();
+
+        $coaedits=COAEdits::where([
+            ['edit_status','=','0']
+        ])->get();
+        $coaeditscount=COAEdits::where([
+            ['edit_status','=','0']
+        ])->count();
+
+        $productservicesedit=ProductAndServicesEdit::where([
+            ['edit_status','=','0']
+        ])->get();
+        $productserviceseditcount=ProductAndServicesEdit::where([
+            ['edit_status','=','0']
+        ])->count();
+
+        $customeredit=CustomerEdit::where([
+            ['edit_status','=','0'],
+            ['account_type','=','Customer']
+        ])->get();
+        $supplieredit=CustomerEdit::where([
+            ['edit_status','=','0'],
+            ['account_type','=','Supplier']
+        ])->get();
+        $customereditcount=CustomerEdit::where([
+            ['edit_status','=','0'],
+            ['account_type','=','Customer']
+        ])->count();
+        $suppliereditcount=CustomerEdit::where([
+            ['edit_status','=','0'],
+            ['account_type','=','Supplier']
+        ])->count();
+        
+        $etNew=DB::connection('mysql')->select("SELECT * FROM expense_transactions_new
+        JOIN customers ON customers.customer_id=expense_transactions_new.et_customer
+        WHERE et_status IS NULL");
+        ExpenseTransactionNew::where([
+            ['et_status','=',NULL]
+        ])->get();
+        $etNewcount=ExpenseTransactionNew::where([
+            ['et_status','=',NULL]
+        ])->count();
+        $etaNew=ETAccountDetailNew::all();
+        
+        $etaNewcount=ETAccountDetailNew::count();
+        $etaNewTotalAmount=DB::connection('mysql')->select("SELECT *,SUM(et_ad_total) as total_expense FROM et_account_details_new GROUP BY et_ad_no");
+
+        
+
+        $stinvoiceedit=StInvoiceEdit::all();
+        $stinvoiceeditTotalAmount=DB::connection('mysql')->select("SELECT *,SUM(st_i_total) as total_sale FROM st_invoice_edit GROUP BY st_i_no,st_p_location,st_p_invoice_type");
+        $salestransactioneditedit=DB::connection('mysql')->select("SELECT *  FROM sales_transaction_edits
+        JOIN customers ON customers.customer_id=sales_transaction_edits.st_customer_id
+        WHERE edit_status='0'");
+        SalesTransactionEdit::where([
+            ['edit_status','=','0']
+        ])->get();
+        $salestransactionediteditcount=SalesTransactionEdit::where([
+            ['edit_status','=','0']
+        ])->count();
+
+        $expensetransactionedit=DB::connection('mysql')->select("SELECT *  FROM expense_transactions_edits
+        LEFT JOIN customers ON customers.customer_id=expense_transactions_edits.et_customer
+        WHERE edit_status='0'");
+        $etitemdetailedit=EtItemDetailEdit::all();
+
+        $etaccdetailedit=DB::connection('mysql')->select("SELECT *  FROM et_account_details_edits
+        LEFT JOIN chart_of_accounts ON chart_of_accounts.id=et_account_details_edits.et_ad_product WHERE edit_status='0'");
+        $etaccdetailedittotal_amount=DB::connection('mysql')->select("SELECT *,SUM(et_ad_total) as total_expense  FROM et_account_details_edits WHERE edit_status='0'
+        GROUP BY et_ad_no");
+        $expensetransactioneditcount=ExpenseTransactionEdit::where([
+            ['edit_status','=','0']
+        ])->count();
+        
+        $data = array(
+            'bankedits' => $bankedits,
+            'bankeditscount' => $bankeditscount,
+            'costcenteredit' => $costcenteredit,
+            'costcentereditcount' => $costcentereditcount,
+            'budgetedit' => $budgetedit,
+            'budgeteditcount' => $budgeteditcount,
+            'coaedits' => $coaedits,
+            'coaeditscount' => $coaeditscount,
+            'productservicesedit' => $productservicesedit,
+            'productserviceseditcount' => $productserviceseditcount,
+            'customeredit' => $customeredit,
+            'supplieredit' => $supplieredit,
+            'customereditcount' => $customereditcount,
+            'suppliereditcount' => $suppliereditcount,
+            'etNew' => $etNew,
+            'etNewcount' => $etNewcount,
+            'etitemdetailedit' => $etitemdetailedit,
+            'etaccdetailedit' => $etaccdetailedit,
+            'stinvoiceedit' => $stinvoiceedit,
+            'salestransactioneditedit' => $salestransactioneditedit,
+            'salestransactionediteditcount' => $salestransactionediteditcount,
+            'expensetransactionedit' => $expensetransactionedit,
+            'expensetransactioneditcount' => $expensetransactioneditcount,
+            'etaNew' =>$etaNew,
+            'etaNewcount' =>$etaNewcount,
+            'etaNewTotalAmount' => $etaNewTotalAmount,
+            'stinvoiceeditTotalAmount' => $stinvoiceeditTotalAmount,
+            'etaccdetailedittotal_amount' => $etaccdetailedittotal_amount
+
+        );
+        return response($data, 200);
     }
     public function get_user_current_access(Request $request){
         $all_system_users_access=DB::table('users_access_restrictions')->where([

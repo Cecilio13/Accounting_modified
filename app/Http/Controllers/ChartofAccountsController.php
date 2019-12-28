@@ -7419,11 +7419,9 @@ class ChartofAccountsController extends Controller
                 ])->first();
                 $budget_is="";
                 if(!empty($Budget)){
-                    foreach($Budget as $bid){
-                        $budget_is=$bid->budget_no;
-                    }
+                   
+                        $budget_is=$Budget->budget_no;
                     
-
                 }else{
                     $Budget= New Budgets;
                     $budget_is=Budgets::count() + 1; 

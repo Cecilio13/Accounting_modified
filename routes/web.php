@@ -11,6 +11,7 @@ use \setasign\Fpdi\Fpdi;
 |
 */
 
+Route::get('api/get_all_pending_transaction_request', 'ApiController@get_all_pending_transaction_request');
 Route::get('api/get_user_current_access', 'ApiController@get_user_current_access');
 Route::get('api/get_cost_center_list', 'ApiController@get_cost_center_list');
 Route::get('api/get_users_count', 'ApiController@get_users_count');
@@ -34,6 +35,30 @@ Route::post('api/delete_bank', 'ApiController@delete_bank');
 Route::post('api/deny_user', 'ApiController@deny_user');
 Route::post('api/approve_user', 'ApiController@approve_user');
 Route::post('api/update_user_access', 'ApiController@update_user_access');
+Route::post('api/approve_pending_bill', 'ApiController@approve_pending_bill');
+Route::post('api/deny_pending_bill', 'ApiController@deny_pending_bill');
+Route::post('api/update_bank_edit', 'ApiController@update_bank_edit');
+Route::post('api/delete_bank_edit', 'ApiController@delete_bank_edit');
+Route::post('api/update_COA_edit', 'ApiController@update_COA_edit');
+Route::post('api/delete_COA_edit', 'ApiController@delete_COA_edit');
+Route::post('api/update_CC_edit', 'ApiController@update_CC_edit');
+Route::post('api/delete_CC_edit', 'ApiController@delete_CC_edit');
+Route::post('api/update_Customer_edit', 'ApiController@update_Customer_edit');
+Route::post('api/update_Supplier_edit', 'ApiController@update_Supplier_edit');
+Route::post('api/delete_Supplier_edit', 'ApiController@delete_Supplier_edit');
+Route::post('api/update_prod_edit', 'ApiController@update_prod_edit');
+Route::post('api/delete_prod_edit', 'ApiController@delete_prod_edit');
+Route::post('api/update_invoice_edit2', 'ApiController@update_invoice_edit2');
+Route::post('api/delete_invoice_edit', 'ApiController@delete_invoice_edit');
+Route::post('api/update_credit_note_edit2', 'ApiController@update_credit_note_edit2');
+Route::post('api/delete_credit_note_edit', 'ApiController@delete_credit_note_edit');
+Route::post('api/update_expense_edit', 'ApiController@update_expense_edit');
+Route::post('api/delete_expense_edit', 'ApiController@delete_expense_edit');
+Route::post('api/approve_pending_bid_request', 'ApiController@approve_pending_bid_request');
+Route::post('api/delete_pending_bid_request', 'ApiController@delete_pending_bid_request');
+
+
+
 
 
 Route::group(['middleware'=>['auth']], function() {

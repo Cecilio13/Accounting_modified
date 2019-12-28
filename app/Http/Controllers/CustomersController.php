@@ -1383,7 +1383,7 @@ class CustomersController extends Controller
             $customer->business_id_no = $customeredit->business_id_no;
             $customer->notes = $customeredit->notes;
             $customer->tin_no=$customeredit->tin_no;
-            $customer->withhold_tax=$customeredit->withholdingtax;
+            $customer->withhold_tax=$customeredit->withhold_tax;
             $customer->business_style=$customeredit->business_style;
             if($customer->save()){
                 $customeredit->edit_status="1";

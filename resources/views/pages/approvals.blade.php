@@ -756,7 +756,7 @@
                                             } 											 
                                     });
                                 }
-                                function denyInvoiceRequest(id){
+                                function denyInvoiceRequest(id,location,type){
                                     $.ajax({
                                             type: 'POST',
                                             url: 'delete_invoice_edit',                
