@@ -16,6 +16,13 @@
             });
         }
     </script>
+    <script>
+        $(document).ready(function(){
+           document.getElementById('filtertemplate').value="This Year";
+           changedates(document.getElementById('filtertemplate'))
+           
+        });
+   </script>
     <div id="">
     <div id="modallike" onclick="hidecustomizationsection()">
         

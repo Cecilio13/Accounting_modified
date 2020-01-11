@@ -27,7 +27,7 @@ use App\Bank;
 use App\UserAccess;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
-
+use App\ETAccountDetailNew;
 class PagesController extends Controller
 {
     public function __construct()
@@ -501,7 +501,7 @@ class PagesController extends Controller
         foreach($expense_transactions as $et){
             if($et->remark==""){$totalexp=$totalexp+$et->et_ad_total;}
         }
-        $COA= ChartofAccount::where('coa_active','1')->get();
+        $COA= ChartofAccount::all();
         $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
         $favorite_report = DB::table('favorite_report')->get();
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
@@ -788,7 +788,14 @@ class PagesController extends Controller
         return view('pages.approvals', compact('numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
       
     }
-    public function expenses(){
+    public function expenses(Request $request){
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
         $customers = Customers::all();
         $supplierss = Customers::where([
             ['account_type','=','Supplier']
@@ -814,12 +821,14 @@ class PagesController extends Controller
             $VoucherCount="0".$VoucherCount;
         }
         $VoucherCount=Voucher::all();
-        $expense_transactions = DB::table('expense_transactions')
-            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
-            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
-            ->get();
+        $expense_transactions =  DB::connection('mysql')->select("SELECT * FROM expense_transactions 
+        LEFT JOIN customers ON customers.customer_id=expense_transactions.et_customer 
+        JOIN et_account_details ON expense_transactions.et_no=et_account_details.et_ad_no
+        WHERE et_date BETWEEN '$year_beg' AND '$year_end' ");
             $et_acc = DB::table('et_account_details')->get();
             $et_it = DB::table('et_item_details')->get();
+            $et_new=DB::connection('mysql')->select("SELECT * FROM expense_transactions_new WHERE et_date BETWEEN '$year_beg' AND '$year_end'");
+
         $totalexp=0;
         foreach($expense_transactions as $et){
             if($et->remark=="" && $et->et_type==$et->et_ad_type){$totalexp=$totalexp+$et->et_ad_total;}
@@ -829,7 +838,7 @@ class PagesController extends Controller
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
         
-        return view('pages.expenses', compact('supplierss','numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','et_it','et_acc','totalexp','expense_transactions','jounalcount','customers','Supplier', 'products_and_services','JournalEntry','VoucherCount'));
+        return view('pages.expenses', compact('et_new','yyyyy','year_end','year_beg','supplierss','numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','et_it','et_acc','totalexp','expense_transactions','jounalcount','customers','Supplier', 'products_and_services','JournalEntry','VoucherCount'));
     }
    
     public function taxes(){
@@ -1116,7 +1125,7 @@ class PagesController extends Controller
     public function salesreceipt(){
         return view('pages.salesreceipt');
     }
-    public function sales(){
+    public function sales(Request $request){
         $customers = Customers::all();
         $products_and_services = ProductsAndServices::all();
         $sales_transaction = SalesTransaction::all();
@@ -1176,7 +1185,14 @@ class PagesController extends Controller
         $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
-        return view('pages.sales', compact('numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','invoicetotal','due','notude','jounalcount','customers', 'products_and_services', 'sales_transaction','JournalEntry','prod','prod2','VoucherCount'));
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
+        return view('pages.sales', compact('yyyyy','year_beg','year_end','numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','invoicetotal','due','notude','jounalcount','customers', 'products_and_services', 'sales_transaction','JournalEntry','prod','prod2','VoucherCount'));
     }
     public function refundreceipt(){
         return view('pages.refundreceipt');
@@ -1219,7 +1235,13 @@ class PagesController extends Controller
     public function journalentry(Request $request){
         // $JournalEntry = JournalEntry::where([['remark','!=','Cancelled']])->get();
         //     return $JournalEntry;
-        
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
         $JournalNoSelected=0;
         $keyword="";
         if($request->no){
@@ -1236,26 +1258,15 @@ class PagesController extends Controller
         $products_and_services = ProductsAndServices::all();
         $sales_transaction = SalesTransaction::all();
         if($keyword==""){
-            $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->skip($JournalNoSelected)->take(20)->orderBy('je_no','DESC')->orderBy('je_debit', 'DESC')->get();
-        }else{
-            $JournalEntry = DB::table('journal_entries')->skip($JournalNoSelected)
-            ->join('chart_of_accounts', 'chart_of_accounts.id', '=', 'journal_entries.je_account')
+            $JournalEntry=  DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE (remark!='NULLED' OR remark IS NULL) AND (created_at BETWEEN '$year_beg' AND '$year_end')  ORDER BY je_no DESC,je_debit DESC LIMIT 20 OFFSET $JournalNoSelected");
             
-            ->Where(function ($query) use ($keyword) {
-                $query->where('je_debit','LIKE','%'.$keyword.'%')
-                        ->where('remark','!=','NULLED')
-                      ->orwhere('je_no','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_credit','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_memo','LIKE','%'.$keyword.'%')
-                      ->orwhere('chart_of_accounts.coa_name','LIKE','%'.$keyword.'%')
-                      ->orwhere('chart_of_accounts.coa_code','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_desc','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_name','LIKE','%'.$keyword.'%');
-            })
-            ->take(20)
-            ->orderBy('je_no','DESC')
-            ->orderBy('je_debit', 'DESC')
-            ->get();
+        }else{
+            $JournalEntry=  DB::connection('mysql')->select("SELECT * FROM journal_entries
+            JOIN chart_of_accounts ON chart_of_accounts.id=journal_entries.je_account
+            WHERE (remark!='NULLED' OR remark IS NULL) AND (journal_entries.created_at BETWEEN '$year_beg' AND '$year_end') 
+            AND (je_no LIKE '%$keyword%' OR je_credit LIKE '%$keyword%' OR je_debit LIKE '%$keyword%' OR je_memo LIKE '%$keyword%' OR chart_of_accounts.coa_name LIKE '%$keyword%' OR chart_of_accounts.coa_code LIKE '%$keyword%' OR je_desc LIKE '%$keyword%' OR je_name LIKE '%$keyword%' )
+            ORDER BY je_no DESC,je_debit DESC 
+            LIMIT 20 OFFSET $JournalNoSelected");
            // return $JournalEntry;
         }
         //return $JournalEntry;
@@ -1290,7 +1301,7 @@ class PagesController extends Controller
         $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
-        return view('pages.journalentry', compact('keyword','JournalNoSelected','numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','jounalcount','JournalEntry','customers', 'products_and_services', 'sales_transaction','VoucherCount'));
+        return view('pages.journalentry', compact('yyyyy','year_end','year_beg','keyword','JournalNoSelected','numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','jounalcount','JournalEntry','customers', 'products_and_services', 'sales_transaction','VoucherCount'));
     
     }
     public function checkregister(){

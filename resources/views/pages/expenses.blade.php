@@ -56,7 +56,7 @@
                         <h3 class="mt-2">Expense Transactions</h3>
                         
                     </div>
-                    <div class="col-md-12 mb-5 mt-3 p-0">
+                    <div class="col-md-10 mb-5 mt-3 p-0">
                             @if ($UserAccessList[0]->bill=="1")
                             <a class="btn btn-success" href="#" data-toggle="modal" data-target="#import_bill_modal">Import Bill</a>
                             <a class="btn btn-success" href="#" data-toggle="modal" data-target="#billmodal" onclick="ResetBills()">Bill</a>
@@ -89,6 +89,32 @@
                             
                             
                         </div> --}}
+                    </div>
+                    <div class="col-md-2">
+                        <script>
+                            function changeyearexpense(year){
+                                location.href="expenses?year="+year;
+                            }
+                        </script>
+                        
+                        <select class="form-control" style="float:right;" onchange="changeyearexpense(this.value)">
+                            @for ($i = 2019; $i <= date('Y'); $i++)
+                                @if (!empty($yyyyy))
+                                @if ($i==$yyyyy)
+                                    <option selected>{{$i}}</option>   
+                                @else
+                                    <option>{{$i}}</option>   
+                                @endif
+                                @else
+                                    @if ($i==date('Y'))
+                                        <option selected>{{$i}}</option>   
+                                    @else
+                                        <option>{{$i}}</option>   
+                                    @endif
+                                @endif
+                            @endfor
+                            
+                        </select>  
                     </div>
                     <div id="table" class="table-editable pt-5">
                         <!-- Button trigger modal -->
@@ -349,7 +375,7 @@
                                 </tr>
                                 @endif
                             @endforeach
-                            @foreach ($EXNew as $EXn)
+                            @foreach ($et_new as $EXn)
                             <tr>
                                 <td style="vertical-align:middle;">{{date('m-d-Y',strtotime($EXn->et_date))}}</td>
                                 <td class="pt-3-half"  style="vertical-align:middle;">{{$EXn->et_type}}</td>

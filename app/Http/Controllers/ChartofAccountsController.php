@@ -7101,7 +7101,25 @@ class ChartofAccountsController extends Controller
                                                                                                                     $wwe=explode(" -- ",$row2->cost_center);
                                                                                                                     // $COA= CostCenter::where('cc_name_code',$wwe[0])->get();
                                                                                                                     $CostCenter=$wwe[0];
+                                                                                                                    $JournalVoucherCount=count(JournalEntry::where([
+                                                                                                                        ['journal_type','=','Journal Voucher']
+                                                                                                                    ])->groupBy('je_no')->get())+1;
+                                                                                                                    $current_year=date('y');
+                                                                                                                
+                                                                                                                    $journalvoucher_no_series="";
+                                                                                                                    if($JournalVoucherCount<10){
+                                                                                                                        $journalvoucher_no_series="000".$JournalVoucherCount;
+                                                                                                                    }
+                                                                                                                    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                                                                                                                        $journalvoucher_no_series="00".$JournalVoucherCount;
+                                                                                                                    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                                                                                                                        $journalvoucher_no_series="0".$JournalVoucherCount;
+                                                                                                                    }
                                                                                                                     
+                                                                                                                    $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                                                                                                                    $journal_series_no="";
+                                                                                                                    
+                                                                                                                    $journal_series_no=$journalvoucher_no;
                                                     
                                                                                                                     $st_invoice->st_p_cost_center=$CostCenter;
                                                                                                                     $st_invoice->save();
@@ -7137,6 +7155,8 @@ class ChartofAccountsController extends Controller
                                                                                                                     $journal_entries->je_invoice_location_and_type=$row->location." ".$row->invoice_type;
                                                                                                                     
                                                                                                                     $journal_entries->je_cost_center=$CostCenter;
+                                                                                                                    $journal_entries->journal_type="Journal Voucher";
+		                                                                                                            $journal_entries->je_series_no=$journal_series_no;
                                                                                                                     $journal_entries->save();
                                                 
                                                                                                                     $JDate=$row->invoice_date;
@@ -7168,6 +7188,8 @@ class ChartofAccountsController extends Controller
                                                                                                                     $journal_entries->je_invoice_location_and_type=$row->location." ".$row->invoice_type;
                                                                                                                     
                                                                                                                     $journal_entries->je_cost_center=$CostCenter;
+                                                                                                                    $journal_entries->journal_type="Journal Voucher";
+		                                                                                                            $journal_entries->je_series_no=$journal_series_no;
                                                                                                                     $journal_entries->save();
                                                                                                                 }
                                                                                                             

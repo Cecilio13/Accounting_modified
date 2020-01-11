@@ -98,22 +98,52 @@
                     <h3 class="mt-2">Sales Transactions</h3>
                     
                     <div class="mb-5 mt-3">
-                        @if ($UserAccessList[0]->invoice=="1")
-                        <a class="btn btn-success" href="#" data-toggle="modal" data-target="#import_invoice_modal">Import Invoices</a>
-                        <a class="btn btn-success" href="invoice.php" data-toggle="modal" data-target="#invoicemodal">Invoice</a>
-                        @endif
-                        @if ($UserAccessList[0]->estimate=="1")
-                        <a class="btn btn-success" href="invoice.php"  data-toggle="modal" data-target="#estimatemodal">Estimate</a>
-                        @endif
-                        @if ($UserAccessList[0]->credit_note=="1")
-                        <a class="btn btn-success" href="invoice.php" data-toggle="modal" data-target="#creditnotemodal">Credit Note</a>
-                        @endif
-                        
-                        @if ($UserAccessList[0]->sales_receipt=="1")
-                        <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#receivepaymentmodal">Payment</a>
-                        <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#salesreceiptmodal">Sales Receipt</a>
-                        @endif
-                        <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#delayedchargemodal">Delayed Charge</a>  
+                        <div class="row">
+                            <div class="col-md-10">
+                                @if ($UserAccessList[0]->invoice=="1")
+                                <a class="btn btn-success" href="#" data-toggle="modal" data-target="#import_invoice_modal">Import Invoices</a>
+                                <a class="btn btn-success" href="invoice.php" data-toggle="modal" data-target="#invoicemodal">Invoice</a>
+                                @endif
+                                @if ($UserAccessList[0]->estimate=="1")
+                                <a class="btn btn-success" href="invoice.php"  data-toggle="modal" data-target="#estimatemodal">Estimate</a>
+                                @endif
+                                @if ($UserAccessList[0]->credit_note=="1")
+                                <a class="btn btn-success" href="invoice.php" data-toggle="modal" data-target="#creditnotemodal">Credit Note</a>
+                                @endif
+                                
+                                @if ($UserAccessList[0]->sales_receipt=="1")
+                                <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#receivepaymentmodal">Payment</a>
+                                <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#salesreceiptmodal">Sales Receipt</a>
+                                @endif
+                                <a class="btn btn-success" style="display:none;" href="invoice.php" data-toggle="modal" data-target="#delayedchargemodal">Delayed Charge</a> 
+                            </div>
+                            <div class="col-md-2">
+                                <script>
+                                    function changeyearsales(year){
+                                        location.href="sales?year="+year;
+                                    }
+                                </script>
+                                
+                                <select class="form-control" style="float:right;" onchange="changeyearsales(this.value)">
+                                    @for ($i = 2019; $i <= date('Y'); $i++)
+                                        @if (!empty($yyyyy))
+                                        @if ($i==$yyyyy)
+                                            <option selected>{{$i}}</option>   
+                                        @else
+                                            <option>{{$i}}</option>   
+                                        @endif
+                                        @else
+                                            @if ($i==date('Y'))
+                                                <option selected>{{$i}}</option>   
+                                            @else
+                                                <option>{{$i}}</option>   
+                                            @endif
+                                        @endif
+                                    @endfor
+                                    
+                                </select>  
+                            </div>
+                        </div>
                     </div>
                     <div id="table" class="table-editable">
                         <div class="col-md-12 text-white p-0 mb-5">
@@ -926,7 +956,7 @@
                         
                     @endif
                     
-                   
+                    
                     <div id="table" class="table-editable" style="margin-top:10px;">
                         <!-- Button trigger modal -->
                         <!-- <span class="table-add float-right mb-3 mr-2"><button type="button" class="btn btn-success mb-1" data-toggle="modal" data-target="#staticModal">New Rule</button></span> -->

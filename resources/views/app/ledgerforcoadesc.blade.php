@@ -16,6 +16,13 @@
             });
         }
     </script>
+    <script>
+        $(document).ready(function(){
+           document.getElementById('filtertemplate').value="This Year";
+           changedates(document.getElementById('filtertemplate'))
+           
+        });
+   </script>
     <div id="">
     <div id="modallike" onclick="hidecustomizationsection()">
         
@@ -644,102 +651,6 @@
                                 </thead>
                                 
                                 <tbody>
-                                    @foreach ($chartofaccountbyaccounttype as $item)
-                                    <tr style="border-bottom:1px solid #ccc;">
-                                    <td colspan="1">
-                                            @if($item->coa_account_type=="Cash")
-                                            {{100}}
-                                            @elseif($item->coa_account_type=="Receivable Accounts")
-                                            {{200}}
-                                            @elseif($item->coa_account_type=="Inventories"){{300}}
-                                            @elseif($item->coa_account_type=="Prepayments"){{400}}
-                                            @elseif($item->coa_account_type=="Land, Building and Improvements"){{500}}
-                                            @elseif($item->coa_account_type=="Equipment and Improvements"){{520}}
-                                            @elseif($item->coa_account_type=="Improvements"){{550}}
-                                            @elseif($item->coa_account_type=="Asset Contra Accounts"){{600}}
-                                            @elseif($item->coa_account_type=="Website Development Cost(Planning and Design)"){{650}}
-                                            @elseif($item->coa_account_type=="Payable Accounts"){{700}}
-                                            @elseif($item->coa_account_type=="Other Payables"){{720}}
-                                            @elseif($item->coa_account_type=="Equity"){{800}}
-                                            @elseif($item->coa_account_type=="Revenues"){{900}}
-                                            @elseif($item->coa_account_type=="Purchases, Freight In, and Subcontractor Expense"){{1000}}
-                                            @elseif($item->coa_account_type=="Salaries and Wages"){{1100}}
-                                            @elseif($item->coa_account_type=="Other Compensation"){{1200}}
-                                            @elseif($item->coa_account_type=="Personnel Benefit Contributions"){{1300}}
-                                            @elseif($item->coa_account_type=="Other Personnel Benefits"){{1400}}
-                                            @elseif($item->coa_account_type=="Supplies Expenses"){{1500}}
-                                            @elseif($item->coa_account_type=="Transportation and Training Expenses"){{1600}}
-                                            @elseif($item->coa_account_type=="Utility Expenses"){{1700}}
-                                            @elseif($item->coa_account_type=="Corporate Security"){{1800}}
-                                            @elseif($item->coa_account_type=="Communication and Printing Expenses"){{1900}}
-                                            @elseif($item->coa_account_type=="Taxes, Duties and Premiums"){{2000}}
-                                            @elseif($item->coa_account_type=="Representation and Commision Expenses"){{2100}}
-                                            @elseif($item->coa_account_type=="Awards and Rewards"){{2200}}
-                                            @elseif($item->coa_account_type=="Rent/Lease Expenses"){{2300}}
-                                            @elseif($item->coa_account_type==" Food, Notary and Extraordinary and Miscellaneous Expenses,Other Expenses"){{2400}}    
-                                            @elseif($item->coa_account_type=="Repairs and Maintenance"){{2500}}
-                                            @elseif($item->coa_account_type=="Professional Services"){{2600}}
-                                            @elseif($item->coa_account_type=="Doubtful Accounts and Depreciation"){{2700}}
-                                            @elseif($item->coa_account_type=="Gain and Losses"){{2800}}
-                                            @elseif($item->coa_account_type=="Financial Expenses"){{2900}}
-                                            @elseif($item->coa_account_type=="Other Company Expenses"){{3000}}
-                                            @elseif($item->coa_account_type=="Intermediate Accounts"){{3100}}
-                
-                                            @endif
-
-                                    </td>
-                                    <td colspan="3" style="font-weight:bold;">{{$item->coa_account_type}}</td>
-                                    
-                                    </tr>
-                                    <?php
-                                    $totaldescamounttotal=0;
-                                    ?>
-                                    @foreach ($chartofaccountbydetailtype as $detail)
-                                    @if($detail->coa_account_type==$item->coa_account_type)
-                                    <tr style="border-bottom:1px solid #ccc;">
-                                    
-                                    <td colspan="1"><a class="ASubButton" href="ledgerforcoadesc_sub?desc={{$detail->id}}">{{$detail->coa_code}}</a></td>
-                                    <td colspan="1" style="text-align:left;padding-left:5%;"><a class="ASubButton" href="ledgerforcoadesc_sub?desc={{$detail->id}}">{{$detail->coa_detail_type}}</a></td>
-                                    <td colspan="1"><a class="ASubButton" href="ledgerforcoadesc_sub?desc={{$detail->id}}">{{$detail->normal_balance}}</a></td>
-                                    
-                                    <td style="text-align:right;vertical-align:middle;font-weight:bold;">
-                                            <?php
-                                            $totaldescamount=0;
-                                            
-                                            ?>
-                                            @foreach ($JournalEntry as $je)
-                                            
-                                            @if($detail->id==$je->je_account)
-                                                @if($je->remark=="")
-                                                @if($je->je_debit!="")
-                                                <?php
-                                                $totaldescamount+=$je->je_debit;
-                                                ?>
-                                                @elseif($je->je_credit!="")
-                                                <?php
-                                                $totaldescamount-=$je->je_credit;
-                                                ?>
-                                                @endif
-                                                @endif
-                                            @endif
-                                            
-                                            @endforeach    
-                                        <a class="ASubButton" href="ledgerforcoadesc_sub?desc={{$detail->id}}">{{number_format($totaldescamount,2)}}</a></td>
-                                        <?php
-                                        $totaldescamounttotal+=$totaldescamount;
-                                        ?>
-                                    </td>
-                                    </tr>
-                                    @endif
-                                    @endforeach
-                                    <tr style="border-bottom:1px solid #ccc;">
-                                    <td colspan="3" style="font-weight:bold;text-align:right;">Total : </td>
-                                    <td colspan="1" style="font-weight:bold;text-align:right;">{{number_format($totaldescamounttotal,2)}}</td>
-                                    
-                                    </tr>
-                                    @endforeach
-                                    
-                                    
                                     
                                 </tbody>
                             </table>

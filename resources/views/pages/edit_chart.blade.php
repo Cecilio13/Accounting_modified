@@ -1701,6 +1701,7 @@
             <div class="col-md-12 p-1" >
                 <p>Cost Center</p>
                 <select id="coa_cc2"name="coa_cc2" class="w-100 selectpicker" data-live-search="true" >
+                    <option value=""></option>
                     @foreach ($cost_center_list as $list)
                     <option value='{{$list->cc_no}}' {{$chart->coa_cc==$list->cc_no? 'selected' : ''}} >{{$list->cc_name}}</option>
                     @endforeach

@@ -11,6 +11,38 @@ use \setasign\Fpdi\Fpdi;
 |
 */
 
+
+
+
+Route::get('api/check_sales_receipt_no', 'ApiController@check_sales_receipt_no');
+Route::get('api/get_all_estimates', 'ApiController@get_all_estimates');
+Route::get('api/check_credit_note_no', 'ApiController@check_credit_note_no');
+Route::get('api/check_estimate_no', 'ApiController@check_estimate_no');
+Route::get('api/fetch_customer_info', 'ApiController@fetch_customer_info');
+Route::get('api/check_invoice_no', 'ApiController@check_invoice_no');
+Route::get('api/getInvoiceModalInfo', 'ApiController@getInvoiceModalInfo');
+Route::get('api/GetInvoiceExcelTemplate', 'ApiController@GetInvoiceExcelTemplate');
+Route::get('api/GetSupplierTemplateExcel', 'ApiController@GetSupplierTemplateExcel');
+Route::get('api/getExpenseTransactionPage', 'ApiController@getExpenseTransactionPage');
+Route::get('api/GetCustomerTemplateExcel', 'ApiController@GetCustomerTemplateExcel');
+Route::get('api/getSalesTransactionPageInfo', 'ApiController@getSalesTransactionPageInfo');
+Route::get('api/GetCodeCostCenterEdit', 'ApiController@GetCodeCostCenterEdit');
+Route::get('api/GetBudgetTemplateExcel_Bid_of_Quotation', 'ApiController@GetBudgetTemplateExcel_Bid_of_Quotation');
+Route::get('api/GetCodeCostCenter', 'ApiController@GetCodeCostCenter');
+Route::get('api/check_cost_center_code', 'ApiController@check_cost_center_code');
+Route::get('api/check_cost_center_type', 'ApiController@check_cost_center_type');
+Route::get('api/GetBudgetTemplateExcel', 'ApiController@GetBudgetTemplateExcel');
+Route::get('api/getCCInfo', 'ApiController@getCCInfo');
+Route::get('api/GetChartofCostCenterExcelemplate', 'ApiController@GetChartofCostCenterExcelemplate');
+Route::get('api/getCOA_info_edit', 'ApiController@getCOA_info_edit');
+Route::get('api/GetChartofAccountsExcelemplate', 'ApiController@GetChartofAccountsExcelemplate');
+Route::get('api/getCOAInfo', 'ApiController@getCOAInfo');
+Route::get('api/getCostCenterJournal', 'ApiController@getCostCenterJournal');
+Route::get('api/getJournalModalInfo', 'ApiController@getJournalModalInfo');
+Route::get('api/GetJournalEntryTemplateExcel', 'ApiController@GetJournalEntryTemplateExcel');
+Route::get('api/get_journal_entry_data', 'ApiController@get_journal_entry_data');
+Route::get('api/getJournalEntry', 'ApiController@getJournalEntry');
+Route::get('api/getJournal_List', 'ApiController@getJournal_List');
 Route::get('api/get_all_pending_transaction_request', 'ApiController@get_all_pending_transaction_request');
 Route::get('api/get_user_current_access', 'ApiController@get_user_current_access');
 Route::get('api/get_cost_center_list', 'ApiController@get_cost_center_list');
@@ -56,7 +88,31 @@ Route::post('api/update_expense_edit', 'ApiController@update_expense_edit');
 Route::post('api/delete_expense_edit', 'ApiController@delete_expense_edit');
 Route::post('api/approve_pending_bid_request', 'ApiController@approve_pending_bid_request');
 Route::post('api/delete_pending_bid_request', 'ApiController@delete_pending_bid_request');
-
+Route::post('api/UploadMassJournalEntry', 'ApiController@UploadMassJournalEntry');
+Route::post('api/SaveJournalEntry', 'ApiController@SaveJournalEntry');
+Route::post('api/cancel_entry', 'ApiController@cancel_entry');
+Route::post('api/UploadMassCOA', 'ApiController@UploadMassCOA');
+Route::post('api/SaveCOA', 'ApiController@SaveCOA');
+Route::post('api/destroy_coa', 'ApiController@destroy_coa');
+Route::post('api/update_coa', 'ApiController@update_coa');
+Route::post('api/UploadMassCC', 'ApiController@UploadMassCC');
+Route::post('api/UploadMassBudget', 'ApiController@UploadMassBudget');
+Route::post('api/delete_cost_center', 'ApiController@delete_cost_center');
+Route::post('api/save_cc_type', 'ApiController@save_cc_type');
+Route::post('api/SetCostCenter', 'ApiController@SetCostCenter');
+Route::post('api/UploadMassBIDQuot', 'ApiController@UploadMassBIDQuot');
+Route::post('api/SetCostCenterEdit', 'ApiController@SetCostCenterEdit');
+Route::post('api/save_product_services', 'ApiController@save_product_services');
+Route::post('api/update_product', 'ApiController@update_product');
+Route::post('api/UploadMassCustomer', 'ApiController@UploadMassCustomer');
+Route::post('api/add_customer', 'ApiController@add_customer');
+Route::post('api/UploadMassSupplier', 'ApiController@UploadMassSupplier');
+Route::post('api/add_supplier', 'ApiController@add_supplier');
+Route::post('api/UploadMassInvoice', 'ApiController@UploadMassInvoice');
+Route::post('api/AddInvoice', 'ApiController@AddInvoice');
+Route::post('api/addestimate', 'ApiController@addestimate');
+Route::post('api/addcreditnote', 'ApiController@addcreditnote');
+Route::post('api/add_sales_receipt', 'ApiController@add_sales_receipt');
 
 
 

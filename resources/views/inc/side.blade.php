@@ -155,12 +155,12 @@
                 {{-- <li><a href="voucher" ><i class="menu-icon fa ti-agenda width30"></i>Voucher</a></li> --}}
                 @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->sales=="1")
-                <li><a href="sales" style="padding:5px 0;"> <i class="menu-icon fas fa-chart-area width30"></i>Sales <span style="border-radius:10rem;{{$overduesalestransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduesalestransaction}}</span></a></li>
+                <li><a href="sales" style="padding:5px 0;"> <i class="menu-icon fas fa-chart-area width30"></i>Sales <span style="display:none;border-radius:10rem;{{$overduesalestransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduesalestransaction}}</span></a></li>
                 @endif
                 @endif
                 @if(count($UserAccessList)>0)
                 @if ($UserAccessList[0]->expense=="1")
-                <li><a href="expenses" style="padding:5px 0;"> <i class="menu-icon fas fa-money-bill width30"></i>Expenses <span style="border-radius:10rem; {{$overduetransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduetransaction}}</span></a></li>
+                <li><a href="expenses" style="padding:5px 0;"> <i class="menu-icon fas fa-money-bill width30"></i>Expenses <span style="display:none;border-radius:10rem; {{$overduetransaction>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$overduetransaction}}</span></a></li>
                 @endif
                 @endif
                 @if(count($UserAccessList)>0)

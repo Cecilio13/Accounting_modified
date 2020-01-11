@@ -1634,7 +1634,7 @@ function exporttoexcel(table_id){
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                <button id="invoiceadd" class="btn btn-success rounded" type="submit">Save</button>
+                <button id="invoiceadd" class="btn btn-success rounded" id="invoice_add_button" type="submit">Save</button>
             </div>
         </div>
     </div>
@@ -7872,7 +7872,8 @@ function addCardCreditedit(){
                                 }
                                 if(document.getElementById('journalentrytable_info')){
                                     document.getElementById('journalentrytable_info').style.display="none";
-                                    document.getElementById('journalentrytable_filter').style.display="none"
+                                    document.getElementById('journalentrytable_filter').style.display="none";
+                                    console.log('rerendered');
                                     journalentrytable.on( 'row-reorder', function ( e, diff, edit ) {
                                     //console.log("asdasdasd->>>> "+edit.triggerRow.data());
                                     var result = 'Reorder started on row: '+(edit.triggerRow.data())+'<br>';
@@ -11072,11 +11073,22 @@ function edit_journal_entries(je_no){
             document.getElementById('customertable_filter').style.display="none";
             
         }
-        
+        @if(!empty($year_beg))
+        var datasadsadasd = {'beginning':"{{$year_beg}}", 'end': "{{$year_end}}"};
+        console.log("datasadsadasd "+datasadsadasd.beginning+" "+" {{$year_end}}");
+        @else
+        var datasadsadasd = {'beginning':"{{date('Y')}}-01-01", 'end': "{{date('Y')}}-12-31"};
+        console.log("datasadsadasd else "+" {{date('Y')}}-01-01"+" "+"{{date('Y')}}-12-31");
+        @endif
         sales_table = $('#salestable').DataTable({
             order: [[ 0, "desc" ]],
             paging: true,
-            ajax: "{{ route('refresh_sales_table') }}",
+            ajax: {
+                "url" : "{{ route('refresh_sales_table') }}",
+                type : "GET",
+                data : datasadsadasd,
+            },
+            
             columnDefs: [{
                 'targets': 9,
                 'searchable':false,

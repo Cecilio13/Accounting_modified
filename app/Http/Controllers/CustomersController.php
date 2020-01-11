@@ -431,7 +431,25 @@ class CustomersController extends Controller
                 'product_total' => $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x)),
                 'credit_total' => $request->total_balance,
             ];
+            $JournalVoucherCount=count(JournalEntry::where([
+                ['journal_type','=','Journal Voucher']
+            ])->groupBy('je_no')->get())+1;
+            $current_year=date('y');
+        
+            $journalvoucher_no_series="";
+            if($JournalVoucherCount<10){
+                $journalvoucher_no_series="000".$JournalVoucherCount;
+            }
+            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                $journalvoucher_no_series="00".$JournalVoucherCount;
+            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                $journalvoucher_no_series="0".$JournalVoucherCount;
+            }
             
+            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+            $journal_series_no="";
+            
+            $journal_series_no=$journalvoucher_no;
             $journal_entries = new  JournalEntry;
             $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
             $journal_entries->je_id = "1";
@@ -449,6 +467,8 @@ class CustomersController extends Controller
             $journal_entries->je_invoice_location_and_type=$request->invoice_location_top." ".$request->invoice_type_top;
             $wwe=explode(" - ",$request->input('CostCenterInvoice'.$x2));
             $journal_entries->je_cost_center=$wwe[0];
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
 
             $JDate=$request->date;
@@ -478,6 +498,8 @@ class CustomersController extends Controller
             $journal_entries->je_invoice_location_and_type=$request->invoice_location_top." ".$request->invoice_type_top;
 			$wwe=explode(" - ",$request->input('CostCenterInvoice'.$x2));
             $journal_entries->je_cost_center=$wwe[0];
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
 
 
@@ -850,7 +872,25 @@ class CustomersController extends Controller
                     $name= $customer->f_name." ".$customer->l_name;
                 }
             }
+            $JournalVoucherCount=count(JournalEntry::where([
+                ['journal_type','=','Journal Voucher']
+            ])->groupBy('je_no')->get())+1;
+            $current_year=date('y');
+        
+            $journalvoucher_no_series="";
+            if($JournalVoucherCount<10){
+                $journalvoucher_no_series="000".$JournalVoucherCount;
+            }
+            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                $journalvoucher_no_series="00".$JournalVoucherCount;
+            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                $journalvoucher_no_series="0".$JournalVoucherCount;
+            }
             
+            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+            $journal_series_no="";
+            
+            $journal_series_no=$journalvoucher_no;
             
 
             $journal_entries = new  JournalEntry;
@@ -869,6 +909,8 @@ class CustomersController extends Controller
             $journal_entries->je_transaction_type="Sales Receipt";
             $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
             $journal_entries->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
 
             for($c=1;$c<=$request->additional_count_cash_account;$c++){
@@ -899,6 +941,8 @@ class CustomersController extends Controller
                 $data->je_transaction_type="Sales Receipt";
                 $data->je_cost_center=$request->CostCenterSalesReceipt;
                 $data->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
+                $journal_entries->journal_type="Journal Voucher";
+		        $journal_entries->je_series_no=$journal_series_no;
                 $data->save();
             }
             
@@ -1198,6 +1242,25 @@ class CustomersController extends Controller
             $st_credit_note->st_p_deposit_to = null;
             $st_credit_note->st_p_amount = null;
             $st_credit_note->save();
+            $JournalVoucherCount=count(JournalEntry::where([
+                ['journal_type','=','Journal Voucher']
+            ])->groupBy('je_no')->get())+1;
+            $current_year=date('y');
+        
+            $journalvoucher_no_series="";
+            if($JournalVoucherCount<10){
+                $journalvoucher_no_series="000".$JournalVoucherCount;
+            }
+            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                $journalvoucher_no_series="00".$JournalVoucherCount;
+            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                $journalvoucher_no_series="0".$JournalVoucherCount;
+            }
+            
+            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+            $journal_series_no="";
+            
+            $journal_series_no=$journalvoucher_no;
 
             $JDate=$request->cn_date;
             $JNo=$request->credit_note_no;
@@ -1226,6 +1289,8 @@ class CustomersController extends Controller
             
             $wwe=explode(" - ",$request->CostCenterCreditNote);
             $journal_entries->je_cost_center=$wwe[0];
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
 
             $JDate=$request->cn_date;
@@ -1254,6 +1319,8 @@ class CustomersController extends Controller
             $journal_entries->je_transaction_type="Credit Note";
             $wwe=explode(" - ",$request->CostCenterCreditNote);
             $journal_entries->je_cost_center=$wwe[0];
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
             $journal_entries->save();
 
             $product = ProductsAndServices::find($request->input('select_product_name_credit_note'.$x));
@@ -1465,8 +1532,10 @@ class CustomersController extends Controller
         ->make(true);
     }
 
-    public function refresh_sales_table(){
-        $sales_transaction = SalesTransaction::all();
+    public function refresh_sales_table(Request $request){
+        $begdate=$request->beginning;
+        $enddate=$request->end;
+        $sales_transaction = DB::connection('mysql')->select("SELECT * FROM sales_transaction LEFT JOIN customers ON customers.customer_id=sales_transaction.st_customer_id WHERE st_date BETWEEN '$begdate' AND '$enddate' ");
         
         return \DataTables::of($sales_transaction)
         
@@ -1591,7 +1660,7 @@ class CustomersController extends Controller
             }                
         })
         ->addColumn('customer_name', function($sales_transaction){
-            return $sales_transaction->customer_info->display_name;             
+            return $sales_transaction->display_name;       
         })
         ->addColumn('customer_balance', function($sales_transaction){
             return 'PHP '.number_format($sales_transaction->st_balance, 2);             
@@ -1613,7 +1682,7 @@ class CustomersController extends Controller
                 return 'PHP '.number_format($invoiuce_totral, 2); 
 
             }else if($sales_transaction->st_type == "Estimate"){
-                return 'PHP '.number_format($sales_transaction->estimate_info->sum('st_e_total'), 2);  
+                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);  
             }else if($sales_transaction->st_type == "Sales Receipt"){
                 return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);  
             }else if($sales_transaction->st_type == "Refund Receipt"){
@@ -1623,7 +1692,7 @@ class CustomersController extends Controller
             }else if($sales_transaction->st_type == "Credit"){
                 return 'PHP '.number_format($sales_transaction->delayed_credit_info->sum('st_dcredit_total'), 2);  
             }else{
-                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);  
+                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);
             }           
         })
         ->addColumn('checkbox', function($sales_transaction){
