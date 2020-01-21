@@ -101,8 +101,10 @@ class CustomersController extends Controller
         //     $AuditLog->log_transaction_date="";
         //     $AuditLog->log_amount="";
         //     $AuditLog->save();
-        $customer=Customers::all();
-        return $customer;
+        $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        return $customers;
     }
     public function add_customer(Request $request)
     {
@@ -134,13 +136,14 @@ class CustomersController extends Controller
         $customer->tin_no=$request->tin_no;
         $customer->withhold_tax=$request->withholdingtax;
         $customer->business_style=$request->business_style;
+        $customer->account_type=$request->account_type;
         $customer->save();
 
         $AuditLog= new AuditLog;
             $AuditLogcount=AuditLog::count()+1;
             $userid = Auth::user()->id;
             $username = Auth::user()->name;
-            $eventlog="Added Customer";
+            $eventlog="Added ".$request->account_type;
             $AuditLog->log_id=$AuditLogcount;
             $AuditLog->log_user_id=$username;
             $AuditLog->log_event=$eventlog;
@@ -207,8 +210,8 @@ class CustomersController extends Controller
             ];
 
 
-            $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
-            $customer->save();
+            // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+            // $customer->save();
         }
         if($request->send_later=="on"){
             Mail::send(['text'=>'mail'], $value, function($message) use ($value)
@@ -288,11 +291,20 @@ class CustomersController extends Controller
     }
     public function findInvoiceNo(Request $request){
         
+        $st_invoice = SalesTransaction::where([
+            ['st_no','=',$request->value],
+            ['st_type','=',"Invoice"],
+            ['st_location', '=', $request->location_invoice],
+            ['st_invoice_type','=',$request->type_invoice],
+            ['remark','=',NULL]
+        ])->first();
+        $attachment=$st_invoice->st_i_attachment;
         $st_invoice = StInvoice::where([
             ['st_i_no','=',$request->value],
             ['st_p_location', '=', $request->location_invoice],
             ['st_p_invoice_type','=',$request->type_invoice],
-            ['st_i_item_no','=',$request->invoice_item_no]
+            ['st_i_item_no','=',$request->invoice_item_no],
+            ['st_p_reference_no','=',$attachment]
         ])->get();
         return $st_invoice;
     }
@@ -301,7 +313,8 @@ class CustomersController extends Controller
             ['st_no','=',$request->value],
             ['st_type','=',"Invoice"],
             ['st_location', '=', $request->location_invoice],
-            ['st_invoice_type','=',$request->type_invoice]
+            ['st_invoice_type','=',$request->type_invoice],
+            ['remark','=',NULL]
         ])->get();
         return $st_invoice;
     }
@@ -365,7 +378,7 @@ class CustomersController extends Controller
         $sales_transaction->st_invoice_work_no = $request->work_no_invoice;
         $sales_transaction->st_debit_account = "";
         $sales_transaction->st_credit_account = "";
-        
+        $sales_transaction->st_i_attachment=$request->invoice_invoiceno."-".date("ljS\ofFYh:i:sA");
         $sales_transaction->st_location = $request->invoice_location_top;
         $sales_transaction->st_invoice_type = $request->invoice_type_top;
         $sales_transaction->save();
@@ -395,7 +408,7 @@ class CustomersController extends Controller
             $st_invoice->st_i_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
             $st_invoice->st_i_total = $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
             $st_invoice->st_p_method = null;
-            $st_invoice->st_p_reference_no = null;
+            $st_invoice->st_p_reference_no = $sales_transaction->st_i_attachment;
             $st_invoice->st_p_deposit_to = null;
             $st_invoice->st_p_location = $request->invoice_location_top;
             $st_invoice->st_p_invoice_type = $request->invoice_type_top;
@@ -503,8 +516,8 @@ class CustomersController extends Controller
             $journal_entries->save();
 
 
-            $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $customer->save();
+            // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
+            // $customer->save();
 
 
         }
@@ -574,8 +587,8 @@ class CustomersController extends Controller
     public function add_payment(Request $request){
 
         $customer = Customers::find($request->payment_customer_id);
-        $customer->opening_balance = $customer->opening_balance - $request->p_amount;
-        $customer->save();
+        // $customer->opening_balance = $customer->opening_balance - $request->p_amount;
+        // $customer->save();
         $numbering = Numbering::first();
         $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
 
@@ -809,8 +822,9 @@ class CustomersController extends Controller
             ['st_type','=',"Invoice"],
             ['st_location','=',$request->sales_receipt_location_top],
             ['st_invoice_type','=',$request->sales_receipt_type_top],
+            ['cancellation_reason','=',NULL],
         ])->first();
-        
+        $attachment=$old_invoice_transaction->st_i_attachment;
             if($old_invoice_transaction->st_balance <= $request->hiddentotaldebitamountsalesreceipt){
                 $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->hiddentotaldebitamountsalesreceipt;
                 $old_invoice_transaction->st_status = 'Paid';
@@ -825,6 +839,7 @@ class CustomersController extends Controller
             ['st_i_item_no','=',$request->invoice_item_no],
             ['st_p_location','=',$request->sales_receipt_location_top],
             ['st_p_invoice_type','=',$request->sales_receipt_type_top],
+            ['st_p_reference_no','=',$attachment]
         ])->first();
         $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->hiddentotaldebitamountsalesreceipt;
         $st_invoice_item->save();
@@ -832,8 +847,8 @@ class CustomersController extends Controller
         $customer = new Customers;
         $customer = Customers::find($request->sr_customer);
         $customer = Customers::find($request->sr_customer);
-        $customer->opening_balance = $customer->opening_balance -$request->hiddentotaldebitamountsalesreceipt;
-        $customer->save();
+        // $customer->opening_balance = $customer->opening_balance -$request->hiddentotaldebitamountsalesreceipt;
+        // $customer->save();
         $AuditLog= new AuditLog;
         $AuditLogcount=AuditLog::count()+1;
         $userid = Auth::user()->id;
@@ -1008,8 +1023,8 @@ class CustomersController extends Controller
         
         DB::connection('mysql')
         ->statement(
-            DB::raw('UPDATE sales_transaction SET `st_balance`=?, `st_status`=? WHERE st_type=?'),
-            array("0","Closed","Sales Receipt")
+            DB::raw('UPDATE sales_transaction SET `st_balance`=?, `st_status`=? WHERE st_type=? AND cancellation_reason=?'),
+            array("0","Closed","Sales Receipt",NULL)
         );
         $asdassssssssssasd="";
             
@@ -1371,7 +1386,9 @@ class CustomersController extends Controller
                 ['st_customer_id', '=', $customer_id],
             ])
             ->get();
-        $customers = Customers::all();
+            $customers= Customers::where([
+                ['supplier_active','=','1']
+            ])->get();
         $picked= Customers::find($customer_id);
         $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
         $products_and_services = ProductsAndServices::all();
@@ -1423,6 +1440,45 @@ class CustomersController extends Controller
         }
 
     }
+    public function submit_delete_request_customer(Request $request){
+        $customeredit = Customers::find($request->id);
+        $customer = CustomerEdit::find($request->id);
+        if(empty($customer)){
+            $customer = new CustomerEdit;
+        }
+        $customer->customer_id = $customeredit->customer_id;
+        $customer->f_name = $customeredit->f_name;
+        $customer->l_name = $customeredit->l_name;
+        $customer->email = $customeredit->email;
+        $customer->company = $customeredit->company;
+        $customer->phone = $customeredit->phone;
+        $customer->mobile = $customeredit->mobile;
+        $customer->fax = $customeredit->fax;
+        $customer->display_name = $customeredit->display_name;
+        $customer->other = $customeredit->other;
+        $customer->website = $customeredit->website;
+        $customer->street = $customeredit->street;
+        $customer->city = $customeredit->city;
+        $customer->state = $customeredit->state;
+        $customer->postal_code = $customeredit->postal_code;
+        $customer->country = $customeredit->country;
+        $customer->payment_method = $customeredit->payment_method;
+        $customer->terms = $customeredit->terms;
+        $customer->opening_balance = $customeredit->opening_balance;
+        $customer->as_of_date = $customeredit->as_of_date;
+        $customer->account_no = $customeredit->account_no;
+        $customer->business_id_no = $customeredit->business_id_no;
+        $customer->notes = $customeredit->notes;
+        $customer->tin_no=$customeredit->tin_no;
+        $customer->withhold_tax=$customeredit->withhold_tax;
+        $customer->business_style=$customeredit->business_style;
+        $customer->supplier_active="0";
+        $customer->edit_status="0";
+        if($customer->save()){
+           
+        }
+        
+    }
     public function update_Customer_edit(Request $request){
         $customeredit = CustomerEdit::find($request->id);
         $customer = Customers::find($request->id);
@@ -1450,6 +1506,7 @@ class CustomersController extends Controller
             $customer->business_id_no = $customeredit->business_id_no;
             $customer->notes = $customeredit->notes;
             $customer->tin_no=$customeredit->tin_no;
+            $customer->supplier_active=$customeredit->supplier_active;
             $customer->withhold_tax=$customeredit->withhold_tax;
             $customer->business_style=$customeredit->business_style;
             if($customer->save()){
@@ -1515,10 +1572,20 @@ class CustomersController extends Controller
         return Redirect::to('customerinfo/?customer_id='.$request->customer_id);
     }
     public function refresh_customers_table(){
-        $customers = Customers::where('account_type','Customer')->get();
+        $customers = Customers::where([
+            ['account_type','=','Customer'],
+            ['supplier_active','=','1']
+        ])->get();
         return \DataTables::of($customers)
         ->addColumn('opening_balance', function($customers){
-            return number_format($customers->opening_balance,2);
+            $name=$customers->display_name!=""? $customers->display_name: $customers->f_name." ".$customers->l_name;
+            $journal = DB::connection('mysql')->select("SELECT * FROM `journal_entries` WHERE je_name=\"$name\" AND (je_name!='' AND je_name IS NOT NULL ) AND (je_debit!='' AND je_debit IS NOT NULL) AND (remark='' AND remark IS NULL)");
+            //SELECT * FROM `journal_entries` WHERE je_name='ACTIVE COMPONETS IT PRODUCTS & SERVICES' AND (je_name!='' AND je_name IS NOT NULL ) AND (je_debit!='' AND je_debit IS NOT NULL)
+            $total_balance=$customers->opening_balance;
+            foreach($journal as $je){
+                $total_balance+=$je->je_debit;
+            }
+            return number_format($total_balance,2);
         })
         ->addColumn('display_name', function($customers){
             if($customers->display_name!=""){
@@ -1527,7 +1594,9 @@ class CustomersController extends Controller
                 return $customers->f_name." ".$customers->l_name;
             }
         })
-        
+        ->addColumn('action', function($customers){
+            return "<button class='btn btn-danger btn-sm' onclick='delete_customer(".$customers->customer_id.")'><span class='fa fa-times'></span></button>";
+        })
         
         ->make(true);
     }
@@ -1535,7 +1604,7 @@ class CustomersController extends Controller
     public function refresh_sales_table(Request $request){
         $begdate=$request->beginning;
         $enddate=$request->end;
-        $sales_transaction = DB::connection('mysql')->select("SELECT * FROM sales_transaction LEFT JOIN customers ON customers.customer_id=sales_transaction.st_customer_id WHERE st_date BETWEEN '$begdate' AND '$enddate' ");
+        $sales_transaction = DB::connection('mysql')->select("SELECT * FROM sales_transaction LEFT JOIN customers ON customers.customer_id=sales_transaction.st_customer_id WHERE st_date BETWEEN '$begdate' AND '$enddate' AND st_type!='Sales Receipt' ");
         
         return \DataTables::of($sales_transaction)
         
@@ -1553,7 +1622,8 @@ class CustomersController extends Controller
                             $STInvoice= STInvoice::where([
                                 ['st_i_no','=',$sales_transaction->st_no],
                                 ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
-                                ['st_p_location','=',$sales_transaction->st_location]
+                                ['st_p_location','=',$sales_transaction->st_location],
+                                ['st_p_reference_no','=',$sales_transaction->st_i_attachment]
                             ])->get();
                             $options="";
 
@@ -1659,19 +1729,191 @@ class CustomersController extends Controller
                
             }                
         })
+        ->addColumn('cost_center_name', function($sales_transaction){
+            if($sales_transaction->st_type== "Sales Receipt"){
+
+                $STInvoice= STInvoice::where([
+                    ['st_i_no','=',$sales_transaction->st_payment_for],
+                    ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
+                    ['st_p_location','=',$sales_transaction->st_location],
+                    ['st_p_reference_no','=',$sales_transaction->st_i_attachment], 
+                ])->get();
+                $options="";
+
+                foreach($STInvoice as $sti){
+                    if($sti->st_i_total>$sti->st_p_amount){
+                        $label="";
+                        if($sti->st_p_cost_center!=""){
+                            $cost_centers= CostCenter::where([
+                                ['cc_no','=',$sti->st_p_cost_center]
+                            ])->first();
+                            $label=$cost_centers->cc_name;
+                        }
+                        $options.=$label."\n";
+                    }else{
+                        $label="";
+                        if($sti->st_p_cost_center!=""){
+                            $cost_centers= CostCenter::where([
+                                ['cc_no','=',$sti->st_p_cost_center]
+                            ])->first();
+                            $label=$cost_centers->cc_name;
+                        }
+                        $options.=$label."\n";
+                    }
+                    
+                }
+                $cost_centers=$options;
+                
+                return $cost_centers;  
+            }else if($sales_transaction->st_type=="Invoice"){
+                $STInvoice= STInvoice::where([
+                    ['st_i_no','=',$sales_transaction->st_no],
+                    ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
+                    ['st_p_location','=',$sales_transaction->st_location],
+                    ['st_p_reference_no','=',$sales_transaction->st_i_attachment], 
+                ])->get();
+                $options="";
+
+                foreach($STInvoice as $sti){
+                    if($sti->st_i_total>$sti->st_p_amount){
+                        $label="";
+                        if($sti->st_p_cost_center!=""){
+                            $cost_centers= CostCenter::where([
+                                ['cc_no','=',$sti->st_p_cost_center]
+                            ])->first();
+                            $label=$cost_centers->cc_name;
+                        }
+                        $options.=$label."\n";
+                    }else{
+                        $label="";
+                        if($sti->st_p_cost_center!=""){
+                            $cost_centers= CostCenter::where([
+                                ['cc_no','=',$sti->st_p_cost_center]
+                            ])->first();
+                            $label=$cost_centers->cc_name;
+                        }
+                        $options.=$label."\n";
+                    }
+                    
+                }
+                $cost_centers=$options;
+                
+                return $cost_centers;
+            }
+                       
+        })
+        ->addColumn('description', function($sales_transaction){
+            if($sales_transaction->st_type== "Sales Receipt"){
+                $STInvoice= STInvoice::where([
+                    ['st_i_no','=',$sales_transaction->st_payment_for],
+                    ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
+                    ['st_p_location','=',$sales_transaction->st_location],
+                    ['st_p_reference_no','=',$sales_transaction->st_i_attachment], 
+                ])->get();
+                $options="";
+    
+                foreach($STInvoice as $sti){
+                    if($sti->st_i_total>$sti->st_p_amount){
+                        $label="";
+                        if($sti->st_i_desc!=""){
+                            $label=$sti->st_i_desc;
+                        }
+                        $options.=$label."\n";
+                    }else{
+                        $label="";
+                        if($sti->st_i_desc!=""){
+                            $label=$sti->st_i_desc;
+                        }
+                        $options.=$label."\n";
+                    }
+                    
+                }
+                $cost_centers=$options;
+                
+                return $cost_centers;  
+            }else if($sales_transaction->st_type=="Invoice"){
+                $STInvoice= STInvoice::where([
+                    ['st_i_no','=',$sales_transaction->st_no],
+                    ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
+                    ['st_p_location','=',$sales_transaction->st_location],
+                    ['st_p_reference_no','=',$sales_transaction->st_i_attachment], 
+                ])->get();
+                $options="";
+    
+                foreach($STInvoice as $sti){
+                    if($sti->st_i_total>$sti->st_p_amount){
+                        $label="";
+                        if($sti->st_i_desc!=""){
+                            $label=$sti->st_i_desc;
+                        }
+                        $options.=$label."\n";
+                    }else{
+                        $label="";
+                        if($sti->st_i_desc!=""){
+                            $label=$sti->st_i_desc;
+                        }
+                        $options.=$label."\n";
+                    }
+                    
+                }
+                $cost_centers=$options;
+                
+                return $cost_centers;  
+            }
+                         
+        })
         ->addColumn('customer_name', function($sales_transaction){
             return $sales_transaction->display_name;       
         })
         ->addColumn('customer_balance', function($sales_transaction){
             return 'PHP '.number_format($sales_transaction->st_balance, 2);             
         })
+        ->addColumn('or_no', function($sales_transaction){
+            if($sales_transaction->st_type=="Invoice" && $sales_transaction->cancellation_reason==NULL){
+                
+                $payment_for_id=$sales_transaction->st_no;
+                $st_location=$sales_transaction->st_location;
+                $st_invoice_type=$sales_transaction->st_invoice_type;
+                $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                $sr_nos="";
+                foreach($sales_receipts as $sal){
+                    if($sr_nos!=''){
+                        $sr_nos.=", ".$sal->st_no;
+                    }else{
+                        $sr_nos.=$sal->st_no;
+                    }
+                    
+                }
+                return $sr_nos;
+            }
+            return '';             
+        })
+        ->addColumn('or_date', function($sales_transaction){
+            if($sales_transaction->st_type=="Invoice"  && $sales_transaction->cancellation_reason==NULL){
+                $payment_for_id=$sales_transaction->st_no;
+                $st_location=$sales_transaction->st_location;
+                $st_invoice_type=$sales_transaction->st_invoice_type;
+                $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                $sr_nos="";
+                foreach($sales_receipts as $sal){
+                    if($sr_nos!=''){
+                        $sr_nos.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                    }else{
+                        $sr_nos.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                    }
+                    
+                }
+                return $sr_nos;
+            }
+            return '';       
+        })
         ->addColumn('transaction_total', function($sales_transaction){
             if($sales_transaction->st_type == "Invoice"){
                 $STInvoice= STInvoice::all();
                 $invoiuce_totral=0;
                 foreach($STInvoice as $sstt){
-                    if($sales_transaction->st_no==$sstt->st_i_no){
-                        if($sales_transaction->st_location==$sstt->st_p_location && $sales_transaction->st_invoice_type==$sstt->st_p_invoice_type){
+                    if($sales_transaction->st_no==$sstt->st_i_no ){
+                        if($sales_transaction->st_location==$sstt->st_p_location && $sales_transaction->st_invoice_type==$sstt->st_p_invoice_type && $sales_transaction->st_i_attachment==$sstt->st_p_reference_no){
                             //return 'PHP '.number_format($sales_transaction->invoice_info->sum('st_i_total'), 2); 
                             $invoiuce_totral+=$sstt->st_i_total;
                         }

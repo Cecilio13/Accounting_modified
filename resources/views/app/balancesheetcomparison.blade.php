@@ -144,7 +144,7 @@
                                     
                                     //window.location.replace("/Invoice_List?date_from="+FROM+"&date_to="+TO);
                                     $.ajax({
-                                        type: 'POST',
+                                        type: 'GET',
                                         url: 'BalanceSheetComparisonByDate',                
                                         data: {PeriodComparison:PeriodComparison,CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {

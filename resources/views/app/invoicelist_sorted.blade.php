@@ -1,7 +1,7 @@
 @extends('layout.initial')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <script>
         function showcustomizationsection(){
             //document.getElementById('coverdiv').style.display="inline";
@@ -16,13 +16,7 @@
             });
         }
     </script>
-    <script>
-        $(document).ready(function(){
-           document.getElementById('filtertemplate').value="This Year";
-           changedates(document.getElementById('filtertemplate'))
-           
-        });
-   </script>
+    
     <div id="">
     <div id="modallike" onclick="hidecustomizationsection()">
         
@@ -39,7 +33,7 @@
         <div class="row">
             <div class="col-md-10">
             <div class="accordion" id="accordionExample">
-                <div class="card" style="border:0px solid #ccc;display:none;">
+                <div class="card" style="border:0px solid #ccc;">
                     <div class="card-header" id="headingOne" style="padding:0px;border-bottom:0px solid black;">
                     <h5 class="mb-0">
                         <button class="btn btn-link" style="text-decoration: none;color:#262626;" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -69,52 +63,7 @@
                             }
                     </script>
                     
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="1" id="customCheck6">
-                        <label class="custom-control-label" for="customCheck6">Date</label>
                         
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="2" id="customCheck1">
-                        <label class="custom-control-label" for="customCheck1">Transaction Type</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="3" id="customCheck2">
-                        <label class="custom-control-label" for="customCheck2">No.</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="4" id="customCheck3">
-                        <label class="custom-control-label" for="customCheck3">Name</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="5" id="customCheck4">
-                        <label class="custom-control-label" for="customCheck4">Memo</label>
-                        </div>
-                        
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="6" id="customCheck7">
-                        <label class="custom-control-label" for="customCheck7">Due Date</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="7" id="customCheck8">
-                        <label class="custom-control-label" for="customCheck8">Amount</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="8" id="customCheck5">
-                        <label class="custom-control-label" for="customCheck5">Open Balance</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="9" id="customCheck9">
-                        <label class="custom-control-label" for="customCheck9">Billing Address</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="10" id="customCheck10">
-                        <label class="custom-control-label" for="customCheck10">Shipping Address</label>
-                        </div>
-                        <div class="custom-control custom-checkbox">
-                        <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="11" id="customCheck11">
-                        <label class="custom-control-label" for="customCheck11">Terms</label>
-                        </div>
                     </div>
                     </div>
                 </div>
@@ -136,7 +85,7 @@
                                 var FROM= document.getElementById('Fromdate').value;
                                 var TO= document.getElementById('Todate').value;
                                 var CostCenterFilter = document.getElementById('CostCenterFilter').value;
-                                var AccountFilter = document.getElementById('AccountFilter').value;
+                                var InvoiceTYPE= document.getElementById('InvoiceTYPE').value;
                                 if((FROM=="" || TO=="") && filtertemplate!="All"){
                                     
                                 }
@@ -144,20 +93,13 @@
                                     
                                     //window.location.replace("/Invoice_List?date_from="+FROM+"&date_to="+TO);
                                     $.ajax({
-                                        type: 'GET',
-                                        url: 'General_Ledger_by_date',                
-                                        data: {AccountFilter:AccountFilter,CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
+                                        type: 'POST',
+                                        url: 'Invoice_List_sorted_by_date',                
+                                        data: {InvoiceTYPE:InvoiceTYPE,CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {
                                         $( "#tablemain" ).replaceWith( data);
-                                        $("input[name='columnnames[]']").each( function () {
-                                            if(this.checked==false){
-                                                hideshowcolumntable(this);
-                                                
-                                                //alert($(this).val());
-                                            }
-                                                        
-                                            });
-                                           
+                                        
+                                            //ss();
                                         } 											 
                                     });
                                 }
@@ -310,7 +252,7 @@
     </div>
 <div class="row">
     <div class="col-md-12">
-        <h4>General Ledger Report</h4>
+        <h4>Sales and Billing Invoice Report</h4>
     </div>
 </div>
 <div class="row">
@@ -325,7 +267,7 @@
                     <div >
                     
                     <div class="col-md-6 ">
-                            <p>Date</p>
+                        <p>Date</p>
                             <select class="form-control" id="filtertemplate" onchange="changedates(this)">
                                     <option>All</option>
                                     <option>Custom</option>
@@ -350,47 +292,79 @@
                                     <input type="date" class="form-control" oninput="submitdates()" onkeyup="submitdates()" id="Todate" >
                                     
                                 </div>
-                                </div>    
+                                </div> 
+                        <div class="col-md-6" style="padding-left:0px;display:none;">
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="1" id="customCheck6">
+                            <label class="custom-control-label" for="customCheck6">Date</label>
+                            
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="2" id="customCheck1">
+                            <label class="custom-control-label" for="customCheck1">Transaction Type</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="3" id="customCheck2">
+                            <label class="custom-control-label" for="customCheck2">No.</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="4" id="customCheck3">
+                            <label class="custom-control-label" for="customCheck3">Name</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="5" id="customCheck4">
+                            <label class="custom-control-label" for="customCheck4">Memo</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="6" id="customCheck7">
+                            <label class="custom-control-label" for="customCheck7">Due Date</label>
+                            </div>
+                            
+                        </div>    
+                        <div class="col-md-6" style="padding-right:0px;display:none;">
+                            
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="7" id="customCheck8">
+                            <label class="custom-control-label" for="customCheck8">Amount</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" checked class="custom-control-input" value="8" id="customCheck5">
+                            <label class="custom-control-label" for="customCheck5">Open Balance</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="9" id="customCheck9">
+                            <label class="custom-control-label" for="customCheck9">Billing Address</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="10" id="customCheck10">
+                            <label class="custom-control-label" for="customCheck10">Shipping Address</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                            <input type="checkbox" onclick="hideshowcolumntable(this)" name="columnnames[]" class="custom-control-input" value="11" id="customCheck11">
+                            <label class="custom-control-label" for="customCheck11">Terms</label>
+                            </div>
+                        </div>
+                               
                     </div>
                     <div class="col-md-6 ">
-                            <p>Cost Center</p>
-                            <select class="form-control selectpicker" data-live-search="true" id="CostCenterFilter" onchange="submitdates()">
-                                @foreach ($UserAccessCostCenterList as $uaccl)
-                                @if ("All"==$uaccl->cost_center_id)
-                                    <option>All</option>
-                                <?php
-                                break;
-                                ?>
-                                @endif
-                                @endforeach
-                            @foreach($all_cost_center_list as $lists)
-                            @foreach ($UserAccessCostCenterList as $uaccl)
-                                @if ($lists->cc_no==$uaccl->cost_center_id)
-                                    <option value="{{$lists->cc_no}}">{{$lists->cc_name}}</option>
-                                @endif
-                            @endforeach
-                            
-                            @endforeach
-                            </select>
-                            <script>
-                                $(document).ready(function(){
-                                    submitdates();
-                                })
-                            </script>
-                    </div>
-                <div class="col-md-6 ">
                         
-                </div>
-                <div class="col-md-6 ">
-                        <p>Account</p>
-                        <select class="form-control selectpicker" data-live-search="true" id="AccountFilter" onchange="submitdates()" >
-                            <option value="All">All</option>
-                            @foreach ($c_o_a_sorted as $item)
-                                <option value="{{$item->id}}">{{$item->coa_name}}</option>
-                            @endforeach
+                        <p style="display:none">Cost Center</p>
+                        <select style="display:none" class="form-control "  id="CostCenterFilter" onchange="submitdates()">
+                            <option>All</option>
                         </select>
-                        
-                </div>
+                        <script>
+                            $(document).ready(function(){
+                                submitdates();
+                            })
+                        </script>
+                        <p>Type</p>
+                        <select class="form-control selectpicker" data-live-search="true" id="InvoiceTYPE" onchange="submitdates()">
+                            <option value="Main Sales Invoice">Main Sales Invoice</option>
+                            <option value="Branch Sales Invoice">Branch Sales Invoice</option>
+                            <option value="Main Bill Invoice">Main Billing Invoice</option>
+                            <option value="Branch Bill Invoice">Branch Billing Invoice</option>
+                        </select>
+                    </div>
                 </div>
             </div>  
         
@@ -445,7 +419,7 @@
             reportsettings['ReportID']=document.getElementById('InputReportID').value;
             reportsettings['ReportHeader']=document.getElementById('report_employee_companynameheader').innerHTML;
             reportsettings['ReportTitle']=document.getElementById('report_employee_companynameheader').innerHTML;
-            reportsettings['ReportType']="General Ledger";
+            reportsettings['ReportType']="Sales and Billing Invoice Report";
             reportsettings['noteShow']=noteshow;
             reportsettings['noteContent']=document.getElementById('employeecontactnote').value;
             reportsettings['ReportSortBy']=document.getElementById('Sortbyselect').value;
@@ -503,7 +477,7 @@
                     <tr id="report_main_above_button">
                     <td style="vertical-align:middle;text-align:left;">
                         <div class="dropdown">
-                        <a class="btn-link dropdown-toggle btn-sm" style="display:none;" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a style="display: none;" class="btn-link dropdown-toggle btn-sm" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
                         <a href="#!" class="btn-link btn-sm" id="showhidebtn" onclick="showhode()">Add note</a>
@@ -571,7 +545,7 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcelINVOICELIST()"><span class="fa fa-table"></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
                         <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
                         <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
@@ -583,11 +557,20 @@
                         <td id="report_employee_companynameheader" colspan="2" style="vertical-align:middle;font-size:22px;text-align:center;padding-top:30px;" contenteditable="true" >ECC</td>
                     </tr>
                     <tr>
-                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >General Ledger</td>
+                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >Sales and Billing Invoice Report</td>
                     </tr>
                     <tr>
                         <td colspan="2" style="vertical-align:middle;" >
                         <script>
+                        function exporttoexcelINVOICELIST(){
+                            var InvoiceTYPE= document.getElementById('InvoiceTYPE').value;
+                            var filtertemplate= document.getElementById('filtertemplate').value;
+                            var CostCenterFilter = document.getElementById('CostCenterFilter').value;
+                            var FROM= document.getElementById('Fromdate').value;
+                            var TO= document.getElementById('Todate').value;
+                            url="exporttoexcelINVOICELIST?CostCenterFilter="+CostCenterFilter+"&filtertemplate="+filtertemplate+"&FROM="+FROM+"&TO="+TO+"&InvoiceTYPE="+InvoiceTYPE;
+                            location.href=url;
+                        }
                         function sortTable(n,order) {
                         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
                         table = document.getElementById("tablemain");
@@ -650,22 +633,16 @@
                             <table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">
                                 <thead>
                                 <tr>
-                                    
-                                    <th width="40%">Account Title</th>
-                                    <th width="20%" style="text-align:right;">Debit</th>
-                                    <th width="20%" style="text-align:right;">Credit</th>
-                                    
+                                    <th>Sales Invoice no</th><th>Date</th><th>Cost Center</th><th>Description</th><th>Customer</th><th>Due Date</th><th>Balance</th><th>Total</th><th>Status</th><th></th>
                                 </tr>
                                 
                                 </thead>
-                                
                                 <tbody>
-                                    
+                                
                                 </tbody>
                             </table>
                         </td>
                     </tr>
-                    
                     <tr>
                         <td colspan="2" style="vertical-align:middle;text-align:center;font-size:11px;" >
                             <textarea class="form-control" placeholder="Add note here" rows="5" style="border:0px;display:none;" id="employeecontactnote"></textarea>

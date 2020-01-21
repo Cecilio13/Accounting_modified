@@ -114,6 +114,14 @@
     @endif
     
     @endforeach
+    <?php
+    $pending_cancel_entries=0;
+    ?>
+    @foreach ($PendingCancelEntry as $item)
+    <?php
+    $pending_cancel_entries++;
+    ?>  
+    @endforeach
 <div class="card-body">
     <ul class="nav nav-tabs" id="myTabApprovals" role="tablist">
         @if ($UserAccessList[0]->approval_pending_bills=="1")
@@ -166,8 +174,103 @@
             <a class="nav-link" id="bid_of_quotation_tab-tab" data-toggle="tab" href="#bid_of_quotation_tab" role="tab" aria-controls="profile" aria-selected="false">Bid of Quotation <span style="border-radius:10rem;{{$pending_budget_count>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$pending_budget_count}}</span></a>
         </li>
         @endif  
+        <li class="nav-item">
+            <a class="nav-link" id="entry-tab" data-toggle="tab" href="#entry_tab" role="tab" aria-controls="profile" aria-selected="false">Cancelled Entries <span style="border-radius:10rem;{{$pending_cancel_entries>0? ''  : 'display:none;'}}" class="badge badge-pill badge-danger">{{$pending_cancel_entries}}</span></a>
+        </li>
     </ul>
     <div class="tab-content pl-3 p-1" id="myTabContent">
+        <div class="tab-pane fade show " id="entry_tab" role="tabpanel" aria-labelledby="home-tab">
+            <h3 class="float-left">Cancelled Entries</h3>
+            <div class="col-md-12 pl-0 pr-0 mt-3">
+                <table class="table table-bordered" style="background-color:white;" id="table_entry_approval">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th  style="vertical-align:middle;">Request Date</th>
+                            <th  style="vertical-align:middle;">Entry No</th>
+                            <th  style="vertical-align:middle;">Type</th>
+                            <th  style="vertical-align:middle;">Description</th>
+                            <th style="vertical-align:middle;">Reason for Cancellation</th>
+                            <th  style="vertical-align:middle;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($PendingCancelEntry as $item)
+                            <tr>
+                                <td style="vertical-align:middle;">{{date('m-d-Y',strtotime($item->created_at))}}</td>
+                                <td style="vertical-align:middle;text-align:center;">
+                                   
+                                    {{str_replace("Journal-","",$item->entry_id)}}
+                                </td>
+                                <td style="vertical-align:middle;">
+                                    @if ($item->type=="Invoice")
+                                        {{$item->locationss." ".$item->invoice_type}}
+                                    @else
+                                     {{$item->type}}
+                                    @endif
+                                </td>
+                                <td style="vertical-align:middle;" id="cancel_desc{{$item->id}}">
+                                   
+                                </td>
+                                <script>
+                                $.ajax({
+                                type: 'POST',
+                                url: 'get_cancel_entry_desc',                
+                                data: {_token: '{{csrf_token()}}',id:'{{$item->id}}'},
+                                success: function(data) {
+                                    document.getElementById('cancel_desc{{$item->id}}').innerHTML=data;
+                                } 											 
+                                });
+                                </script>
+                                <td style="vertical-align:middle;">{{$item->Reason}}</td>
+                                <td style="vertical-align:middle;text-align:center;">
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="">
+                                    <button title="Approve" onclick="approveEntryRequest('{{$item->id}}')" type="button" class="btn btn-success"><span class="fa fa-check"></span></button>
+                                    <button type="button" onclick="denyEntryRequest('{{$item->id}}')" title="Deny" class="btn btn-danger"><span class="fa fa-times"></span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <script>
+                    var table_entry_approval;
+                    $(document).ready(function(){
+                        if(document.getElementById('table_entry_approval')){
+                            table_entry_approval = $('#table_entry_approval').DataTable({
+                            order: [[ 0, "desc" ]],
+                            
+                            });
+                        }
+                    });
+                    function approveEntryRequest(id){
+                        $.ajax({
+                        type: 'POST',
+                        url: 'approve_cancel_entry_request',                
+                        data: {_token: '{{csrf_token()}}',id:id},
+                        success: function(data) {
+                            swal({title: "Done!", text: "Pending Cancelled Entry Approved", type: 
+                                "success"}).then(function(){ 
+                                location.reload();
+                            });
+                        } 											 
+                        });
+                    }
+                    function denyEntryRequest(id){
+                        $.ajax({
+                        type: 'POST',
+                        url: 'delete_cancel_entry_request',                
+                        data: {_token: '{{csrf_token()}}',id:id},
+                        success: function(data) {
+                            swal({title: "Done!", text: "Pending Cancelled Entry Denied", type: 
+                                "success"}).then(function(){ 
+                                location.reload();
+                            });
+                        } 											 
+                        });
+                    }
+                </script>
+            </div>
+        </div>
         @if ($UserAccessList[0]->approval_bank=="1")
         <div class="tab-pane fade show " id="home" role="tabpanel" aria-labelledby="home-tab">
             <h3 class="float-left">Bank</h3>
@@ -425,7 +528,7 @@
                     <tbody>
                         @foreach ($CustomerEdit as $cut)
                             @if ($cut->edit_status=="0" && $cut->account_type=="Customer")
-                                <tr>
+                                <tr class="{{$cut->supplier_active=="0"? 'table-danger' : ''}}">
                                     <td style="vertical-align:middle;">{{$cut->customer_id}}</td>
                                     <td style="vertical-align:middle;">{{$cut->f_name." ".$cut->l_name}}</td>
                                     <td style="vertical-align:middle;">{{$cut->company}}</td>
@@ -494,7 +597,7 @@
             <div class="col-md-12 pl-0 pr-0 mt-3">
                 <table class="table table-bordered" style="background-color:white;" id="table_supplier_approval">
                     <thead class="thead-dark">
-                        <tr>
+                        <tr class="{{$cut->supplier_active=="0"? 'table-danger' : ''}}">
                             <th style="vertical-align:middle;">Supplier ID</th>
                             <th style="vertical-align:middle;">Name</th>
                             <th style="vertical-align:middle;">Company</th>

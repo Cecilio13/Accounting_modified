@@ -92,29 +92,17 @@
                     </div>
                     <div class="col-md-2">
                         <script>
-                            function changeyearexpense(year){
+                            function changeyearexpense(){
+                                var year=document.getElementById('yearsorte').value;
                                 location.href="expenses?year="+year;
                             }
                         </script>
-                        
-                        <select class="form-control" style="float:right;" onchange="changeyearexpense(this.value)">
-                            @for ($i = 2019; $i <= date('Y'); $i++)
-                                @if (!empty($yyyyy))
-                                @if ($i==$yyyyy)
-                                    <option selected>{{$i}}</option>   
-                                @else
-                                    <option>{{$i}}</option>   
-                                @endif
-                                @else
-                                    @if ($i==date('Y'))
-                                        <option selected>{{$i}}</option>   
-                                    @else
-                                        <option>{{$i}}</option>   
-                                    @endif
-                                @endif
-                            @endfor
-                            
-                        </select>  
+                        <div class="input-group mb-3">
+                            <input type="number" class="form-control" id="yearsorte" style="float:right;" value="{{!empty($yyyyy)? $yyyyy : date('Y')}}">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-secondary" onclick="changeyearexpense()">GO</button>
+                            </div>
+                        </div>  
                     </div>
                     <div id="table" class="table-editable pt-5">
                         <!-- Button trigger modal -->
@@ -804,7 +792,7 @@
                                 <th class="text-center">PHONE</th>
                                 <th class="text-center">EMAIL</th>
                                 <th class="text-center">OPEN BALANCE</th>
-                                
+                                <th class="text-center"></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -816,8 +804,21 @@
                                     <td class="pt-3-half" style="vertical-align:middle;text-align:left;" contenteditable="false"><a class="text-info" href="get_supplier/?supplier_id={{$customer->customer_id}}">{{$customer->company!=""? $customer->company : ($customer->display_name!=""? $customer->display_name : $customer->f_name." ".$customer->l_name ) }}</a></td>
                                     <td class="pt-3-half" style="vertical-align:middle;" contenteditable="false">{{$customer->phone}}</td>
                                     <td class="pt-3-half" style="vertical-align:middle;" contenteditable="false">{{$customer->email}}</td>
-                                    <td class="pt-3-half" style="vertical-align:middle;" contenteditable="false">PHP {{number_format($customer->opening_balance)}}</td>
-                                    
+                                    <td class="pt-3-half" style="vertical-align:middle;" contenteditable="false">
+                                        <?php
+                                        $sippplername=$customer->display_name!=""? $customer->display_name: $customer->f_name." ".$customer->l_name;
+                                        $total_balll=$customer->opening_balance;
+                                        ?>
+                                        @foreach ($journal_total_by_name as $item)
+                                            @if ($sippplername==$item->je_name)
+                                                <?php
+                                                $total_balll+=$item->total_by_name;
+                                                ?>  
+                                            @endif
+                                        @endforeach
+                                        PHP {{number_format($total_balll,2)}}
+                                    </td>
+                                    <td class="pt-3-half" style="vertical-align:middle;"><button class="btn btn-danger btn-sm" onclick="delete_supplier_customer('{{$customer->customer_id}}')"><span class="fa fa-times"></span></button></td>
                                 </tr>
                                 
                                 @endforeach

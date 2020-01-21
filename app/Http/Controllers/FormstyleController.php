@@ -120,7 +120,9 @@ class FormstyleController extends Controller
     }
 
     public function editformstyle(Request $request){
-        $customers = Customers::all();
+        $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $products_and_services = ProductsAndServices::all();
         $sales_transaction = SalesTransaction::all();
         $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
@@ -179,7 +181,9 @@ class FormstyleController extends Controller
         return redirect('/customformstyles');
     }
     public function previewformstyle(Request $request){
-        $customers = Customers::all();
+        $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $products_and_services = ProductsAndServices::all();
         $sales_transaction = SalesTransaction::all();
         $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();

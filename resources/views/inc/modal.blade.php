@@ -25,6 +25,44 @@ var coa_list2_js='@foreach($COA as $coa)<option title="{{$coa->coa_account_type}
  function ResetBills(){
      document.getElementById('clear_lines_bill_account2').click();
  }
+ function delete_supplier_customer(id){
+    if(id!=""){
+        $.ajax({
+        type: 'POST',
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: 'submit_delete_request_supplier',
+            data: {id:id,_token: '{{csrf_token()}}'},
+            success: function(data) {
+                swal({title: "Done!", text: "Successfully submitted supplier modification request.", type: 
+                "success"}).then(function(){
+                    location.reload();
+                }
+                );
+            }
+        })
+    }
+}
+function delete_customer(id){
+    if(id!=""){
+        $.ajax({
+        type: 'POST',
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: 'submit_delete_request_customer',
+            data: {id:id,_token: '{{csrf_token()}}'},
+            success: function(data) {
+                swal({title: "Done!", text: "Successfully submitted customer modification request.", type: 
+                "success"}).then(function(){
+                    location.reload();
+                }
+                );
+            }
+        })
+    }
+}
  </script>
 <script>
     $(document).ready(function(){
@@ -1167,6 +1205,7 @@ function exporttoexcel(table_id){
                     <div class="col-md-6 p-0 pr-0">
                         <p>First Name</p>
                         <input type="text" name="f_name" class="w-100" >
+                        <input type="hidden" name="account_type" id="account_type_customer" value="Customer">
                     </div>
                     <div class="col-md-6 p-0 pl-1">
                         <p>Last Name</p>
@@ -1500,7 +1539,7 @@ function exporttoexcel(table_id){
                                 <th class="text-center" width="10%">PARTICULAR</th>
                                 <th class="text-center" width="10%">ITEM</th>
                                 <th class="text-center">DESCRIPTION</th>
-                                <th class="text-center" width="5%">QTY</th>
+                                <th class="text-center" width="10%">QTY</th>
                                 <th class="text-center"  width="10%">RATE</th>
                                 <th class="text-center"  width="10%">AMOUNT</th>
                                 <th class="text-center" width="5%"></th>
@@ -2966,7 +3005,7 @@ function setJournalAccount(id){
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Cancel</button>
-                            <button id="billadd" class="btn btn-success rounded" type="submit">Save</button>
+                            <button id="billadd2" class="btn btn-success rounded" type="submit">Save</button>
                         </div>
                     </div>
                 </div>
@@ -2986,274 +3025,7 @@ function ViewExpenseTransaction(id,type,modal_id){
     var r = confirm("Are You Sure you want to Change this?\nAny Changes here will be subject for Approval");
     if (r == true) {                        
         //alert(type+" "+id);   
-                               @foreach($expense_transactions as $et)
-                                  if(id=='{{$et->et_no}}' && type=='{{$et->et_type}}'){
-                                    // alert('{{$et->et_no}}'+" "+type+" {{$et->et_type}}");
-                                       if('{{$et->et_type}}'=="Expense"){
-                                           
-                                           var tblCustomers= document.getElementById('expense_account_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-                                           var tblCustomers= document.getElementById('expense_item_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-                                           document.getElementById('expensepayeeedit').value="{{$et->et_customer}}";
-                                           document.getElementById('update_expense_id').value="{{$et->et_no}}";
-                                           document.getElementById('expenseaccountedit').value="{{$et->et_account}}";
-                                           document.getElementById('expensepayeeedit').disabled=true;
-                                           document.getElementById('expensedateedit').value="{{$et->et_date}}";
-                                           document.getElementById('expense_payment_methodedit').value="{{$et->et_payment_method}}";
-                                           document.getElementById('refnoedit').value="{{$et->et_reference_no}}";
-                                           document.getElementById('exmemoedit').value="{{$et->et_memo}}";
-
-                                           @foreach($et_acc as $ac)
-                                               if("{{$et->et_no}}"=="{{$ac->et_ad_no}}"){
-                                                   
-                                                   var markup = '<tr class="expense_lines_account2" id="expense_line_account'+$('#expense_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_expense_account" contenteditable="false">'+$('#expense_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="expense_data account_select_expense" id="select_account_expense'+$('#expense_account_tableedit tr').length+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input value="{{$ac->et_ad_desc}}" class="expense_data description_select_expense" id="select_description_expense'+$('#expense_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$ac->et_ad_total}}" class="expense_data amount_select_expense" onclick="this.select();" id="select_expense_amount'+$('#expense_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_expense'+$('#expense_account_tableedit tr').length+'" class="fa fa-trash delete_account_expense"></a></td></tr>';
-                                                   
-                                                   $("#expense_account_tableedit").append(markup);
-                                                   
-                                                   document.getElementById('select_account_expense'+($('#expense_account_tableedit tr').length-1)).value="{{$ac->et_ad_product}}";
-                                               }
-                                           @endforeach
-                                           
-                                           @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}"){
-                                              
-                                               var markup = '<tr class="expense_lines_item2" id="expense_line_item'+$('#expense_item_table tr').length+'"><td class="pt-3-half" id="number_tag_expense_item" contenteditable="false">'+$('#expense_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="expense_data product_select_expense" id="select_product_name_expense'+$('#expense_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input value="{{$it->et_id_desc}}" class="expense_data product_description_expense" id="select_product_description_expense'+$('#expense_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$it->et_id_qty}}" class="expense_data product_qty_expense" onclick="this.select();" id="product_qty_expense'+$('#expense_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{$it->et_id_rate}}" class="expense_data product_rate_expense" id="select_product_rate_expense'+$('#expense_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_expense" id="total_amount_expense'+$('#expense_item_tableedit tr').length+'">{{$it->et_id_total}}</td><td class="pt-3-half"><a href="#" id="delete_product_expense'+$('#expense_item_tableedit tr').length+'" class="fa fa-trash delete_product_expense"></a></td></tr>';
-                                               $("#expense_item_tableedit").append(markup);
-                                               document.getElementById('select_product_name_expense'+($('#expense_item_tableedit tr').length-1)).value="{{$it->et_id_product}}";
-                                               
-                                           }
-                                           @endforeach
-                                           @foreach($JournalEntry as $JE)
-                                               if("{{$JE->other_no}}"==id){
-                                                document.getElementById('CostCenterExpenseEdit').value="{{$JE->je_cost_center}}";  
-                                               }
-                                           @endforeach
-
-                                       }
-                                       if('{{$et->et_type}}'=="Credit card credit"){
-                                        var tblCustomers= document.getElementById('cc_account_tableedit');
-                                        var rowCount = tblCustomers.rows.length;
-                                        for (var i = rowCount - 1; i > 0; i--) {
-                                        tblCustomers.deleteRow(i);
-                                        }
-                                        var tblCustomers= document.getElementById('cc_account_tableedit');
-                                        var rowCount = tblCustomers.rows.length;
-                                        for (var i = rowCount - 1; i > 0; i--) {
-                                        tblCustomers.deleteRow(i);
-                                        }
-                                        document.getElementById('cc_customeredit').value="{{$et->et_customer}}";
-                                        document.getElementById('cc_edit_transaction_id').value="{{$et->et_no}}";
-                                        
-                                        document.getElementById('cc_customeredit').disabled=true;
-                                        document.getElementById('cc_dateedit').value="{{$et->et_date}}";
-                                        document.getElementById('cc_accountedit').value="{{$et->et_account}}";
-                                        document.getElementById('cc_reference_noedit').value="{{$et->et_reference_no}}";
-                                        //ccbalanceedit
-                                        @foreach($et_acc as $ac)
-                                               if("{{$et->et_no}}"=="{{$ac->et_ad_no}}"){
-                                                var markup = '<tr class="cc_line_accountedit" id="cc_line_accountedit'+$('#cc_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_cc_accountedit" contenteditable="false">'+$('#cc_account_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="cc_data account_select_cc" id="select_account_ccedit'+$('#cc_account_tableedit tr').length+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="cc_data description_select_cc" value="{{$ac->et_ad_desc}}" id="select_description_ccedit'+$('#cc_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="cc_data amount_select_cc" value="{{$ac->et_ad_total}}" onclick="this.select();" id="select_cc_amountedit'+$('#cc_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_ccedit'+$('#cc_account_tableedit tr').length+'" class="fa fa-trash delete_account_ccedit" onclick="DeleteRowCreditCard('+$('#cc_account_tableedit tr').length+')"></a></td></tr>';
-                                                $("#cc_account_tableedit").append(markup);
-
-                                                document.getElementById('select_account_ccedit'+($('#cc_account_tableedit tr').length-1)).value="{{$ac->et_ad_product}}";
-                                               }
-                                        @endforeach
-                                        
-                                       }
-                                       if('{{$et->et_type}}'=="Bill"){
-                                           var tblCustomers= document.getElementById('bill_account_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           console.log(rowCount+" asd");
-                                           for (var i = rowCount-1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                               console.log(rowCount+" deleted");
-                                           }
-                                           var tblCustomers= document.getElementById('bill_item_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-
-                                           document.getElementById('billpayeeedit').value="{{$et->et_customer}}";
-                                           document.getElementById('update_bill_id').value="{{$et->et_no}}";
-                                           //document.getElementById('billpayeeedit').disabled=true;
-                                           document.getElementById('bill_billing_addressedit').value="{{$et->et_billing_address}}";
-                                           document.getElementById('bill_termsedit').value="{{$et->et_terms}}";
-                                           document.getElementById('billdateedit').value="{{$et->et_date}}";
-                                           document.getElementById('billduedateedit').value="{{$et->et_due_date}}";
-                                           document.getElementById('billbillnoedit').value="{{$et->et_bill_no}}";
-                                           document.getElementById('bill_memoedit').value="{{$et->et_memo}}";
-                                           
-                                           document.getElementById('RF_bill_edit').value="{{$et->et_shipping_address}}";
-                                           document.getElementById('PO_bill_edit').value="{{$et->et_shipping_to}}";
-                                           document.getElementById('CI_bill_edit').value="{{$et->et_shipping_via}}";
-                                           
-                                           @foreach($et_acc as $ac)
-                                            console.log('{{$ac->et_ad_type}}');
-                                               if("{{$et->et_no}}"=="{{$ac->et_ad_no}}" && type=='{{$ac->et_ad_type}}'){
-                                                    var count=$('#bill_account_tableedit_tbody tr').length+parseFloat(1);
-                                                    var markup = '<tr class="bill_lines_account2" id="bill_line_account'+count+'"><td style="padding-left:5px;" class="pt-3-half" id="number_tag_bill_account" contenteditable="false">'+count+'</td><td class="pt-3-half" ><select style="border:0; width:100%;" list="account_expenses" class="bill_data account_select_bill selectpicker form-control" data-live-search="true" id="select_account_bill'+count+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input value="{{$ac->et_ad_desc}}" class="form-control bill_data description_select_bill" id="select_description_bill'+count+'" style="border:0;"></td><td class="pt-3-half">';
-                                                    markup=markup+'<input type="text" class="sssss form-control" value="{{number_format($ac->et_ad_total,2)}}" id="unformated_select_bill_rate'+count+'" style="border:0;text-align:right;">';
-                                                    markup=markup+'<input step="0.01" type="hidden" value="{{$ac->et_ad_total}}" class="bill_data amount_select_bill" onclick="this.select();" id="select_bill_amount'+count+'" style="border:0; text-align:center;"></td><td class="pt-3-half" style="padding-left:5px;"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td></tr>';
-                                                    var textbox{{$ac->et_ad_id}} = '#unformated_select_bill_rate'+count;
-						                            var hidden{{$ac->et_ad_id}} = '#select_bill_amount'+count;
-                                                    $("#bill_account_tableedit_tbody").append(markup);
-                                                    $(textbox{{$ac->et_ad_id}}).keyup(function () {
-                                                        $(textbox{{$ac->et_ad_id}}).val(this.value.match(/[0-9.,-]*/));
-                                                    var num = $(textbox{{$ac->et_ad_id}}).val();
-                                                        var comma = /,/g;
-                                                        num = num.replace(comma,'');
-                                                        $(hidden{{$ac->et_ad_id}}).val(num);
-                                                        $(hidden{{$ac->et_ad_id}}).attr('title',num);
-                                                        var numCommas = addCommas(num);
-                                                        $(textbox{{$ac->et_ad_id}}).val(numCommas);
-                                                    });
-                                                    console.log(count+" count->"+'{{$ac->et_ad_type}}');
-                                                   document.getElementById('select_account_bill'+(count)).value="{{$ac->et_ad_product}}";
-                                               }
-                                           @endforeach
-
-                                           @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" && type=='{{$it->et_type}}'){
-                                               var markup = '<tr class="bill_lines_item2" id="bill_line_item'+$('#bill_item_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_bill_item" contenteditable="false">'+$('#bill_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="bill_data product_select_bill" id="select_product_name_bill'+$('#bill_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="bill_data product_description_bill" value="{{$it->et_id_desc}}" id="select_product_description_bill'+$('#bill_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$it->et_id_qty}}" class="bill_data product_qty_bill" onclick="this.select();" id="product_qty_bill'+$('#bill_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{$it->et_id_rate}}" class="bill_data product_rate_bill" id="select_product_rate_bill'+$('#bill_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_bill" id="total_amount_bill'+$('#bill_item_tableedit tr').length+'">{{$it->et_id_total}}</td><td class="pt-3-half"><a href="#" id="delete_product_bill'+$('#bill_item_tableedit tr').length+'" class="fa fa-trash delete_product_bill"></a></td></tr>';
-                                               $("#bill_item_tableedit").append(markup);
-                                               document.getElementById('select_product_name_bill'+($('#bill_item_tableedit tr').length-1)).value="{{$it->et_id_product}}";
-                                               console.log('select_product_name_bill'+($('#bill_item_tableedit tr').length-1)+" "+"{{$it->et_id_product}}");
-                                           }
-                                           @endforeach
-                                           @foreach($JournalEntry as $JE)
-                                               if("{{$JE->other_no}}"==id && "{{$JE->je_transaction_type}}"=="Bill"){
-                                                document.getElementById('CostCenterBillEdit').value="{{$JE->je_cost_center}}";  
-                                                if("{{$JE->je_credit}}"!=""){
-                                                    document.getElementById('bill_account_credit_account_edit_code').value="{{$JE->je_account}}";
-                                                    document.getElementById('bill_account_credit_account_edit').value="{{$JE->je_account}}";
-                                                }
-                                                
-                                               }
-                                           @endforeach
-                                           refreshpicjer();
-                                       }
-                                       if('{{$et->et_type}}'=="Cheque"){
-                                           var tblCustomers= document.getElementById('cheque_account_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-                                           var tblCustomers= document.getElementById('cheque_item_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-
-                                           document.getElementById('chequepayeeedit').value="{{$et->et_customer}}";
-                                           document.getElementById('chequepayeeedit').disabled=true;
-                                           document.getElementById('chequeaccedit').value="{{$et->et_account}}";
-                                           document.getElementById('cheque_billing_addressedit').value="{{$et->et_billing_address}}";
-                                           document.getElementById('chequedateedit').value="{{$et->et_date}}";
-                                           document.getElementById('chequenoedit').value="{{$et->et_reference_no}}";
-                                           document.getElementById('chequememoedit').value="{{$et->et_memo}}";
-                                           document.getElementById('update_cheque_id').value="{{$et->et_no}}";
-                                           @foreach($et_acc as $ac)
-                                               if("{{$et->et_no}}"=="{{$ac->et_ad_no}}"){
-                                                   
-                                                   var markup = '<tr class="cheque_lines_account2" id="cheque_line_account'+$('#cheque_account_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_cheque_account" contenteditable="false">'+$('#cheque_account_tableedit tr').length+'</td><td class="pt-3-half"><select value="{{$ac->et_ad_product}}" style="border:0; width:100%;" list="account_expenses" class="cheque_data account_select_cheque" id="select_account_cheque'+$('#cheque_account_tableedit tr').length+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input value="{{$ac->et_ad_desc}}" class="cheque_data description_select_cheque" id="select_description_cheque'+$('#cheque_account_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$ac->et_ad_total}}" class="cheque_data amount_select_cheque" onclick="this.select();" id="select_cheque_amount'+$('#cheque_account_tableedit tr').length+'" style="border:0; text-align:center;"></td><td class="pt-3-half"><a href="#" id="delete_account_cheque'+$('#cheque_account_tableedit tr').length+'" class="fa fa-trash delete_account_cheque"></a></td></tr>';
-           
-           
-                                                   $("#cheque_account_tableedit").append(markup);
-                                                   document.getElementById('select_account_cheque'+($('#cheque_account_tableedit tr').length-1)).value="{{$ac->et_ad_product}}";
-                                               }
-                                           @endforeach
-                                        var total_initial_amount=0;
-                                           @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}"){
-                                               
-                                               var markup = '<tr class="cheque_lines_item2" id="cheque_line_item_edit'+$('#cheque_item_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_cheque_item" contenteditable="false">'+$('#cheque_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="cheque_data product_select_cheque" id="select_product_name_cheque'+$('#cheque_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="cheque_data product_description_cheque" value="{{$it->et_id_desc}}" id="select_product_description_cheque'+$('#cheque_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" class="cheque_data product_qty_cheque" value="{{$it->et_id_qty}}" onclick="this.select();" id="product_qty_cheque'+$('#cheque_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{number_format($it->et_id_rate,2)}}" title="{{$it->et_id_rate}}" class="cheque_data product_rate_cheque" readonly id="select_product_rate_cheque'+$('#cheque_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_cheque" id="total_amount_cheque'+$('#cheque_item_tableedit tr').length+'" title="{{$it->et_id_total}}">{{number_format($it->et_id_total,2)}}</td><td class="pt-3-half"><a href="#" id="delete_product_cheque_edit'+$('#cheque_item_tableedit tr').length+'" class="fa fa-trash delete_product_cheque_edit"></a></td></tr>';
-                                               total_initial_amount=total_initial_amount+parseFloat('{{$it->et_id_total}}');
-                                               $("#cheque_item_tableedit").append(markup);
-                                               
-                                               document.getElementById('select_product_name_cheque'+($('#cheque_item_tableedit tr').length-1)).value="{{$it->et_id_product}}";
-                                               
-                                               
-                                           }
-                                           @endforeach
-                                           document.getElementById('cheque_edit_item_total').innerHTML="PHP "+number_format(total_initial_amount,2);
-                                           @foreach($JournalEntry as $JE)
-                                               if("{{$JE->other_no}}"==id){
-                                                document.getElementById('CostCenterChequeEdit').value="{{$JE->je_cost_center}}";
-
-                                               }
-                                           @endforeach
-                                           
-
-                                       }
-                                       if('{{$et->et_type}}'=="Supplier credit"){
-                                           var tblCustomers= document.getElementById('sc_account_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-                                           var tblCustomers= document.getElementById('sc_item_tableedit');
-                                           var rowCount = tblCustomers.rows.length;
-                                           for (var i = rowCount - 1; i > 0; i--) {
-                                               tblCustomers.deleteRow(i);
-                                           }
-
-                                           document.getElementById('sc_customeredit').value="{{$et->et_customer}}";
-                                           document.getElementById('update_sc_id').value="{{$et->et_no}}";
-                                           document.getElementById('sc_customeredit').disabled=true;
-                                           document.getElementById('sc_mail_addressedit').value="{{$et->et_billing_address}}";
-
-                                           document.getElementById('scdateedit').value="{{$et->et_date}}";
-                                           
-                                           document.getElementById('screfnoedit').value="{{$et->et_reference_no}}";
-                                           document.getElementById('sc_memoedit').value="{{$et->et_memo}}";
-
-                                           @foreach($et_acc as $ac)
-                                               if("{{$et->et_no}}"=="{{$ac->et_ad_no}}" && type=='{{$ac->et_ad_type}}'){
-                                                   var count=$('#sc_account_tableedit_tbody tr').length+parseFloat(1);
-                                                   var markup = '<tr class="sc_lines_account2" id="sc_line_account'+count+'"><td class="pt-3-half" style="padding-left:5px;" id="number_tag_sc_account" contenteditable="false">'+count+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" value="{{$ac->et_ad_product}}" id="select_account_sc'+count+'"><option></option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data form-control description_select_sc"  value="{{$ac->et_ad_desc}}" id="select_description_sc'+count+'" style="border:0;"></td><td class="pt-3-half"><input step="0.01" type="number" value="{{-$ac->et_ad_total}}" class="form-control sc_data amount_select_sc" onclick="this.select();" id="select_sc_amount'+count+'" style="border:0; text-align:right;"></td><td class="pt-3-half" style="padding-left:5px;"><a href="#" id="delete_account_sc'+count+'" class="fa fa-trash delete_account_sc"></a></td></tr>';
-           
-           
-                                                   $("#sc_account_tableedit").append(markup);
-                                                   
-                                                   document.getElementById('select_account_sc'+(count)).value="{{$ac->et_ad_product}}";
-                                               }
-                                           @endforeach
-
-                                           @foreach($et_it as $it)
-                                           if("{{$et->et_no}}"=="{{$it->et_id_no}}" & type=='{{$it->et_type}}'){
-                                              
-                                               var markup = '<tr class="sc_lines_item2" id="sc_line_item'+$('#sc_item_tableedit tr').length+'"><td class="pt-3-half" id="number_tag_sc_item" contenteditable="false">'+$('#sc_item_tableedit tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" class="sc_data product_select_sc" id="select_product_name_sc'+$('#sc_item_tableedit tr').length+'"><option value=""></option>'+product_list_js+'</select></td><td class="pt-3-half"><input class="sc_data product_description_sc" value="{{$it->et_id_desc}}" id="select_product_description_sc'+$('#sc_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" value="{{$it->et_id_qty}}" class="sc_data product_qty_sc" onclick="this.select();" id="product_qty_sc'+$('#sc_item_tableedit tr').length+'" style="border:0; text-align:center;" value="1"></td><td class="pt-3-half"><input value="{{$it->et_id_rate}}" class="sc_data product_rate_sc" id="select_product_rate_sc'+$('#sc_item_tableedit tr').length+'" style="border:0;"></td><td class="pt-3-half product_total_sc" id="total_amount_sc'+$('#sc_item_tableedit tr').length+'">{{$it->et_id_total}}</td><td class="pt-3-half"><a href="#" id="delete_product_sc'+$('#sc_item_tableedit tr').length+'" class="fa fa-trash delete_product_sc"></a></td></tr>';
-           
-                                               $("#sc_item_tableedit").append(markup);
-                                               document.getElementById('select_product_name_sc'+($('#sc_item_tableedit tr').length-1)).value="{{$it->et_id_product}}";
-                                               
-                                           }
-                                           @endforeach
-                                           @foreach($JournalEntry as $JE)
-                                               if("{{$JE->other_no}}"==id && "{{$JE->je_transaction_type}}"=="Supplier Credit"){
-                                                
-                                                document.getElementById('CostCenterSupplierCreditEdit').value="{{$JE->je_cost_center}}";
-                                                if("{{$JE->je_debit}}"!=""){
-                                                    
-                                                    document.getElementById('supplier_credit_account_debit_account_edit_code').value="{{$JE->je_account}}";
-                                                    document.getElementById('supplier_credit_account_debit_account_edit').value="{{$JE->je_account}}";
-                                                }
-                                                
-                                               }
-                                           @endforeach
-                                           refreshpicjer();
-                                       }
-                                       
-                                  }
-                               @endforeach
-                               open_modal_dyna(modal_id);
+                               
     }
 }
 
@@ -4233,7 +4005,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                     <th class="text-center"   width="10%">PARTICULARS</th>
                                     <th class="text-center"   width="10%">ITEMS</th>
                                     <th class="text-center">DESCRIPTION</th>
-                                    <th class="text-center"  width="5%">QTY</th>
+                                    <th class="text-center"  width="10%">QTY</th>
                                     <th class="text-center"   width="10%">RATE</th>
                                     <th class="text-center"   width="10%">AMOUNT</th>
                                     <th class="text-center" style="display:none;"></th>
@@ -5495,10 +5267,10 @@ function getModal(Location,TTTTT,e,type,sales){
                                         success: function (data) {
                                             if(data>0){
                                                 document.getElementById('bill_bill_no2').style.border="1px solid red";
-                                                document.getElementById('billadd2').disabled=true;
+                                                document.getElementById('billadd').disabled=true;
                                             }else{
                                                 document.getElementById('bill_bill_no2').style.border="1px solid green";
-                                                document.getElementById('billadd2').disabled=false;
+                                                document.getElementById('billadd').disabled=false;
                                             }
                                         }
                                     });
@@ -5528,12 +5300,12 @@ function getModal(Location,TTTTT,e,type,sales){
                         </div>
                         
                     </div>
-                    <div class="col-md-12 p-0">
+                    <div class="col-md-12 p-0"  style="display:none">
                         
                             
                             <div class="col-md-4 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
                                 <p>Cost Center</p>
-                                <select name="CostCenterBill" id="CostCenterBill" onchange="EnableBillInput(this)" class="w-100 selectpicker CostCenterBill" data-live-search="true" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}}>
+                                <select name="CostCenterBill" id="CostCenterBill" onchange="EnableBillInput(this)" class="w-100 selectpicker CostCenterBill" data-live-search="true" >
                                     <option value="">--Select Cost Center--</option>
                                     {!! $cc_list_after_foreach !!}
                                     </select>
@@ -5591,11 +5363,12 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 mb-1 mt-3" style="padding-left:0px;">
                         <h4>Account Details</h4>
                     </div>
-                    <table class="table table-bordered table-responsive-md table-sm text-left font14" id="bill_account_table">
+                    <table class="table table-bordered table-responsive-md table-sm text-left font14 table-sm" id="bill_account_table">
                         <thead>
                             <tr>
                                 <th class="text-left" width="5%">#</th>
                                 <th class="text-left" width="20%">ACCOUNT</th>
+                                <th class="text-left" width="20%">COST CENTER</th>
                                 <th class="text-left" width="">DESCRIPTION</th>
                                 <th class="text-left" width="20%">AMOUNT</th>
                                 <th class="text-center" width="5%"></th>
@@ -5608,8 +5381,8 @@ function getModal(Location,TTTTT,e,type,sales){
                     <div class="col-md-12 p-0 mt-4">
                         <div class="float-left">
                             <div class="d-inline-flex">
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_bill_account">Add Items</button>
-                                <button class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_bill_account">Clear All Items</button>
+                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="add_lines_bill_account">Add Items</button>
+                                <button type="button" class="btn btn-outline-dark rounded mr-1 font14" id="clear_lines_bill_account">Clear All Items</button>
                             </div>
                         </div>
                     </div>
@@ -5973,15 +5746,20 @@ function getModal(Location,TTTTT,e,type,sales){
                                                                         console.log(data);
                                                                         for(var c=0;c<data.length;c++){
                                                                             if(data[c]['et_ad_rate']=='1'){
-                                                                                var markup = '<tr class="sc_lines_account " id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input type="checkbox"  id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+' value="'+data[c]['et_ad_id']+'"></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
+                                                                                var markup = '<tr class="sc_lines_account " id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input type="checkbox"  id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+' value="'+data[c]['et_ad_id']+'"></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                                                                                markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="selectpicker form-control" disabled data-live-search="true" id="select_costcenter_sc'+$('#sc_account_table tr').length+'" name="select_costcenter_sc'+$('#sc_account_table tr').length+'" ><option value="">--Select Account--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{$ccl->cc_name_code." - ".trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select>';
+                                                                                markup=markup+'<td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
                                                                                 var rowcount=$('#sc_account_table tr').length;
                                                                                 $("#sc_account_table").append(markup);
                                                                             }else{
-                                                                                var markup = '<tr class="sc_lines_account table-success" id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input style="display:none;" checked type="checkbox" id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+'></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td><td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
+                                                                                var markup = '<tr class="sc_lines_account table-success" id="sc_line_account'+$('#sc_account_table tr').length+'"><td class="pt-3-half" style="vertical-align:middle;text-align:center;"><input style="display:none;" checked type="checkbox" id="return_item_sc'+$('#sc_account_table tr').length+'"  name="return_item_sc[]" value="'+data[c]['et_ad_id']+'"><input type="hidden" name=hiddenet_ad_id'+$('#sc_account_table tr').length+' id=hiddenet_ad_id'+$('#sc_account_table tr').length+'></td><td class="pt-3-half" id="number_tag_sc_account" contenteditable="false">'+$('#sc_account_table tr').length+'</td><td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="sc_data account_select_sc selectpicker form-control" disabled data-live-search="true" id="select_account_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
+                                                                                markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="selectpicker form-control" disabled data-live-search="true" id="select_costcenter_sc'+$('#sc_account_table tr').length+'" name="select_costcenter_sc'+$('#sc_account_table tr').length+'"><option value="">--Select Account--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{$ccl->cc_name_code." - ".trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select>';
+                                                                                markup=markup+'<td class="pt-3-half"><input class="sc_data description_select_sc form-control" disabled id="select_description_sc'+$('#sc_account_table tr').length+'" style="border:0;"></td><td class="pt-3-half"><input type="number" step="0.01" disabled class="sc_data amount_select_sc form-control" onclick="this.select();" id="select_sc_amount'+$('#sc_account_table tr').length+'" style="border:0; text-align:right;"></td></tr>';
                                                                                 var rowcount=$('#sc_account_table tr').length;
                                                                                 $("#sc_account_table").append(markup);
                                                                             }
                                                                             
+                                                                            document.getElementById('select_costcenter_sc'+rowcount).value=data[c]['et_cost_center']!="" && data[c]['et_cost_center']!=null? data[c]['et_cost_center'] : document.getElementById('CostCenterSupplierCredit').value;
                                                                             document.getElementById('select_account_sc'+rowcount).value=data[c]['et_ad_product'];
                                                                             document.getElementById('select_description_sc'+rowcount).value=data[c]['et_ad_desc'];
                                                                             document.getElementById('select_sc_amount'+rowcount).value=data[c]['et_ad_total'];
@@ -6027,7 +5805,7 @@ function getModal(Location,TTTTT,e,type,sales){
                                 {!! $customers_list_after_foreach !!}
                                 </select>
                             </div>
-                            <div class="col-md-2 p-0 pr-3" style="{{!empty($numbering) && $numbering->use_cost_center=="Off"? 'display:none;' : ''}}">
+                            <div class="col-md-2 p-0 pr-3" style="display:none">
                                 <p>Cost Center</p>
                                 <select class="selectpicker" data-live-search="true" name="CostCenterSupplierCredit" onchange="EnableSupplierCreditInput(this)" id="CostCenterSupplierCredit" style="width:90%;" {{!empty($numbering) && $numbering->use_cost_center=="Off"? '' : 'required'}} disabled>
                                     <option value="">--Select Cost Center--</option>
@@ -6065,11 +5843,12 @@ function getModal(Location,TTTTT,e,type,sales){
                         <div class="col-md-12 mb-1 mt-3">
                             <h5 class="mt-2 mb-2">Account Details</h5>
                         </div>
-                        <table class="table table-bordered table-responsive-md table-striped text-left font14" id="sc_account_table">
+                        <table class="table table-bordered table-responsive-md table-striped text-left font14 table-sm" id="sc_account_table">
                             <tr>
                                 <th width="3%" class="text-center"></th>
                                 <th width="4%" class="text-left">#</th>
-                                <th width="37%" class="text-left">ACCOUNT</th>
+                                <th width="20%" class="text-left">ACCOUNT</th>
+                                <th width="20%" class="text-left">COST CENTER</th>
                                 <th width="40%" class="text-left">DESCRIPTION</th>
                                 <th width="20%" class="text-left">AMOUNT</th>
                             </tr>
@@ -6943,7 +6722,7 @@ function addCardCreditedit(){
                         }
                         function addnewCustomerDatalist(element){
                             
-                            if(element.value=="--Add Customer/Supplier--"){
+                            if(element.value=="--Add Customer/Employee/Supplier--"){
                                 document.getElementById('canceljournalentry').click();
                                 element.value="";
                                 showcustomizationsectioncustomer();
@@ -7169,7 +6948,7 @@ function addCardCreditedit(){
                                     @foreach ($customers as $ccc)
                                         <option value="{{$ccc->display_name!=""? $ccc->display_name : $ccc->f_name." ".$ccc->l_name}}">{{$ccc->account_type}}</option>
                                     @endforeach
-                                    <option value="--Add Customer/Supplier--">
+                                    <option value="--Add Customer/Employee/Supplier--">
                                     </datalist>
                             </td>
                             <td class="pt-3-half" contenteditable="false" id="">
@@ -8454,7 +8233,7 @@ function edit_journal_entries(je_no){
                                         options += '<option value="'+data[c]['f_name']+' '+data[c]['l_name']+'" >'+data[c]['account_type']+'</option>'; 
                                     }
                                 }
-                                options += '<option value="--Add Customer/Supplier--">';
+                                options += '<option value="--Add Customer/Employee/Supplier--">';
                                 document.getElementById('customer_list_all').innerHTML = options;
                                 if(document.getElementById('DisplayNameCustomerSupplier').value=="From Journal"){
                                     hidecustomizationsectioncustomer();
@@ -8475,7 +8254,8 @@ function edit_journal_entries(je_no){
                     function ShowModalType(id){
                         if(document.getElementById(id).value!=""){
                             document.getElementById('DisplayNameCustomerSupplier').value="From Journal";
-                            if(document.getElementById(id).value=="Customer"){
+                            if(document.getElementById(id).value=="Customer" || document.getElementById(id).value=="Employee"){
+                                document.getElementById('account_type_customer').value=document.getElementById(id).value;
                                 document.getElementById('customerssasdmodaladd').click();
                             }else if(document.getElementById(id).value=="Supplier"){
                                 document.getElementById('suppliiermodaladd').click();
@@ -8502,6 +8282,7 @@ function edit_journal_entries(je_no){
                         <option value="">--Select Type--</option>
                         <option>Customer</option>
                         <option>Supplier</option>
+                        <option>Employee</option>
                     </select>
                 </div>
                 
@@ -8670,11 +8451,7 @@ function edit_journal_entries(je_no){
                                 <option value="">--Select Account--</option>
                                 @foreach ($c_o_a as $co)
                                 
-                                @if($co->coa_sub_account=='Cash on Hand' || $co->coa_sub_account=='Cash on Hands')
                                 <option value="{{$co->id}}">&nbsp; {{preg_replace( "/\r|\n/", "", $co->coa_name )}}</option>
-                                
-                                @endif
-                                
                                 
                                 @endforeach
                             </select>
@@ -8684,6 +8461,7 @@ function edit_journal_entries(je_no){
                     <table class="table table-bordered table-responsive-md  text-left font14 table-sm" id="table_pay_bills_modal_tabel"> 
                         <thead>
                         <tr>
+                            <th></th>
                             <th class="text-center"><input type="hidden" id="paybillrowcount"></th>
                             <th class="text-left">Bill No</th>
                             <th class="text-left">Bank</th>
@@ -8742,14 +8520,17 @@ function edit_journal_entries(je_no){
                             </script>
                             <?php $totalopenbalance=0; ?>
                             <?php $paybillrowcount=0; ?>
+                            <?php $paybillsrowcount=0;?>
                             @foreach ($ETran as $et)
                                 
                                 @if($et->et_type=="Bill" && $et->remark!="Cancelled" && $et->et_bil_status!="Paid")
                                 <?php $paybillrowcount++; ?>
+                                <?php $paybillsrowcount++; ?>
                                 <script>
                                     document.getElementById('paybillrowcount').value="{{$paybillrowcount}}";
                                 </script>
                                 <tr >
+                                    <td style="vertical-align:middle;text-align:center">{{$paybillsrowcount}}</td>
                                     <td class="pt-3-half" contenteditable="false" style="text-align:center;padding-top:5px;"><input onchange="Setpaybilltotalamount()" type="checkbox" value="{{$et->et_no}}" id="paybillcheckbox{{$paybillrowcount}}"></td>
                                     <td class="pt-3-half" contenteditable="false" style="padding-left:5px;">
                                         {{$et->et_no}}
@@ -8821,7 +8602,7 @@ function edit_journal_entries(je_no){
                                         <?php $totalopenbalance+=$totalopenbalancepertransaction; ?>  
                                     </td>
                                     <td class="pt-3-half" contenteditable="false" >
-                                        <input type="number" class="w-100" onkeyup="Setactualamountpaymentbill()" onchange="Setactualamountpaymentbill()" id="paybillactualpaymentamount{{$paybillrowcount}}" value="0" min="0" max="{{$totalopenbalancepertransaction}}">
+                                        <input type="number" class="w-100" onkeyup="Setactualamountpaymentbill()" onchange="Setactualamountpaymentbill()" id="paybillactualpaymentamount{{$paybillrowcount}}" value="0" min="0" step="0.01" max="{{$totalopenbalancepertransaction}}">
                                     </td>
                                     <td class="pt-3-half" contenteditable="false" style="text-align:right;padding-right:5px;" id="paybilltotalamount{{$paybillrowcount}}">0.00</td>
                                 </tr>
@@ -11039,8 +10820,7 @@ function edit_journal_entries(je_no){
             ajax: "{{ route('refresh_customers_table') }}",
             columnDefs: [{
                 'targets': 0,
-                'searchable':false,
-                'orderable':false,
+                
                 'className': 'dt-body-left',
                 'render': function (data, type, full, meta){
                     //console.log(full);
@@ -11064,13 +10844,15 @@ function edit_journal_entries(je_no){
             },
             {
                 data: 'opening_balance'
-            }
+            },
+            {
+                data: 'action'
+            },
             ]
         });
         if(document.getElementById('customertable_info')){
             document.getElementById('customertable_info').style.display="none";
             document.getElementById('customertable_length').style.display="none";
-            document.getElementById('customertable_filter').style.display="none";
             
         }
         @if(!empty($year_beg))
@@ -11090,60 +10872,108 @@ function edit_journal_entries(je_no){
             },
             
             columnDefs: [{
-                'targets': 9,
+                'targets': 12,
                 'searchable':false,
                 'orderable':false,
                 'className': 'dt-body-center',
                 'render': function (data, type, full, meta){
                     if(data=="Cancelled" || data==""){
-                        return data;
-                    }else{
-                        if(full['st_type']=="Invoice"){
-                            @if(count($UserAccessList)>0)
-                                @if( $UserAccessList[0]->invoice=="1")
-                                
-                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                                @else
-                                return "";
-                                @endif
-                            @endif
+                        if(full['st_type']=="Main Sales Invoice"){
+                            if(data=="Cancelled"){
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" >Cancelled</a></div></div>';
+                            }else{
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a></div></div>';
+                            }
                             
+                        }
+                        else if(full['st_type']=="Main Bill Invoice"){
+                            if(data=="Cancelled"){
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" >Cancelled</a></div></div>';
+                            }else{
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a></div></div>';
+                            }
+                        }
+                        else if(full['st_type']=="Branch Sales Invoice"){
+                            if(data=="Cancelled"){
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" >Cancelled</a></div></div>';
+                            }else{
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a></div></div>';
+                            }
+                        }
+                        else if(full['st_type']=="Branch Bill Invoice"){
+                            if(data=="Cancelled"){
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" >Cancelled</a></div></div>';
+                            }else{
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a></div></div>';
+                            }
                         }
                         else if(full['st_type']=="Sales Receipt"){
-                            @if(count($UserAccessList)>0)
-                                @if($UserAccessList[0]->sales_receipt=="1")
-                                
-                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                                @else
-                                return "";
-                                @endif
-                            @endif
+                            if(data=="Cancelled"){
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_payment_for']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" >Cancelled</a></div></div>';
+                            }else{
+                                return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_payment_for']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a></div></div>';
+                            }
+                        }else{
+                            return data;
+                        }
+                    }else{
+                        if(full['st_type']=="Main Sales Invoice"){
+                            @if($UserAccessList[0]->invoice=="1")
                             
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
+                            @endif
+                        }
+                        else if(full['st_type']=="Main Bill Invoice"){
+                            @if($UserAccessList[0]->invoice=="1")
+                            
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
+                            @endif
+                        }
+                        else if(full['st_type']=="Branch Sales Invoice"){
+                            @if($UserAccessList[0]->invoice=="1")
+                            
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
+                            @endif
+                        }
+                        else if(full['st_type']=="Branch Bill Invoice"){
+                            @if($UserAccessList[0]->invoice=="1")
+                            
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_no']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
+                            @endif
+                        }
+                        else if(full['st_type']=="Sales Receipt"){
+                            @if($UserAccessList[0]->sales_receipt=="1")
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" target="_blank" href="print_invoice_info?no='+full['st_payment_for']+'&location='+full['st_location']+'&type='+full['st_invoice_type']+'"><span class="fa fa-print"></span> Print </a><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            
+                            @else
+                            return "";
+                            @endif
                         }
                         else if(full['st_type']=="Credit Note"){
-                            @if(count($UserAccessList)>0)
-                                @if($UserAccessList[0]->credit_note=="1")
-                                
-                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                                @else
-                                return "";
-                                @endif
+                            @if($UserAccessList[0]->credit_note=="1")
+                            
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
                             @endif
-                            
-                            
                         }
                         else if(full['st_type']=="Estimate"){
-                            @if(count($UserAccessList)>0)
-                                @if($UserAccessList[0]->estimate=="1")
-                                
-                                return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
-                                @else
-                                return "";
-                                @endif
-                            @endif
+                            @if($UserAccessList[0]->estimate=="1")
                             
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
+                            @else
+                            return "";
+                            @endif
                         }else{
-                            return '<button class="btn btn-xs btn-link" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span></button>';
+                            return '<div class="btn-group"><button type="button" class="btn bg-transparent  px-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button><div class="dropdown-menu dropdown-menu-custom"><a class="dropdown-item" href="#" onclick="cancelentry('+data+')"><span class="fa fa-ban"></span> Cancel</a></div></div>';
 
                         }
                         
@@ -11153,14 +10983,33 @@ function edit_journal_entries(je_no){
                 }
             },
             {
-                'targets': 4,
+                'targets': 5,
                 'searchable':false,
                 'orderable':false,
                 'className': 'dt-body-center',
                 'render': function (data, type, full, meta){
-                    
+                   
                     if(data=="N/A"){
-                        return data;
+                        console.log(full['st_type']+" "+full['remark']);
+                        if(full['remark']=="Cancelled"){
+                            $(document).ready(function(){
+                                var ro=meta.row+1;
+                                    console.log("row "+ro);
+                                // $(meta).addClass("table-danger");
+                                if(ro>10){
+                                    
+                                    ro=ro-10;
+                                }
+                                var x = document.getElementById("salescolumn"+full['st_no']).parentElement;
+                                    x.parentElement.className = "table-warning";
+                                    x.parentElement.setAttribute('title','Cancelled');
+                            
+                            });
+                            return "<span id='salescolumn"+full['st_no']+"' >"+data+"</span>";
+                           
+                        }else{
+                            return data;
+                        }
                     }else{
                         //return data;
                         var d1 = new Date();
@@ -11182,7 +11031,26 @@ function edit_journal_entries(je_no){
                             return "<span title='overdue' id='salescolumn"+full['st_no']+"' style='color:red;'>"+data+"</span>";
                             
                         }else{
-                            return data;
+                            if(full['remark']=="Cancelled"){
+                                $(document).ready(function(){
+                                    var ro=meta.row+1;
+                                        console.log("row "+ro);
+                                    // $(meta).addClass("table-danger");
+                                    if(ro>10){
+                                        
+                                        ro=ro-10;
+                                    }
+                                    var x = document.getElementById("salescolumn"+full['st_no']).parentElement;
+                                        x.parentElement.className = "table-warning";
+                                        x.parentElement.setAttribute('title','Cancelled');
+                                
+                                });
+                                return "<span id='salescolumn"+full['st_no']+"' >"+data+"</span>";
+                               
+                            }else{
+                                return data;
+                            }
+                            
                         }
                         
                     }
@@ -11200,10 +11068,19 @@ function edit_journal_entries(je_no){
                             data: 'st_no'
                         },
                         {
+                            data : 'cost_center_name'
+                        },
+                        {
                             data: 'customer_name'
                         },
                         {
                             data: 'st_due_date'
+                        },
+                        {
+                            data: 'or_no'
+                        },
+                        {
+                            data: 'or_date'
                         },
                         {
                             data: 'customer_balance'
@@ -15044,6 +14921,9 @@ function removeComma(str){
                 if(table.rows[0].cells[i].innerHTML=="ACCOUNT"){
                     markup=markup+'<td class="pt-3-half"><select style="border:0; width:100%;" list="account_expenses" class="form-control bill_data account_select_bill selectpicker" data-live-search="true" id="select_account_bill'+count+'"><option value="">--Select Account--</option>'+coa_list_js+'</select></td>';
                 }
+                if(table.rows[0].cells[i].innerHTML=="COST CENTER"){
+                    markup=markup+'<td class="pt-3-half"><select required style="border:0;"  class="form-control selectpicker" data-live-search="true" name="select_cost_center_bill'+$('#bill_account_table tr').length+'" id="select_cost_center_bill'+$('#bill_account_table tr').length+'"><option value="">--Select Cost Center--</option>@foreach($cost_center_list as $ccl)<option value="{{$ccl->cc_no}}">{{$ccl->cc_name_code." - ".trim(preg_replace("/\s\s+/", " ", $ccl->cc_name))}}</option> @endforeach</select></td>';
+                }
                 if(table.rows[0].cells[i].innerHTML=="DESCRIPTION"){
                     markup=markup+'<td class="pt-3-half"><input class="bill_data description_select_bill form-control" id="select_description_bill'+count+'" style="border:0;"></td>';
                 }
@@ -15053,6 +14933,7 @@ function removeComma(str){
                 if(table.rows[0].cells[i].innerHTML==""){
                     markup=markup+'<td class="pt-3-half text-center"><a href="#" id="delete_account_bill'+count+'" class="fa fa-trash delete_account_bill"></a></td>'; 
                 }
+                
             }
             markup=markup+'</tr>';
             var textbox = '#unformated_select_bill_amount'+count;
@@ -15060,7 +14941,7 @@ function removeComma(str){
             $("#bill_account_table_tbody").append(markup);
             
             $(textbox).keyup(function () {
-                $(textbox).val(this.value.match(/[0-9.,=]*/));
+                $(textbox).val(this.value.match(/[0-9.,-]*/));
             var num = $(textbox).val();
                 var comma = /,/g;
                 num = num.replace(comma,'');

@@ -118,12 +118,1488 @@ use App\ETAccountDetailNew;
 use App\CC_Type;
 use App\STInvoice;
 use App\StEstimate;
+use App\PendingCancelEntry;
 class ApiController extends Controller
 {
     public function __construct(){
         header('Access-Control-Allow-Origin: *');
         header('Content-type: application/x-www-form-urlencoded');
         
+    }
+    public function get_access(Request $request){
+        $access=UserAccess::find($request->id);
+        $data = array(
+            'access' => $access,
+            
+        );
+        return response($data, 200);
+    }
+    public function register_user(Request $request){
+        $User= new User;
+        $User->name=$request->name;
+        $User->email=$request->email;
+        $User->position=$request->position;
+        $User->password=Hash::make($request->password);
+        $User->approved_status=0;
+        $User->save();
+    }
+    public function checkemail(Request $request){
+        $emailcount=User::where([
+           ['email','=',$request->email]
+        ])->count();
+        if($emailcount>0){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+    public function check_user(Request $request){
+        $emailll=$request->input('email');
+        $passww=$request->input('pass');
+        $userdata = array(
+            'email' => $emailll ,
+            'password' => $passww
+        );
+        if (Auth::attempt($userdata)){
+            return Auth::user();
+        }else{
+            return "0";
+        }
+    }
+    public function getReportData(Request $request){
+        $date = date('l, d F Y h:i a \G\T\MO');
+        $all_cost_center_list= CostCenter::all();
+        $company_setting=Company::first();
+        $data = array(
+            'date' => $date,
+            'all_cost_center_list' => $all_cost_center_list,
+            'company_setting' => $company_setting,
+        );
+        return response($data, 200);
+    }
+    public  function getReportPageData(Request $request){
+        $favorite_report = DB::table('favorite_report')->get();
+        $data = array(
+            'favorite_report' => $favorite_report,
+        );
+        return response($data, 200);
+    }
+    public function add_bill(Request $request){
+        //return $request;
+        $sss=explode(" - ",$request->bill_customer);
+        $numbering = Numbering::first();
+        
+        $expense_number = ExpenseTransactionNew::where('et_type','Bill')->count()+ExpenseTransaction::where('et_type','Bill')->count() + $numbering->bill_start_no;
+        $expense_transaction = new ExpenseTransactionNew;
+        $expense_transaction->et_no = $request->bill_bill_no;
+        $expense_transaction->et_customer = $sss[0];
+        $expense_transaction->et_terms = $request->bill_terms;
+        $expense_transaction->et_billing_address = $request->bill_billing_address;
+        $expense_transaction->et_bill_no =$request->bill_bill_no;
+        $expense_transaction->et_date = $request->bill_date;
+        $expense_transaction->et_due_date = $request->bill_due_date;
+        $expense_transaction->et_memo = $request->bill_memo;
+        //$expense_transaction->et_attachment = $request->bill_attachment;
+
+        $expense_transaction->et_shipping_address = $request->RF_bill;
+        $expense_transaction->et_shipping_to = $request->PO_bill;
+        $expense_transaction->et_shipping_via = $request->CI_bill;
+        $wwe=explode(" - ",$request->CostCenterBill);
+        $expense_transaction->et_debit_account=$wwe[0];
+        $expense_transaction->et_credit_account=$request->bill_account_credit_account;
+
+        $expense_transaction->et_type = 'Bill';
+        $expense_transaction->save();
+
+        
+
+        $customer = new Customers;
+        $customer = Customers::find($sss[0]);
+       
+        
+        for($x=1;$x<=$request->item_count_bills;$x++){
+            $et_item = new EtItemDetailNew;
+            $et_item->et_id_no = $request->bill_bill_no;
+            $et_item->et_ad_type = "Bill";
+            $et_item->et_id_product = $request->input('select_product_name_bill'.$x);
+            $et_item->et_id_desc = $request->input('select_product_description_bill'.$x);
+            $et_item->et_id_qty = $request->input('product_qty_bill'.$x);
+            $et_item->et_id_rate = $request->input('select_product_rate_bill'.$x);
+            $et_item->et_id_total = $request->input('select_product_rate_bill'.$x) * $request->input('product_qty_bill'.$x);;
+            $et_item->save();
+
+            // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+            // $customer->save();
+        }
+        $totalamount=0;
+        for($x=1;$x<=$request->account_count_bills;$x++){
+            $et_account = new EtAccountDetailNew;
+            $et_account->et_ad_no = $request->bill_bill_no;
+            $et_account->et_ad_product = $request->input('select_account_bill'.$x);
+            $et_account->et_ad_desc = $request->input('select_description_bill'.$x);
+            $et_account->et_ad_total = $request->input('select_bill_amount'.$x);
+            $et_account->et_ad_rate = 1;
+            $et_account->et_cost_center =$request->input('select_cost_center_bill'.$x2);
+            $et_account->et_ad_qty = $request->bill_bill_no;
+            $et_account->et_ad_type = "Bill";
+            $totalamount+=$request->input('select_bill_amount'.$x);
+            $et_account->save();
+
+        }
+            $expense_transaction =ExpenseTransactionNew::find($request->bill_bill_no);
+            $expense_transaction->bill_balance=$totalamount;
+            $expense_transaction->save();
+    }
+    public function add_supplier_credit(Request $request)
+    {
+       
+        $sss=explode(" - ",$request->sc_customer);
+        $numbering = Numbering::first();
+        $expense_number = ExpenseTransaction::where('et_type','Supplier credit')->count() + $numbering->suppliers_credit_start_no;
+
+        $expense_transaction = new ExpenseTransaction;
+        $expense_transaction->et_no = $request->suppliers_credit_no;
+        $expense_transaction->et_customer = $sss[0];
+        $expense_transaction->et_billing_address = $request->sc_mail_address;
+        $expense_transaction->et_date = $request->sc_date;
+        $expense_transaction->et_reference_no = $request->sc_reference_no;
+        $expense_transaction->et_memo = $request->sc_memo;
+        $expense_transaction->et_email = $request->supplier_credit_bill_no;
+
+        $expense_transaction->et_attachment = $request->sc_attachment;
+        $expense_transaction->et_type = 'Supplier credit';
+        $expense_transaction->save();
+
+        $customer = new Customers;
+        $customer = Customers::find($sss[0]);
+
+        for($x=0;$x<$request->item_count_scs;$x++){
+            $et_item = new EtItemDetail;
+            $et_item->et_id_no = $request->suppliers_credit_no;
+            $et_item->et_ad_type = "Supplier credit";
+            $et_item->et_id_product = $request->input('select_product_name_sc'.$x);
+            $et_item->et_id_desc = $request->input('select_product_description_sc'.$x);
+            $et_item->et_id_qty = $request->input('product_qty_sc'.$x);
+            $et_item->et_id_rate = $request->input('select_product_rate_sc'.$x);
+            $et_item->et_id_total = -$request->input('select_product_rate_sc'.$x) * $request->input('product_qty_sc'.$x);
+            $et_item->save();
+
+            // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+            // $customer->save();
+        }
+        $totalamount=0;
+        
+        
+            foreach($request->return_item_sc as $checked){
+                for($x=1;$x<=$request->account_count_scs;$x++){
+                if($checked==$request->input('hiddenet_ad_id'.$x)){
+                    //$request->hiddenet_ad_id;
+                    $et_account = new EtAccountDetail;
+                    $et_account->et_ad_no = $request->suppliers_credit_no;
+                    $et_account->et_ad_type = "Supplier credit";
+                    $et_account->et_ad_product = $request->input('select_account_sc'.$x);
+                    $et_account->et_cost_center = $request->input('select_costcenter_sc'.$x);
+                    $et_account->et_ad_desc = $request->input('select_description_sc'.$x);
+                    $et_account->et_ad_rate = $request->input('hiddenet_ad_id'.$x)." == ".$checked;
+                    $et_account->et_ad_total = -$request->input('select_sc_amount'.$x);
+                    $totalamount-=$request->input('select_sc_amount'.$x);
+                    $et_account->save();
+
+                    $et=EtAccountDetail::find($checked);
+                    $et->et_ad_rate='0';
+                    $et->save();
+
+                    $stew = ExpenseTransaction::find($request->supplier_credit_bill_no);
+                    $stew->bill_balance=$stew->bill_balance-$request->input('select_sc_amount'.$x);
+                    $stew->save();
+
+                    $JournalVoucherCount=count(JournalEntry::where([
+                        ['journal_type','=','Journal Voucher']
+                    ])->groupBy('je_no')->get())+1;
+                    $current_year=date('y');
+                
+                    $journalvoucher_no_series="";
+                    if($JournalVoucherCount<10){
+                        $journalvoucher_no_series="000".$JournalVoucherCount;
+                    }
+                    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                        $journalvoucher_no_series="00".$JournalVoucherCount;
+                    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                        $journalvoucher_no_series="0".$JournalVoucherCount;
+                    }
+                    
+                    $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                    $journal_series_no="";
+                    
+                    $journal_series_no=$journalvoucher_no;
+
+                    $JDate=$request->sc_date;
+                    $JNo=$request->suppliers_credit_no;
+                    $JMemo=$request->sc_memo;
+                    $account=$request->supplier_credit_account_debit_account;
+                    $debit= -$request->input('select_sc_amount'.$x);
+                    $credit= "";
+                    $description=$request->input('select_description_sc'.$x);
+                    $name="";
+
+
+
+                    $journal_entries = new  JournalEntry;
+                    $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+                    $journal_entries->je_id = "1";
+
+                    $journal_entries->je_no=$journal_entries_count;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    if($request->input('select_costcenter_sc'.$x)!=""){
+                        $wwe=explode(" - ",$request->input('select_costcenter_sc'.$x));
+                    }else{
+                        $wwe=explode(" - ",$request->CostCenterSupplierCredit);
+                        
+                    }
+                    $journal_entries->je_cost_center=$wwe[0];
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
+                    $journal_entries->save();
+
+                    $JDate=$request->sc_date;
+                    $JNo=$request->suppliers_credit_no;
+                    $JMemo=$request->sc_memo;
+                    $account=$request->input('select_account_sc'.$x);
+                    $debit= "";
+                    $credit=-$request->input('select_sc_amount'.$x);
+                    $description=$request->input('select_description_sc'.$x);
+                    $name="";
+                        
+
+                    $journal_entries = new  JournalEntry;
+
+                    $journal_entries->je_id = "2";
+                    $journal_entries->je_no=$journal_entries_count;
+                    $journal_entries->other_no=$JNo;
+                    $journal_entries->je_account=$account;
+                    $journal_entries->je_debit=$debit;
+                    $journal_entries->je_credit=$credit;
+                    $journal_entries->je_desc=$description;
+                    $journal_entries->je_name=$name;
+                    $journal_entries->je_memo=$JMemo;
+                    $journal_entries->created_at=$JDate;
+                    $journal_entries->je_attachment=$JDate;
+                    $journal_entries->je_transaction_type="Supplier Credit";
+                    if($request->input('select_costcenter_sc'.$x)!=""){
+                        $wwe=explode(" - ",$request->input('select_costcenter_sc'.$x));
+                    }else{
+                        $wwe=explode(" - ",$request->CostCenterSupplierCredit);
+                        
+                    }
+                    $journal_entries->je_cost_center=$wwe[0];
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
+                    $journal_entries->save();
+                    // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
+                    // $customer->save();
+                }
+            }
+            
+        }
+        // $customer = Customers::find($sss[0]);
+        // $AuditLog= new AuditLog;
+        // $AuditLogcount=AuditLog::count()+1;
+        // $userid = Auth::user()->id;
+        // $username = Auth::user()->name;
+        // $eventlog="Added Supplier Credit No. ".$request->suppliers_credit_no;
+        // $AuditLog->log_id=$AuditLogcount;
+        // $AuditLog->log_user_id=$username;
+        // $AuditLog->log_event=$eventlog;
+        // $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
+        // $AuditLog->log_transaction_date=$request->sc_date;
+        // $AuditLog->log_amount=$totalamount;
+        // $AuditLog->save();
+    }
+    public function get_bill_info_for_supplier_credit(Request $request){
+        $supplier_credit_bill_no=$request->supplier_credit_bill_no;
+        $bill_info=ExpenseTransaction::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$supplier_credit_bill_no]
+        ])->first();
+        $JournalEntry=DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE other_no='$supplier_credit_bill_no' AND je_transaction_type='Bill'");
+        $data = array(
+            'JournalEntry' => $JournalEntry,
+            'bill_info' => $bill_info,
+            
+        );
+        return response($data, 200);
+    }
+    public function get_bill_account_detail(Request $request){
+        $supplier_credit_bill_no=$request->supplier_credit_bill_no;
+        $bill_info=EtAccountDetail::where([
+            ['et_ad_no','=',$supplier_credit_bill_no]
+        ])->get();
+
+        return $bill_info;
+    }
+    public function add_pay_bill(Request $request){
+        
+        $paybill_group=PayBill::count()+1;
+        $count=0;
+        foreach($request->checked as $items){
+            $PayBill = New PayBill;
+            $pay_bill_count=PayBill::count()+1;
+            $PayBill->pay_bill_no=$pay_bill_count;
+            $PayBill->payment_account=$request->paybill_paymentaccount;
+            $PayBill->payment_date=$request->paybill_paymentdate[$count];
+            $PayBill->payment_bank_account=$request->paybill_bank_account[$count];
+            $PayBill->pay_bill_group_no=$paybill_group;
+            $PayBill->bill_no=$items;
+            $PayBill->bill_payment_amount=$request->paymentamount[$count];
+            $PayBill->save();
+            $totalbalanceafter=$request->paybilltotalbalance[$count]-$request->paymentamount[$count];
+            if($totalbalanceafter<1){
+                $stew = ExpenseTransaction::find($items);
+                $stew->et_bil_status="Paid";
+                $stew->save();
+            }else{
+                $stew = ExpenseTransaction::find($items);
+                $stew->bill_balance=$totalbalanceafter;
+                $stew->save();
+            }
+            //$stew = ExpenseTransaction::find($items);
+            $stew= JournalEntry::where([
+                ['other_no','=',$items],
+                ['je_transaction_type', '=', 'Bill'],
+                ['je_credit', '!=', '']
+            ])->first();
+            $JournalVoucherCount=count(JournalEntry::where([
+                ['journal_type','=','Journal Voucher']
+            ])->groupBy('je_no')->get())+1;
+            $current_year=date('y');
+        
+            $journalvoucher_no_series="";
+            if($JournalVoucherCount<10){
+                $journalvoucher_no_series="000".$JournalVoucherCount;
+            }
+            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                $journalvoucher_no_series="00".$JournalVoucherCount;
+            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                $journalvoucher_no_series="0".$JournalVoucherCount;
+            }
+            
+            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+            $journal_series_no="";
+            
+            $journal_series_no=$journalvoucher_no;
+            $JDate=$request->paybill_paymentdate[$count];
+            $JNo=$pay_bill_count;
+            $JMemo="";
+            $account=$stew->je_account;
+            $debit= $request->paymentamount[$count];
+            $credit= "";
+            $description="";    
+            $name="";
+
+            $journal_entries = new  JournalEntry;
+            $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
+            $journal_entries->je_id = "1";
+            
+            $journal_entries->je_no=$journal_entries_count;
+            $journal_entries->other_no=$JNo;
+            $journal_entries->je_account=$account;
+            $journal_entries->je_debit=$debit;
+            $journal_entries->je_credit=$credit;
+            $journal_entries->je_desc=$description;
+            $journal_entries->je_name=$name;
+            $journal_entries->je_memo=$JMemo;
+            $journal_entries->created_at=$JDate;
+            $journal_entries->je_attachment=$JDate;
+            $journal_entries->je_transaction_type="Bill Payment";
+            
+            $journal_entries->je_cost_center=$stew->je_cost_center;
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
+            $journal_entries->save();
+
+            $JDate=$request->paybill_paymentdate[$count];
+            $JNo=$pay_bill_count;
+            $JMemo="";
+            $account=$request->paybill_paymentaccount;
+            $debit= "";
+            $credit=$request->paymentamount[$count];
+            $description="";
+            $name="";
+                
+
+            $journal_entries = new  JournalEntry;
+            
+            $journal_entries->je_id = "2";
+            $journal_entries->je_no=$journal_entries_count;
+            $journal_entries->other_no=$JNo;
+            $journal_entries->je_account=$account;
+            $journal_entries->je_debit=$debit;
+            $journal_entries->je_credit=$credit;
+            $journal_entries->je_desc=$description;
+            $journal_entries->je_name=$name;
+            $journal_entries->je_memo=$JMemo;
+            $journal_entries->created_at=$JDate;
+            $journal_entries->je_attachment=$JDate;
+            $journal_entries->je_transaction_type="Bill Payment";
+            $journal_entries->je_cost_center=$stew->je_cost_center;
+            $journal_entries->journal_type="Journal Voucher";
+		    $journal_entries->je_series_no=$journal_series_no;
+            $journal_entries->save();
+            
+
+
+            $expense_transactions = DB::table('expense_transactions')->where([
+                ['et_type', '=', 'Bill'],
+                ['et_no', '=', $items],
+            ])->get();
+            $et_acc = DB::table('et_account_details')->where([
+                ['et_ad_type', '=', 'Bill'],
+                ['et_ad_no', '=', $items],
+            ])->get();
+            $cusset="";
+            foreach($expense_transactions as $etx){
+                $cusset=$etx->et_customer; 
+            }
+            if($request->usevoucher_question[$count]!=""){
+                $VoucherCount=Voucher::count() + 1;
+                $VoucherID=$VoucherCount;
+                if($VoucherCount<10){
+                    $VoucherCount="000".$VoucherCount;
+                }
+                else if($VoucherCount<100 && $VoucherCount>9 ){
+                    $VoucherCount="00".$VoucherCount;
+                }
+                else if($VoucherCount<1000 && $VoucherCount>99 ){
+                    $VoucherCount="0".$VoucherCount;
+                }
+                $VoucherCount2=1;
+                
+                $Voucher = new  Voucher;
+                $Voucher->voucher_id=$VoucherID;
+                if($request->usevoucher_question[$count]=="Cash"){
+                    $Voucher->voucher_type="Cash Voucher";
+                    $VoucherCount=Voucher::all();
+                    foreach($VoucherCount as $vc){
+                        if("Cash Voucher"==$vc->voucher_type){
+                            $VoucherCount2++;
+                        }
+                    }
+                }
+                if($request->usevoucher_question[$count]=="Cheque"){
+                    $Voucher->voucher_type="Cheque Voucher";
+                    $VoucherCount=Voucher::all();
+                    foreach($VoucherCount as $vc){
+                        if("Cheque Voucher"==$vc->voucher_type){
+                            $VoucherCount2++;
+                        }
+                    }
+                }
+                
+                $Voucher->pay_to_order_of=$cusset;
+                $Voucher->voucher_no=$VoucherCount2;
+                $Voucher->voucher_date=$request->paybill_paymentdate[$count];
+                $Voucher->received_from=$cusset;
+                $Voucher->received_from_bank="";
+                $Voucher->the_amount_of=$request->paymentamount[$count];
+                $Voucher->bank="";
+                $Voucher->check_no="";
+                $Voucher->received_payment_by="";
+                $Voucher->prepared_by=$request->prepared_by;
+                $Voucher->certified_correct_by="";
+                $Voucher->approved_by="";
+                $Voucher->previous_voucher="";
+                $Voucher->voucher_link_id=$pay_bill_count;
+                if($Voucher->save()){
+                    //journal entry
+                    
+                        $VoucherJournalEntryCount=VoucherJournalEntry::count() + 1;
+                        $VoucherJournalEntry = new  VoucherJournalEntry;        
+                        $VoucherJournalEntry->journal_no = $VoucherJournalEntryCount;        
+                        $VoucherJournalEntry->voucher_ref_no = $VoucherCount2;        
+                        $VoucherJournalEntry->account_title =$request->paybill_paymentaccount;        
+                        $VoucherJournalEntry->debit = $request->paymentamount[$count];        
+                        $VoucherJournalEntry->credit = "";        
+                        $VoucherJournalEntry->save();
+                        
+                        $VoucherJournalEntryCount=VoucherJournalEntry::count() + 1;
+                        $VoucherJournalEntry = new  VoucherJournalEntry;        
+                        $VoucherJournalEntry->journal_no = $VoucherJournalEntryCount;        
+                        $VoucherJournalEntry->voucher_ref_no = $VoucherCount2;        
+                        $VoucherJournalEntry->account_title =$stew->je_account;        
+                        $VoucherJournalEntry->debit = "";        
+                        $VoucherJournalEntry->credit = $request->paymentamount[$count];        
+                        $VoucherJournalEntry->save();
+                    
+                    //transactions
+                    
+                        $VoucherTransactionCount=VoucherTransaction::count() + 1;
+                        $VoucherTransaction = new  VoucherTransaction;  
+                        $VoucherTransaction->tran_no =$VoucherTransactionCount;
+                        $VoucherTransaction->voucher_ref_no = $VoucherCount2;
+                        $VoucherTransaction->tran_qty ="1";
+                        $VoucherTransaction->tran_unit =$request->paymentamount[$count];
+                        $VoucherTransaction->tran_explanation ="";
+                        $VoucherTransaction->tran_amount =$request->paymentamount[$count];
+                        $VoucherTransaction->save();
+                    
+                   
+                }
+            }
+            
+        }
+        
+    }
+    public function report_sample(Request $request){
+        $sortsetting="";
+        $FROM=$request->FROM;
+        $TO=$request->TO;
+        $filtertemplate=$request->filtertemplate;
+        $CostCenterFilter=$request->CostCenterFilter;
+        $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+        $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+        if($filtertemplate=="All"){
+            $sortsetting="";
+            $sortsettingjournal="";
+        }
+        if($sortsettingjournal==""){
+            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+        }else{
+            $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+        }
+        
+        if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+            $sortjournal="";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+        }
+        
+        $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+        $STCustomer= DB::table('sales_transaction')
+                        ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                        ->select('st_customer_id')
+                        ->groupBy('st_customer_id')
+                        ->get();
+        
+        $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+        $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+        $customers = Customers::orderBy('display_name', 'ASC')->get();
+        $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                            ".$sortsettingjournal.$sortjournal." 
+                            ORDER BY created_at ASC");
+        $jounal = DB::table('journal_entries')
+                ->select('je_no')
+                ->groupBy('je_no')
+                ->get();
+        $jounalcount=count($jounal)+1;
+        $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+                $COA= DB::connection('mysql')->select("SELECT * FROM chart_of_accounts WHERE coa_active='1' ORDER BY coa_code+0 ASC");
+        $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+        date_default_timezone_set('Asia/Manila');
+        $date = date('l, d F Y h:i a \G\T\MO');
+        $Report = Report::all();
+        $expense_transactions= DB::table('expense_transactions')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+        if($filtertemplate=="All"){
+            
+            $expense_transactions= DB::table('expense_transactions')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->get();
+        }        
+        $et_account_details= DB::table('et_account_details')->get();
+
+        $tablecontent="";
+
+
+        if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+            if($CostCenterFilter=="All"){
+                
+                $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Income</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                $GrossProfit=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type==$coa->coa_account_type){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                            
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                            
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Revenue</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Cost of Sales</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Cost of Sales"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr  style='background-color: #eaf0f7;border-top:2px solid #ccc'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Gross Profit</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        //expense
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                        $tablecontent.="</tr>";
+                        
+                        $TotalOperatingExpense=0;
+                        foreach ($coa_account_type as $coa){
+                            $IncomeTotal=0;
+                            if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                                $tablecontent.="</tr>"; 
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        $tablecontent.="<tr>";
+                                        $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                        $coa_name_total=0;
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_name_total-=$JE->je_credit;
+                                                }else{
+                                                    $coa_name_total+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        $IncomeTotal+=$coa_name_total;
+                                        $tablecontent.=number_format($coa_name_total,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.="</tr>"; 
+                                    }
+                                }
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total '.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+                            $TotalOperatingExpense+=$IncomeTotal;
+                        }
+                        
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        
+
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Total Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>"; 
+                        $tablecontent.="<tr style='display:none;'>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr style='background-color: #eaf0f7;border-top:2px solid #ccc;border-bottom:2px solid #ccc;'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Net Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit-$TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>"; 
+
+            }
+            else if($CostCenterFilter=="By Cost Center"){
+                foreach($all_cost_center_list as $ccl){
+                    //profitand loss
+                    $sortjournal=" je_cost_center='".$ccl->cc_no."'";
+                            if($sortsettingjournal==""){
+                                $sortjournal="WHERE je_cost_center='".$ccl->cc_no."'";
+                            }else{
+                                $sortjournal=" AND je_cost_center='".$ccl->cc_no."'";
+                            }
+                            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                            ".$sortsettingjournal.$sortjournal." 
+                            ");
+
+                    $tablecontent.="<tr>";
+                    $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                    $tablecontent.="</tr>";
+                    $tablecontent.="<tr>";
+                    $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
+                   
+                            $tablecontent.=$ccl->cc_name;
+                    
+                    $tablecontent.='</td>';
+                    $tablecontent.="</tr>";
+                    $tablecontent.="<tr>";
+                    $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                    $tablecontent.="</tr>";
+                    $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Income</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                $GrossProfit=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type==$coa->coa_account_type){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                            
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                            
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Revenue</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Cost of Sales</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Cost of Sales"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr  style='background-color: #eaf0f7;border-top:2px solid #ccc'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Gross Profit</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        //expense
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                        $tablecontent.="</tr>";
+                        
+                        $TotalOperatingExpense=0;
+                        foreach ($coa_account_type as $coa){
+                            $IncomeTotal=0;
+                            if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                                $tablecontent.="</tr>"; 
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        $tablecontent.="<tr>";
+                                        $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                        $coa_name_total=0;
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_name_total-=$JE->je_credit;
+                                                }else{
+                                                    $coa_name_total+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        $IncomeTotal+=$coa_name_total;
+                                        $tablecontent.=number_format($coa_name_total,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.="</tr>"; 
+                                    }
+                                }
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total '.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+                            $TotalOperatingExpense+=$IncomeTotal;
+                        }
+                        
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        
+
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Total Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>"; 
+                        $tablecontent.="<tr style='display:none;'>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr style='background-color: #eaf0f7;border-top:2px solid #ccc;border-bottom:2px solid #ccc;'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Net Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit-$TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>";
+                    
+
+                    }
+
+                
+            }
+
+        }
+        else{
+            $tablecontent.="<tr>";
+            $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+            $tablecontent.="</tr>";
+            $tablecontent.="<tr>";
+            $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
+            foreach($all_cost_center_list as $ccl){
+                if($ccl->cc_no==$CostCenterFilter){
+                    $tablecontent.=$ccl->cc_name;
+                }
+            }
+            $tablecontent.='</td>';
+            $tablecontent.="</tr>";
+            $tablecontent.="<tr>";
+            $tablecontent.='<td colspan="2" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+            $tablecontent.="</tr>";
+            //start profit and loss
+            $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Income</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                $GrossProfit=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Revenues" | $coa->coa_account_type=="Revenue"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type==$coa->coa_account_type){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                            
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                            
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Revenue</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                $tablecontent.="<tr>";
+                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Cost of Sales</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                $tablecontent.="</tr>";
+                $IncomeTotal=0;
+                foreach ($coa_account_type as $coa){
+                    if ($coa->coa_account_type=="Cost of Sales"){
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';
+                        $tablecontent.="</tr>";
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                $coa_name_total=0;
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
+                                        if ($JE->je_credit!=""){
+                                            $coa_name_total+=$JE->je_credit;
+                                        }else{
+                                            $coa_name_total-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                $IncomeTotal+=$coa_name_total;
+                                $tablecontent.=number_format($coa_name_total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+        
+                        }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        
+                    }
+                }
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;">Total Cost of Sales</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $GrossProfit+=$IncomeTotal;
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr  style='background-color: #eaf0f7;border-top:2px solid #ccc'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Gross Profit</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit,2).'</td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        //expense
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Less Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                        $tablecontent.="</tr>";
+                        
+                        $TotalOperatingExpense=0;
+                        foreach ($coa_account_type as $coa){
+                            $IncomeTotal=0;
+                            if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;padding-left:20px;">'.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold"></td>';
+                                $tablecontent.="</tr>"; 
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        $tablecontent.="<tr>";
+                                        $tablecontent.='<td style="vertical-align:middle;font-size:11px;padding-left:30px;">'.$Coa->coa_name.'</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
+                                        $coa_name_total=0;
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_name_total-=$JE->je_credit;
+                                                }else{
+                                                    $coa_name_total+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        $IncomeTotal+=$coa_name_total;
+                                        $tablecontent.=number_format($coa_name_total,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.="</tr>"; 
+                                    }
+                                }
+                                $tablecontent.="<tr>";
+                                $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:11px;padding-left:20px;">Total '.$coa->coa_account_type.'</td>';
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($IncomeTotal,2).'</td>';
+                                $tablecontent.="</tr>"; 
+                            }
+                            $TotalOperatingExpense+=$IncomeTotal;
+                        }
+                        
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:1px dotted #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        
+
+                        $tablecontent.="<tr>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Total Operating Expenses</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>"; 
+                        $tablecontent.="<tr style='display:none;'>";
+                        $tablecontent.='<td colspan="2" style="vertical-align:middle;text-align:right;border-top:2px solid #ccc"></td>';
+                        $tablecontent.="</tr>";
+                        $tablecontent.="<tr style='background-color: #eaf0f7;border-top:2px solid #ccc;border-bottom:2px solid #ccc;'>";
+                        $tablecontent.='<td style="vertical-align:middle;font-weight:bold;font-size:14px;">Net Income</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold">'.number_format($GrossProfit-$TotalOperatingExpense,2).'</td>';
+                        $tablecontent.="</tr>";
+            //end profit and loss
+            
+            
+        }
+
+        
+
+        $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
+                .'<thead><tr>'
+                .'<th width="60%"></th><th style="text-align:right;">Total</th>'
+                .'</tr></thead>'
+                .'<tbody>'.
+                $tablecontent
+                .'</tbody>'
+                .'</table>';
+        return $table;
+    }
+    public function UploadMassBill(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        })->get();
+
+        $JournalGroup = array();
+        foreach($data as $row){
+            array_push($JournalGroup, $row->bill_group_no); 
+        }
+        $GRROUP=array_unique($JournalGroup);
+        
+        foreach($GRROUP as $unique){
+        
+            $credit=0;
+            $countloop=0;
+            $debit=0;
+            $rowcount=1;
+            $valid=0;
+            $individualcount=0;
+            foreach($data as $row){
+                $rowcount++;
+                $countloop++;
+                $extra.=$row;
+                if($row->bill_group_no==$unique){
+                    $extra.=$unique." , ";
+                    $individualcount++;
+                    if($row->bill_group_no!=""){
+                        if($row->bill_date!=""){
+                            if($row->due_date!=""){
+                                if($row->cost_center!=""){
+                                    if($row->client!=""){
+                                        if($row->rf!=""){
+                                            if($row->po!=""){
+                                                if($row->ci!=""){
+                                                    if($row->item_account!=""){
+                                                        if($row->credit_account!=""){
+                                                            $sss=explode(" -- ",$row->client);
+                                                            //check if bill no is unique
+                                                            $invoice_no_field=$unique;
+                                                            $invoice_count=ExpenseTransaction::where([
+                                                                ['et_type','=','Bill'],
+                                                                ['et_no','=',$invoice_no_field]
+                                                            ])->count();
+                                                            $invoice_count_new=ExpenseTransactionNew::where([
+                                                                ['et_type','=','Bill'],
+                                                                ['et_no','=',$invoice_no_field]
+                                                            ])->count();
+                                                            $bill_no_count=$invoice_count+$invoice_count_new;
+                                                            if($bill_no_count<1){
+                                                                $valid_coa=0;
+                                                                $valid_coa_C=0;
+                                                                $valid_cc=0;
+                                                                foreach($data as $row){
+                                                                    if($unique==$row->bill_group_no){
+                                                                        $account=$row->item_account;
+                                                                        $account2=$row->credit_account;
+                                                                        $COA= ChartofAccount::where('coa_code',$account)->first();
+                                                                        if(empty($COA)){
+                                                                            
+                                                                            $valid_coa=0;
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_coa=1;
+                                                                        }
+                                                                        $COA= ChartofAccount::where('coa_code',$account2)->first();
+                                                                        if(empty($COA)){
+                                                                            
+                                                                            $valid_coa_C=0;
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_coa_C=1;
+                                                                        }
+                                                                        $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                                                        if(empty($COA)){
+                                                                            $valid_cc=0; 
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_cc=1;     
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if($valid_cc==1 && $valid_coa==1 && $valid_coa_C==1){
+                                                                    $extra.=$row->bill_group_no;
+                                                                    $expense_transaction = new ExpenseTransactionNew;
+                                                                    $expense_transaction->et_no = $row->bill_group_no;
+                                                                    $expense_transaction->et_customer = $sss[0];
+                                                                    $expense_transaction->et_bill_no =$row->bill_group_no;
+                                                                    $expense_transaction->et_date = $row->bill_date;
+                                                                    $expense_transaction->et_due_date = $row->due_date;
+                                                                    $expense_transaction->et_shipping_address = $row->rf;
+                                                                    $expense_transaction->et_shipping_to = $row->po;
+                                                                    $expense_transaction->et_shipping_via = $row->ci;
+
+                                                                    $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                                                    $expense_transaction->et_debit_account=!empty($COA)? $COA->cc_no : '';
+                                                                    $COA= ChartofAccount::where('coa_code',$row->credit_account)->first();
+                                                                    $expense_transaction->et_credit_account=!empty($COA)? $COA->id : '';
+                                                                    $expense_transaction->et_type = 'Bill';
+                                                                    $expense_transaction->save();
+
+                                                                    $customer = new Customers;
+                                                                    $customer = Customers::find($sss[0]);
+                                                                    $totalamount=0;
+                                                                    foreach($data as $row2){
+                                                                        if($row2->bill_group_no==$unique){
+                                                                            if($row2->bill_group_no!=""){
+                                                                                if($row2->total_amount!=""){
+                                                                                    $et_account = new EtAccountDetailNew;
+                                                                                    $et_account->et_ad_no = $row->bill_group_no;
+                                                                                    $et_account->et_ad_product = $row->item_account;
+                                                                                    $et_account->et_ad_desc = $row->item_description;
+                                                                                    $et_account->et_ad_total = $row->total_amount;
+                                                                                    $et_account->et_ad_rate = 1;
+                                                                                    $et_account->et_ad_qty = $row->bill_group_no;
+                                                                                    $et_account->et_ad_type = "Bill";
+                                                                                    $totalamount+=$row->total_amount;
+                                                                                    $et_account->save();
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    $expense_transaction =ExpenseTransactionNew::find($row->bill_group_no);
+                                                                    $expense_transaction->bill_balance=$totalamount;
+                                                                    $expense_transaction->save();
+                                                                    $saved_count++;
+                                                                }else{
+                                                                    if($valid_cc==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Cost Center on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                    if($valid_coa==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Item Account on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                    if($valid_coa_C==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Credit Account on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                }
+                                                            }else{
+                                                                $valid=1; 
+                                                                //empty first name
+                                                                $error_count++;
+                                                                $Log.="Duplicate Bill No. on row ".$rowcount." from file.\n";  
+                                                            }
+                                                        }else{
+                                                            $valid=1; 
+                                                            //empty first name
+                                                            $error_count++;
+                                                            $Log.="Empty Credit Account on row ".$rowcount." from file.\n";  
+                                                        }
+                                                    }else{
+                                                        $valid=1; 
+                                                        //empty first name
+                                                        $error_count++;
+                                                        $Log.="Empty Item Account on row ".$rowcount." from file.\n";  
+                                                    }
+                                                }else{
+                                                    $valid=1; 
+                                                    //empty first name
+                                                    $error_count++;
+                                                    $Log.="Empty CI on row ".$rowcount." from file.\n";  
+                                                }
+                                            }else{
+                                                $valid=1; 
+                                                //empty first name
+                                                $error_count++;
+                                                $Log.="Empty PO on row ".$rowcount." from file.\n";  
+                                            }
+                                        }else{
+                                            $valid=1; 
+                                            //empty first name
+                                            $error_count++;
+                                            $Log.="Empty RF on row ".$rowcount." from file.\n";  
+                                        }
+                                    }else{
+                                        $valid=1; 
+                                        //empty first name
+                                        $error_count++;
+                                        $Log.="Empty Client on row ".$rowcount." from file.\n";  
+                                    }
+                                }else{
+                                    $valid=1; 
+                                    //empty first name
+                                    $error_count++;
+                                    $Log.="Empty Cost Center on row ".$rowcount." from file.\n";  
+                                }
+                            }else{
+                                $valid=1; 
+                                //empty first name
+                                $error_count++;
+                                $Log.="Empty Due Date on row ".$rowcount." from file.\n";  
+                            }
+                        }else{
+                            $valid=1; 
+                            //empty first name
+                            $error_count++;
+                            $Log.="Empty Bill Date on row ".$rowcount." from file.\n";  
+                        }
+                    }else{
+                        $valid=1; 
+                        //empty first name
+                        $error_count++;
+                        $Log.="Empty Bill Group No on row ".$rowcount." from file.\n";  
+                    }
+                break;
+                }
+            }
+        }
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+    }
+    public function GetInvoiceExcelTemplateBill(Request $request){
+        Excel::load('extra/edit_excel/bill.xlsx', function($doc) {
+            $customers = Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $sheet2 = $doc->setActiveSheetIndex(1);
+            $sheet3 = $doc->setActiveSheetIndex(2);
+            $sheet4 = $doc->setActiveSheetIndex(3);
+            $sheet = $doc->setActiveSheetIndex(0);
+            $sheet->getStyle("B")
+                    ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+            $sheet->getStyle("C")
+                    ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);        
+            $cuss=0;
+            $cccc=0;
+            $oro=0;
+            foreach($customers as $cus){
+                $cuss++;
+                $sheet2->setCellValue('A'.$cuss, $cus->customer_id." -- ".($cus->display_name==""? $cus->f_name." ".$cus->l_name : $cus->display_name));
+                
+                
+            }
+            foreach($COA as $coa){
+                $oro++;
+                $sheet4->setCellValue('A'.$oro, $coa->coa_code);
+                // $sheet4->setCellValue('B'.$oro, $coa->coa_name);
+                
+            }
+            foreach($cost_center_list as $ccl){
+                $cccc++;
+                $sheet3->setCellValue('A'.$cccc, $ccl->cc_name_code);
+                //$sheet3->setCellValue('B'.$cccc, $ccl->cc_name);
+            }
+            for($c=1;$c<=$cccc+$cuss+$oro;$c++){
+                // $sheet->$doc->addNamedRange(
+                //     new \PHPExcel_NamedRange(
+                //     'Accounts', $sheet, 'L1:L'.$oro
+                //     )
+                // );
+                $cplus=$c+1;
+                $objValidation = $sheet->getCell('D'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('CostCenter!$A:$A');
+    
+                $objValidation = $sheet->getCell('E'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('Clients!$A:$A');
+    
+                $objValidation = $sheet->getCell('I'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$A:$A');
+                $objValidation = $sheet->getCell('L'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$A:$A');
+    
+                
+                
+                //$objValidation->setFormula1('Accounts'); //note this!
+            }
+            })->setFilename('Import Template for Bill '.date('m-d-Y'))->download('xlsx');
     }
     public function add_sales_receipt(Request $request)
     {
@@ -291,8 +1767,8 @@ class ApiController extends Controller
                 $data->je_transaction_type="Sales Receipt";
                 $data->je_cost_center=$request->CostCenterSalesReceipt;
                 $data->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
-                $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
+                $data->journal_type="Journal Voucher";
+		        $data->je_series_no=$journal_series_no;
                 $data->save();
             }
             
@@ -742,8 +2218,29 @@ class ApiController extends Controller
 
         return $invoice_count;
     }
+    public function check_supplier_credit_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=ExpenseTransaction::where([
+            ['et_type','=','Supplier credit'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        return $invoice_count;
+    }
+    public function check_bill_no(Request $request){
+        $invoice_no_field=$request->invoice_no_field;
+        $invoice_count=ExpenseTransaction::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        $invoice_count_new=ExpenseTransactionNew::where([
+            ['et_type','=','Bill'],
+            ['et_no','=',$invoice_no_field]
+        ])->count();
+        return $invoice_count+$invoice_count_new;
+    }
     public function getInvoiceModalInfo(Request $request){
         $numbering = Numbering::first();
+        $expense_setting=Expenses::first();
         $branch_Sales_invoice_count=SalesTransaction::where([
             ['st_type','=','Invoice'],
             ['st_location', '=', 'Branch'],
@@ -773,6 +2270,11 @@ class ApiController extends Controller
         $estimate_count=SalesTransaction::where('st_type','Estimate')->count();
         $credit_note_count=SalesTransaction::where('st_type','Credit Note')->count();
         $sales_receipt_count=SalesTransaction::where('st_type','Sales Receipt')->count();
+        $bill_transaction_count=ExpenseTransaction::where('et_type','Bill')->count();
+        $bill_transaction_count_new=ExpenseTransactionNew::where('et_type','Bill')->count();
+        $ETran =DB::connection('mysql')->select("SELECT * FROM expense_transactions 
+        LEFT JOIN customers ON customers.customer_id=expense_transactions.et_customer 
+        WHERE et_type='Bill' AND (remark!='Cancelled' OR remark IS NULL) AND (et_bil_status!='Paid' OR et_bil_status IS NULL)");
         $data = array(
             'branch_Sales_invoice_count' => $branch_Sales_invoice_count,
             'branch_Bill_invoice_count' => $branch_Bill_invoice_count,
@@ -786,6 +2288,10 @@ class ApiController extends Controller
             'estimate_count' =>$estimate_count,
             'credit_note_count' =>$credit_note_count,
             'sales_receipt_count' => $sales_receipt_count,
+            'ETran' => $ETran,
+            'expense_setting' => $expense_setting,
+            'bill_transaction_count_new' => $bill_transaction_count_new,
+            'bill_transaction_count' => $bill_transaction_count,
         );
         return response($data, 200);
     }
@@ -1109,7 +2615,9 @@ class ApiController extends Controller
     }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {
-        $customers = Customers::all();
+        $customers = Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $cost_center_list= CostCenter::where('cc_status','1')->get();
         $COA= ChartofAccount::where('coa_active','1')->get();
         $sheet2 = $doc->setActiveSheetIndex(1);
@@ -1321,15 +2829,65 @@ class ApiController extends Controller
         })->setFilename('Import Template for Supplier '.date('m-d-Y'))->download('xlsx');
     }
     public function getExpenseTransactionPage(Request $request){
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
+        $expense_transactions =  DB::connection('mysql')->select("SELECT * FROM expense_transactions 
+        LEFT JOIN customers ON customers.customer_id=expense_transactions.et_customer 
+        JOIN et_account_details ON expense_transactions.et_no=et_account_details.et_ad_no
+        LEFT JOIN chart_of_accounts ON chart_of_accounts.id=et_account_details.et_ad_product
+        WHERE et_date BETWEEN '$year_beg' AND '$year_end' ");
+        //return $expense_transactions;
+            $et_acc = DB::table('et_account_details')->get();
+            $et_it = DB::table('et_item_details')->get();
+            $et_new=DB::connection('mysql')->select("SELECT * FROM expense_transactions_new LEFT JOIN customers ON customers.customer_id=expense_transactions_new.et_customer  WHERE et_date BETWEEN '$year_beg' AND '$year_end' AND (et_status!='OK' OR et_status IS NULL )");
+            $ETANew=DB::connection('mysql')->select("SELECT * FROM et_account_details_new
+            LEFT JOIN chart_of_accounts ON chart_of_accounts.id=et_account_details_new.et_ad_product");
+            $ETANewTotal=DB::connection('mysql')->select("SELECT *,SUM(et_ad_total) as pending_total FROM et_account_details_new
+            GROUP BY et_ad_no");
+        $totalexp=0;
+        foreach($expense_transactions as $et){
+            if($et->remark=="" && $et->et_type==$et->et_ad_type){$totalexp=$totalexp+$et->et_ad_total;}
+        }
         $supplierss = Customers::where([
             ['account_type','=','Supplier'],
             ['supplier_active','=','1']
         ])->get();
+        $PayBill=DB::connection('mysql')->select("SELECT * FROM pay_bill
+        LEFT JOIN voucher ON voucher.voucher_link_id=pay_bill.pay_bill_no
+        JOIN expense_transactions ON expense_transactions.et_no=pay_bill.bill_no 
+        WHERE expense_transactions.et_type='Bill'");
+        
         $data = array(
             'supplierss' => $supplierss,
-            
+            'year_beg' => $year_beg,
+            'year_end' => $year_end,
+            'yyyyy' => $yyyyy,
+            'expense_transactions' => $expense_transactions,
+            'et_new' => $et_new,
+            'totalexp' => $totalexp,
+            'et_acc' => $et_acc,
+            'ETANew' => $ETANew,
+            'ETANewTotal' => $ETANewTotal,
+            'PayBill' => $PayBill,
+
         );
         return response($data, 200);
+    }
+    public function update_pay_bill_note(Request $request){
+        $id=$request->id;
+        $note=$request->note;
+        $paybill_group=PayBill::find($id);
+        $paybill_group->payment_remark = $note;
+        if($paybill_group->save()){
+            return 1;
+        }else{
+            return 0;
+        }
     }
     public function add_customer(Request $request){
         $customer = new Customers;
@@ -1373,7 +2931,9 @@ class ApiController extends Controller
         $path = $file->getRealPath();
         $data = Excel::load($path, function($reader) {
         })->get();
-        $customers = Customers::all();
+        $customers = Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $rowcount=0;
         foreach($data as $row){
             $rowcount++;
@@ -1493,6 +3053,13 @@ class ApiController extends Controller
         $user->save();
     }
     public function getSalesTransactionPageInfo(Request $request){
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
         $customers = Customers::where([
             ['account_type','=','Customer'],
             ['supplier_active','=','1']
@@ -1505,8 +3072,10 @@ class ApiController extends Controller
         JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
         LEFT JOIN  (select *,sum(st_i_total) as total_invoice_amount,sum(st_p_amount) as total_invoice_p_amount from st_invoice group by st_i_no,st_p_location,st_p_invoice_type) st_invoice ON st_invoice.st_i_no=sales_transaction.st_no AND st_invoice.st_p_location=sales_transaction.st_location AND st_invoice.st_p_invoice_type=sales_transaction.st_invoice_type
         LEFT JOIN (select *,sum(st_cn_total) as total_credit_note_amount from st_credit_notes group by st_cn_no) st_credit_notes ON st_credit_notes.st_cn_no=sales_transaction.st_no
-        LEFT JOIN (select *, sum(st_e_total) as total_estimate_amount from st_estimates group by st_e_no) st_estimates ON st_estimates.st_e_no=sales_transaction.st_no
-        ORDER BY st_date DESC");
+        LEFT JOIN (select *, sum(st_e_total) as total_estimate_amount from st_estimates group by st_e_no) st_estimates ON st_estimates.st_e_no=sales_transaction.st_no WHERE st_date BETWEEN '$year_beg' AND '$year_end'
+        AND st_type!='Sales Receipt' ORDER BY st_date DESC");
+        $sales_receipt_list= DB::connection('mysql')->select("SELECT * FROM sales_transaction WHERE st_type='Sales Receipt'");
+        $st_invoice_data= DB::connection('mysql')->select("SELECT * FROM st_invoice JOIN cost_center ON cost_center.cc_no=st_invoice.st_p_cost_center");
         $total_invoice_count = 0;
         $total_invoice_data = 0;
         $total_estimate_count = 0;
@@ -1531,6 +3100,12 @@ class ApiController extends Controller
 
         $data = array(
             'customers' => $customers,
+            'year_beg' => $year_beg,
+            'st_invoice_data'=> $st_invoice_data,
+            'sales_receipt_list' => $sales_receipt_list,
+            'year_end' => $year_end,
+            'yyyyy' => $yyyyy,
+            'yyyyy' => $yyyyy,
             'products_and_services' => $products_and_services,
             'prod' => $prod,
             'prod2' => $prod2,
@@ -2452,101 +4027,132 @@ class ApiController extends Controller
         return response($data, 200);
     }
     public function cancel_entry(Request $request){
-        $updateDetails=array(
-            'remark' => 'Cancelled',
-            'cancellation_date' => date('Y-m-d'),
-            'cancellation_reason' => $request->Reason
-        );
-        if($request->type=="Journal Entry"){
-            
+        $entry=PendingCancelEntry::find($request->id);
+        if(empty($entry)){
+            $entry= new PendingCancelEntry;
         }
-        else if($request->type=="Voucher"){
-            DB::table('voucher')
-            ->where([
-                ['voucher_id', '=', $request->id]
+        $entry->type=$request->type;
+        $entry->entry_id=$request->id;
+        $entry->locationss=$request->locationss;
+        $entry->invoice_type=$request->invoice_type;
+        $entry->Reason=$request->Reason;
+        $entry->entry_status='1';
+        $entry->save();
+        return 'Successfully Requested Entry Cancel';
+        
+    }
+    public function update_entry(Request $request){
+        $entry=PendingCancelEntry::find($request->id);
+        if(!empty($entry)){
+            $updateDetails=array(
+                'remark' => 'Cancelled',
+                'cancellation_date' => date('Y-m-d'),
+                'cancellation_reason' => $entry->Reason
+            );
+            if($entry->type=="Journal Entry"){
                 
-            ])
-            ->update($updateDetails);
-        }
-        else if($request->type=="Invoice" || $request->type=="Sales Receipt" || $request->type=="Credit Note"){
-            DB::table('sales_transaction')
-            ->where([
-                ['st_no', '=', $request->id],
-                ['st_type', '=', $request->type],
-                ['st_location','=',$request->locationss],
-                ['st_invoice_type','=',$request->invoice_type]
-            ])
-            ->update($updateDetails);
-            if($request->type=="Sales Receipt"){
-                $data=DB::table('sales_transaction')
+            }
+            else if($entry->type=="Voucher"){
+                DB::table('voucher')
                 ->where([
-                    ['st_no', '=', $request->id],
-                    ['st_type', '=', $request->type],
-                    ['st_location','=',$request->locationss],
-                    ['st_invoice_type','=',$request->invoice_type]
-                ])->get();
-                foreach($data as $set){
+                    ['voucher_id', '=', $entry->entry_id]
                     
-                    $amount=$set->st_amount_paid;
-                    $invoice_sss=DB::table('sales_transaction')
-                    ->where([
-                        ['st_no', '=', $set->st_payment_for],
-                        ['st_type', '=', 'Invoice'],
-                        ['st_location','=',$request->locationss],
-                        ['st_invoice_type','=',$request->invoice_type]
-                    ])->first();
-                    if(!empty($invoice_sss)){
-                        $amount+=$invoice_sss->st_balance;
-                    }
-                   
-                    $sales_receipt_insert=array(
-                        'st_balance' => $amount,
-                        'st_status' => 'Open'
-                    );
+                ])
+                ->update($updateDetails);
+            }
+            else if($entry->type=="Invoice" || $entry->type=="Sales Receipt" || $entry->type=="Credit Note"){
+                DB::table('sales_transaction')
+                ->where([
+                    ['st_no', '=', $entry->entry_id],
+                    ['st_type', '=', $entry->type],
+                    ['st_location','=',$entry->locationss],
+                    ['st_invoice_type','=',$entry->invoice_type],
+                    ['cancellation_reason','=',NULL]
+                ])
+                ->update($updateDetails);
+                if($entry->type=="Sales Receipt"){
                     $data=DB::table('sales_transaction')
                     ->where([
-                        ['st_no', '=', $set->st_payment_for],
-                        ['st_type', '=', 'Invoice'],
-                        ['st_location','=',$request->locationss],
-                        ['st_invoice_type','=',$request->invoice_type]
-                    ])->update($sales_receipt_insert);
-                    $data=DB::table('st_invoice')
-                    ->where([
-                        ['st_i_no', '=', $set->st_payment_for],
-                        ['st_p_location','=',$request->locationss],
-                        ['st_p_invoice_type','=',$request->invoice_type],
-                        ['st_i_item_no','=',$set->st_email]
-                    ])->first();
-                    $balance_st=$data->st_p_amount-$amount;
-                    $st_invoice_data=array(
-                        'st_p_amount' => $balance_st
-                    );
-                    $data=DB::table('st_invoice')
-                    ->where([
-                        ['st_i_no', '=', $set->st_payment_for],
-                        ['st_p_location','=',$request->locationss],
-                        ['st_p_invoice_type','=',$request->invoice_type],
-                        ['st_i_item_no','=',$set->st_email]
-                    ])->update($st_invoice_data);
-
+                        ['st_no', '=', $entry->entry_id],
+                        ['st_type', '=', $entry->type],
+                        ['st_location','=',$entry->locationss],
+                        ['st_invoice_type','=',$entry->invoice_type],
+                        
+                    ])->get();
+                    foreach($data as $set){
+                        
+                        $amount=$set->st_amount_paid;
+                        $invoice_sss=DB::table('sales_transaction')
+                        ->where([
+                            ['st_no', '=', $set->st_payment_for],
+                            ['st_type', '=', 'Invoice'],
+                            ['st_location','=',$entry->locationss],
+                            ['st_invoice_type','=',$entry->invoice_type],
+                        ])->first();
+                        if(!empty($invoice_sss)){
+                            $amount+=$invoice_sss->st_balance;
+                        }
+                       
+                        $sales_receipt_insert=array(
+                            'st_balance' => $amount,
+                            'st_status' => 'Open'
+                        );
+                        $data=DB::table('sales_transaction')
+                        ->where([
+                            ['st_no', '=', $set->st_payment_for],
+                            ['st_type', '=', 'Invoice'],
+                            ['st_location','=',$entry->locationss],
+                            ['st_invoice_type','=',$entry->invoice_type],
+                        ])->update($sales_receipt_insert);
+                        $data=DB::table('st_invoice')
+                        ->where([
+                            ['st_i_no', '=', $set->st_payment_for],
+                            ['st_p_location','=',$entry->locationss],
+                            ['st_p_invoice_type','=',$entry->invoice_type],
+                            ['st_p_reference_no','=',$entry->st_i_attachment],
+                            ['st_i_item_no','=',$set->st_email]
+                        ])->first();
+                        $balance_st=$data->st_p_amount-$amount;
+                        $st_invoice_data=array(
+                            'st_p_amount' => $balance_st
+                        );
+                        $data=DB::table('st_invoice')
+                        ->where([
+                            ['st_i_no', '=', $set->st_payment_for],
+                            ['st_p_location','=',$entry->locationss],
+                            ['st_p_invoice_type','=',$entry->invoice_type],
+                            ['st_p_reference_no','=',$entry->st_i_attachment],
+                            ['st_i_item_no','=',$set->st_email]
+                        ])->update($st_invoice_data);
+    
+                    }
                 }
             }
+            else if($entry->type=="Bill" || $entry->type=="Expense" || $entry->type="Credit card credit" || $entry->type=="Supplier Credit" || $entry->type=="Cheque"){
+                DB::table('expense_transactions')
+                ->where([
+                    ['et_no', '=', $entry->entry_id],
+                    ['et_type', '=', $entry->type]
+                ])
+                ->update($updateDetails);
+            }
+            $trrs=DB::table('journal_entries')
+                ->where([
+                    ['other_no', '=', $entry->entry_id],
+                    ['je_transaction_type', '=', $entry->type],
+                    ['je_invoice_location_and_type', '=', $entry->locationss!=""?$entry->locationss." ".$entry->invoice_type : NULL]
+                ])
+                ->update($updateDetails);
+            $entry->entry_status="0";
+            $entry->save();
         }
-        else if($request->type=="Bill" || $request->type=="Expense" || $request->type="Credit card credit" || $request->type=="Supplier Credit" || $request->type=="Cheque"){
-            DB::table('expense_transactions')
-            ->where([
-                ['et_no', '=', $request->id],
-                ['et_type', '=', $request->type]
-            ])
-            ->update($updateDetails);
+    }
+    public function delete_entry_request(Request $request){
+        $entry=PendingCancelEntry::find($request->id);
+        if(!empty($entry)){
+            $entry->entry_status="0";
+            $entry->save();
         }
-        $trrs=DB::table('journal_entries')
-            ->where([
-                ['other_no', '=', $request->id],
-                ['je_transaction_type', '=', $request->type],
-                ['je_invoice_location_and_type', '=', $request->locationss!=""?$request->locationss." ".$request->invoice_type : NULL]
-            ])
-            ->update($updateDetails);
     }
     public function SaveJournalEntry(Request $request){
         
@@ -2595,7 +4201,7 @@ class ApiController extends Controller
             $journal_entries->je_account=$request->input('accjournbale'.$c);
             $journal_entries->je_debit=$request->input('journaldebit'.$c);
             $journal_entries->je_credit=$request->input('journalcredit'.$c);
-            $journal_entries->je_desc=$request->input('journaldescription'.$c);
+            $journal_entries->je_desc="";
             $journal_entries->je_name=$request->input('journalnamename'.$c);
             $journal_entries->je_cost_center=$request->input('journalcost_center_td_input'.$c);
             if($request->journal_entry_type=="ChequeVoucher"){
@@ -2668,13 +4274,17 @@ class ApiController extends Controller
                 ->groupBy('je_no')
                 ->get();
         $jounalcount=count($jounal)+1;
-        $customers = Customers::all();
+        $customers = Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
         $data = array(
             'current_date' => $current_date,
             'chequevoucher_no' =>$chequevoucher_no,
             'journalvoucher_no' =>$journalvoucher_no,
             'jounalcount' => $jounalcount,
             'customers' =>$customers,
+            'cost_center_list' => $cost_center_list,
             
         );
         return response($data, 200);
@@ -2695,13 +4305,13 @@ class ApiController extends Controller
         $journalDatepreview="";
         foreach($result as $data){
             if($data->je_debit!=""){
-                $totaldebitpreview=$data->je_debit;
+                $totaldebitpreview+=$data->je_debit;
             }
             if($data->je_credit!=""){
-                $totalcreditpreview=$data->je_credit;
+                $totalcreditpreview+=$data->je_credit;
             }
             $journal_entry_title_header_preview=$data->journal_type;
-            $JE_NO_Preview=$data->je_no;
+            $JE_NO_Preview=$data->je_series_no;
             $JournalMemopreview=$data->je_memo;
             $journalDatepreview=$data->je_attachment;
 
@@ -2737,6 +4347,13 @@ class ApiController extends Controller
         return response($data, 200);
     }
     public function getJournal_List(Request $request){
+        $year_beg=date('Y-01-01');
+        $year_end=date('Y-12-31');
+        $yyyyy=$request->year;
+        if($request->year){
+            $year_beg=$request->year.'-01-01';
+            $year_end=$request->year.'-12-31';
+        }
         $JournalNoSelected=0;
         $keyword="";
         if($request->no){
@@ -2746,37 +4363,20 @@ class ApiController extends Controller
         }
         if($request->keyword){
             $keyword=$request->keyword;
-        }else{
+        }else{  
             $keyword="";
         }
         
         if($keyword==""){
-            $JournalEntry = JournalEntry::join('chart_of_accounts', 'chart_of_accounts.id', '=', 'journal_entries.je_account')
-            ->where([['remark','!=','NULLED']])
-            ->orWhereNull('remark')
-            ->skip($JournalNoSelected)
-            ->take(20)
-            ->orderBy('je_no','DESC')
-            ->orderBy('je_debit', 'DESC')->get();
-        }else{
-            $JournalEntry = DB::table('journal_entries')->skip($JournalNoSelected)
-            ->join('chart_of_accounts', 'chart_of_accounts.id', '=', 'journal_entries.je_account')
+            $JournalEntry=  DB::connection('mysql')->select("SELECT * FROM journal_entries JOIN chart_of_accounts ON chart_of_accounts.id=journal_entries.je_account WHERE (remark!='NULLED' OR remark IS NULL) AND (journal_entries.created_at BETWEEN '$year_beg' AND '$year_end')  ORDER BY je_no DESC,je_debit DESC LIMIT 20 OFFSET $JournalNoSelected");
             
-            ->Where(function ($query) use ($keyword) {
-                $query->where('je_debit','LIKE','%'.$keyword.'%')
-                        ->where('remark','!=','NULLED')
-                      ->orwhere('je_no','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_credit','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_memo','LIKE','%'.$keyword.'%')
-                      ->orwhere('chart_of_accounts.coa_name','LIKE','%'.$keyword.'%')
-                      ->orwhere('chart_of_accounts.coa_code','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_desc','LIKE','%'.$keyword.'%')
-                      ->orwhere('je_name','LIKE','%'.$keyword.'%');
-            })
-            ->take(20)
-            ->orderBy('je_no','DESC')
-            ->orderBy('je_debit', 'DESC')
-            ->get();
+        }else{
+            $JournalEntry=  DB::connection('mysql')->select("SELECT * FROM journal_entries
+            JOIN chart_of_accounts ON chart_of_accounts.id=journal_entries.je_account
+            WHERE (remark!='NULLED' OR remark IS NULL) AND (journal_entries.created_at BETWEEN '$year_beg' AND '$year_end') 
+            AND (je_no LIKE '%$keyword%' OR je_credit LIKE '%$keyword%' OR je_debit LIKE '%$keyword%' OR je_memo LIKE '%$keyword%' OR chart_of_accounts.coa_name LIKE '%$keyword%' OR chart_of_accounts.coa_code LIKE '%$keyword%' OR je_desc LIKE '%$keyword%' OR je_name LIKE '%$keyword%' )
+            ORDER BY je_no DESC,je_debit DESC 
+            LIMIT 20 OFFSET $JournalNoSelected");
            // return $JournalEntry;
         }
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
@@ -2788,7 +4388,10 @@ class ApiController extends Controller
             'cost_center_list' => $cost_center_list,
             'numbering' => $numbering,
             'COA' => $COA,
-            'keyword' =>$keyword
+            'keyword' =>$keyword,
+            'year_beg' =>$year_beg,
+            'year_end' =>$year_end,
+            'yyyyy' =>$yyyyy,
         );
         return response($data, 200);
     }
@@ -2923,6 +4526,25 @@ class ApiController extends Controller
                 $et_account->et_ad_type =$expense_transactionedit->et_type;
                 if($expense_transactionedit->et_type=="Supplier credit"){
                     $totalamount-=$ets->et_ad_total;
+                    $JournalVoucherCount=count(JournalEntry::where([
+                        ['journal_type','=','Journal Voucher']
+                    ])->groupBy('je_no')->get())+1;
+                    $current_year=date('y');
+                
+                    $journalvoucher_no_series="";
+                    if($JournalVoucherCount<10){
+                        $journalvoucher_no_series="000".$JournalVoucherCount;
+                    }
+                    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                        $journalvoucher_no_series="00".$JournalVoucherCount;
+                    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                        $journalvoucher_no_series="0".$JournalVoucherCount;
+                    }
+                    
+                    $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                    $journal_series_no="";
+                    
+                    $journal_series_no=$journalvoucher_no;
                     $JDate=$expense_transactionedit->et_date;
                     $JNo=$request->id;
                     $JMemo=$expense_transactionedit->et_memo;
@@ -2949,6 +4571,8 @@ class ApiController extends Controller
                     $journal_entries->je_attachment=$JDate;
                     $journal_entries->je_transaction_type="Supplier Credit";
                     $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                     $journal_entries->save();
 
                     $JDate=$expense_transactionedit->et_date;
@@ -2976,10 +4600,30 @@ class ApiController extends Controller
                     $journal_entries->je_attachment=$JDate;
                     $journal_entries->je_transaction_type="Supplier Credit";
                     $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                     $journal_entries->save();
                 }else{
                     $totalamount+=$ets->et_ad_total;
+                    $JournalVoucherCount=count(JournalEntry::where([
+                        ['journal_type','=','Journal Voucher']
+                    ])->groupBy('je_no')->get())+1;
+                    $current_year=date('y');
+                
+                    $journalvoucher_no_series="";
+                    if($JournalVoucherCount<10){
+                        $journalvoucher_no_series="000".$JournalVoucherCount;
+                    }
+                    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                        $journalvoucher_no_series="00".$JournalVoucherCount;
+                    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                        $journalvoucher_no_series="0".$JournalVoucherCount;
+                    }
                     
+                    $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                    $journal_series_no="";
+                    
+                    $journal_series_no=$journalvoucher_no;
                     $JDate=$expense_transactionedit->et_date;
                     $JNo=$request->id;
                     $JMemo=$expense_transactionedit->et_memo;
@@ -3005,6 +4649,8 @@ class ApiController extends Controller
                     $journal_entries->je_attachment=$JDate;
                     $journal_entries->je_transaction_type="Bill";
                     $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                     $journal_entries->save();
 
                     $JDate=$expense_transactionedit->et_date;
@@ -3032,6 +4678,8 @@ class ApiController extends Controller
                     $journal_entries->je_attachment=$JDate;
                     $journal_entries->je_transaction_type="Bill";
                     $journal_entries->je_cost_center=$Costtttsasdasd;
+                    $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                     $journal_entries->save();
 
                 }
@@ -3729,9 +5377,29 @@ class ApiController extends Controller
                 $et_account->et_ad_rate = $ee->et_ad_rate;
                 $et_account->et_ad_qty = $ee->et_ad_qty;
                 $et_account->et_ad_type = $ee->et_ad_type;
+                $et_account->et_cost_center =$ee->et_cost_center;
                 $totalamount+=$ee->et_ad_total;
                 $et_account->save(); 
 
+                $JournalVoucherCount=count(JournalEntry::where([
+                    ['journal_type','=','Journal Voucher']
+                ])->groupBy('je_no')->get())+1;
+                $current_year=date('y');
+            
+                $journalvoucher_no_series="";
+                if($JournalVoucherCount<10){
+                    $journalvoucher_no_series="000".$JournalVoucherCount;
+                }
+                else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                    $journalvoucher_no_series="00".$JournalVoucherCount;
+                }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                    $journalvoucher_no_series="0".$JournalVoucherCount;
+                }
+                
+                $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                $journal_series_no="";
+                
+                $journal_series_no=$journalvoucher_no;
 
                 $JDate=$et[0]->et_date;
                 $JNo=$et[0]->et_no;
@@ -3758,7 +5426,13 @@ class ApiController extends Controller
                 $journal_entries->je_transaction_type="Bill";
                 
                 
-                $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                if($ee->et_cost_center!=''){
+                    $journal_entries->je_cost_center=$ee->et_cost_center;
+                }else{
+                    $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                }
+                $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                 $journal_entries->save();
 
                 $JDate=$et[0]->et_date;
@@ -3786,7 +5460,13 @@ class ApiController extends Controller
                 $journal_entries->je_attachment=$JDate;
                 $journal_entries->je_transaction_type="Bill";
                 
-                $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                if($ee->et_cost_center!=''){
+                    $journal_entries->je_cost_center=$ee->et_cost_center;
+                }else{
+                    $journal_entries->je_cost_center=$et[0]->et_debit_account;
+                }
+                $journal_entries->journal_type="Journal Voucher";
+		            $journal_entries->je_series_no=$journal_series_no;
                 $journal_entries->save();
                 // $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
                 // $customer->save();
@@ -3825,8 +5505,39 @@ class ApiController extends Controller
             // ])->delete();
         }
     }
+    public function get_cancel_entry_desc(Request $request){
+        $cancel_request_id=$request->id;
+        $PendingCancelEntry=PendingCancelEntry::find($cancel_request_id);
+        if(!empty($PendingCancelEntry)){
+            $other_no=$PendingCancelEntry->entry_id;
+            $type=$PendingCancelEntry->type;
+            $locationss=$PendingCancelEntry->locationss;
+            $invoice_type=$PendingCancelEntry->invoice_type;
+            $combined=$locationss!=NULL? $locationss." ".$invoice_type : NULL;
+            if($type=="Invoice" || $type=="Sales Receipt"){
+                $SS=DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE other_no='$other_no' AND (je_debit!='' OR je_debit IS NULL) AND je_transaction_type='$type' AND je_invoice_location_and_type='$combined' AND (remark='' OR remark IS NULL)");
+            }else{
+                $SS=DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE other_no='$other_no' AND (je_debit!='' OR je_debit IS NULL) AND je_transaction_type='$type' AND je_invoice_location_and_type IS NULL AND (remark='' OR remark IS NULL)");
+            }
+           
+            $r="";
+            foreach($SS as $entry){
+                $r.=$entry->je_desc."<br>";
+            }
+            return $r;
+        }else{
+            return "";
+        }
+        
+    }
     public function get_all_pending_transaction_request(Request $request){
-
+        
+        $PendingCancelEntry=PendingCancelEntry::where([
+            ['entry_status','=','1']
+        ])->get();
+        $PendingCancelEntrycount=PendingCancelEntry::where([
+            ['entry_status','=','1']
+        ])->count();
         $bankedits=BankEdits::where([
             ['edit_status','=','0']
         ])->get();
@@ -3919,9 +5630,11 @@ class ApiController extends Controller
         $expensetransactioneditcount=ExpenseTransactionEdit::where([
             ['edit_status','=','0']
         ])->count();
-        
+        $journalentries=DB::connection('mysql')->select("SELECT *  FROM journal_entries WHERE (je_debit!='' AND je_debit IS NOT NULL) AND (remark='' OR remark IS NULL)");
         $data = array(
             'bankedits' => $bankedits,
+            'PendingCancelEntrycount' => $PendingCancelEntrycount,
+            'PendingCancelEntry' => $PendingCancelEntry,
             'bankeditscount' => $bankeditscount,
             'costcenteredit' => $costcenteredit,
             'costcentereditcount' => $costcentereditcount,
@@ -3948,7 +5661,8 @@ class ApiController extends Controller
             'etaNewcount' =>$etaNewcount,
             'etaNewTotalAmount' => $etaNewTotalAmount,
             'stinvoiceeditTotalAmount' => $stinvoiceeditTotalAmount,
-            'etaccdetailedittotal_amount' => $etaccdetailedittotal_amount
+            'etaccdetailedittotal_amount' => $etaccdetailedittotal_amount,
+            'journalentries' =>$journalentries
 
         );
         return response($data, 200);
@@ -4692,7 +6406,9 @@ class ApiController extends Controller
         //Excel::load('extra/edit_excel/Mass Adjustment Template.xlsx', function($file) {
             Excel::load('extra/edit_excel/Journal_Import Data.xlsx', function($doc) {
                 $COA= ChartofAccount::where('coa_active','1')->get();
-                $customers = Customers::all();
+                $customers = Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
                 $cost_center_list= CostCenter::where('cc_status','1')->get();
                 $sheet = $doc->setActiveSheetIndex(1);
                 $sheet2 = $doc->setActiveSheetIndex(2);

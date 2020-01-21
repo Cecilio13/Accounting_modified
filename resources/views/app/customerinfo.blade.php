@@ -301,6 +301,8 @@
                                         <th class="text-center">NO.</th>
                                         
                                         <th class="text-center">DUE-DATE</th>
+                                        <th class="text-center">OR No.</th>
+                                        <th class="text-center">OR Date</th>
                                         <th class="text-center">BALANCE</th>
                                         <th class="text-center">TOTAL</th>
                                         <th class="text-center">STATUS</th>
@@ -308,18 +310,50 @@
                                     </thead>
                                     <tbody>
                                         @foreach($sales_transaction as $et)
-                                            <tr>
-                                            
-                                                <td class="vertical-align:middle">{{date('m-d-Y',strtotime($et->st_date))}}</td>
-                                                <td class="vertical-align:middle">{{$et->st_type}}</td>
-                                               
-                                                <td class="vertical-align:middle">{{$et->st_no}}</td>
-                                                <td class="vertical-align:middle">{{$et->st_due_date!=""? date('m-d-Y',strtotime($et->st_due_date)) : '' }}</td>
-                                                <td class="vertical-align:middle">PHP {{number_format($et->st_balance,2)}}</td>
-                                                <td class="vertical-align:middle">PHP {{number_format($et->st_balance+$et->st_amount_paid,2)}}</td>
-                                                <td class="vertical-align:middle">{{$et->st_status}}</td>
+                                            @if ($et->st_type!='Sales Receipt')
+                                                <tr>
                                                 
-                                            </tr>
+                                                    <td class="vertical-align:middle">{{date('m-d-Y',strtotime($et->st_date))}}</td>
+                                                    <td class="vertical-align:middle">
+                                                        @if($et->st_type=="Invoice")
+                                                        {{$et->st_location." ".$et->st_invoice_type}}
+                                                        @else 
+
+                                                        {{$et->st_type}}
+                                                        @endif
+
+                                                        
+                                                    </td>
+                                                
+                                                    <td class="vertical-align:middle">{{$et->st_no}}</td>
+                                                    <td class="vertical-align:middle">{{$et->st_due_date!=""? date('m-d-Y',strtotime($et->st_due_date)) : '' }}</td>
+                                                    <td class="vertical-align:middle">
+                                                        @foreach ($sales_transaction as $sal)
+                                                            @if ($sal->st_payment_for==$et->st_no  && $sal->st_location==$et->st_location && $sal->st_invoice_type==$et->st_invoice_type)
+                                                                {{$sal->st_no." "}}<br>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                    <td class="vertical-align:middle">
+                                                        <?php
+                                                        $total_payment=0;
+                                                        ?>
+                                                        @foreach ($sales_transaction as $sal)
+                                                            @if ($sal->st_payment_for==$et->st_no && $sal->st_location==$et->st_location && $sal->st_invoice_type==$et->st_invoice_type)
+                                                                <?php
+                                                                $total_payment+=$sal->st_amount_paid;
+                                                                ?>
+                                                                {{$sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '' }}<br>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                    <td class="vertical-align:middle">PHP {{number_format($et->st_balance,2)}}</td>
+                                                    <td class="vertical-align:middle">PHP {{number_format($et->st_balance+$total_payment,2)}}</td>
+                                                    <td class="vertical-align:middle">{{$et->st_status}}</td>
+                                                    
+                                                </tr>
+                                            @endif
+                                            
                                         @endforeach
                                         
                                     </tbody>    

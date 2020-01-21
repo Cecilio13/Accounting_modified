@@ -46,6 +46,7 @@ use App\CostCenter;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\PendingCancelEntry;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -95,6 +96,9 @@ class AppServiceProvider extends ServiceProvider
                 // //View::share('user', \Auth::user());
                 $view->with('EXNew', ExpenseTransactionNew::where([
                     ['et_status','=',NULL]
+                ])->get());
+                view()->share('PendingCancelEntry', PendingCancelEntry::where([
+                    ['entry_status','=','1']
                 ])->get());
                 $view->with('ETANew', ETAccountDetailNew::all());
                 $view->with('Voucher', Voucher::all());

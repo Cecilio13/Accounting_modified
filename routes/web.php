@@ -13,7 +13,18 @@ use \setasign\Fpdi\Fpdi;
 
 
 
-
+Route::get('api/get_cancel_entry_desc', 'ApiController@get_cancel_entry_desc');
+Route::get('api/get_access', 'ApiController@get_access');
+Route::get('api/checkemail', 'ApiController@checkemail');
+Route::get('api/getReportData', 'ApiController@getReportData');
+Route::get('api/getReportPageData', 'ApiController@getReportPageData');
+Route::get('api/check_bill_no', 'ApiController@check_bill_no');
+Route::get('api/get_bill_info_for_supplier_credit', 'ApiController@get_bill_info_for_supplier_credit');
+Route::get('api/get_bill_account_detail', 'ApiController@get_bill_account_detail');
+Route::get('api/check_supplier_credit_no', 'ApiController@check_supplier_credit_no');
+Route::get('api/add_pay_bill', 'ApiController@add_pay_bill'); //special case
+Route::get('api/report_sample', 'ApiController@report_sample');
+Route::get('api/GetInvoiceExcelTemplateBill', 'ApiController@GetInvoiceExcelTemplateBill');
 Route::get('api/check_sales_receipt_no', 'ApiController@check_sales_receipt_no');
 Route::get('api/get_all_estimates', 'ApiController@get_all_estimates');
 Route::get('api/check_credit_note_no', 'ApiController@check_credit_note_no');
@@ -113,12 +124,69 @@ Route::post('api/AddInvoice', 'ApiController@AddInvoice');
 Route::post('api/addestimate', 'ApiController@addestimate');
 Route::post('api/addcreditnote', 'ApiController@addcreditnote');
 Route::post('api/add_sales_receipt', 'ApiController@add_sales_receipt');
+Route::post('api/update_pay_bill_note', 'ApiController@update_pay_bill_note');
+Route::post('api/add_supplier_credit', 'ApiController@add_supplier_credit');
+Route::post('api/add_bill', 'ApiController@add_bill');
+Route::post('api/check_user', 'ApiController@check_user');
+Route::post('api/register_user', 'ApiController@register_user');
+Route::post('api/delete_entry_request', 'ApiController@delete_entry_request');
+Route::post('api/update_entry', 'ApiController@update_entry');
 
 
-
-
-Route::group(['middleware'=>['auth']], function() {
+Route::get('/RecentTransactionsdata', 'ReportController@RecentTransactionsdata')->name('RecentTransactionsdata');
+Route::get('/AccountListdata', 'ReportController@AccountListdata')->name('AccountListdata');
+Route::get('/Supplier_Contact_Listdata', 'ReportController@Supplier_Contact_Listdata')->name('Supplier_Contact_Listdata');
+Route::get('/ProductandServices_ListDATA', 'ReportController@ProductandServices_ListDATA')->name('ProductandServices_ListDATA');
+Route::get('/Customer_Contact_Listdata', 'ReportController@Customer_Contact_Listdata')->name('Customer_Contact_Listdata');
+Route::get('/BudgetSummaryReportdata', 'ReportController@BudgetSummaryReportdata')->name('BudgetSummaryReportdata');
+Route::get('/audit_logs_data', 'ReportController@audit_logs_data')->name('audit_logs_data');
+Route::get('/MovementinEquityByDate', 'ReportController@MovementinEquityByDate')->name('MovementinEquityByDate');
+Route::post('/Invoice_List_sorted_by_date', 'ReportController@Invoice_List_sorted_by_date')->name('Invoice_List_sorted_by_date');
+Route::get('/AccountsPayableByDate', 'ReportController@AccountsPayableByDate')->name('AccountsPayableByDate');
+Route::get('/BalanceSheetComparisonByDate', 'ReportController@BalanceSheetComparisonByDate')->name('BalanceSheetComparisonByDate');
+Route::get('/BalanceSheetDetailByDate', 'ReportController@BalanceSheetDetailByDate')->name('BalanceSheetDetailByDate');
+Route::get('/BalanceSheetByDate', 'ReportController@BalanceSheetByDate')->name('BalanceSheetByDate');
+Route::get('/StatementofchangeinequityByDate', 'ReportController@StatementofchangeinequityByDate')->name('StatementofchangeinequityByDate');
+Route::get('/StatementofCashFlowByDate', 'ReportController@StatementofCashFlowByDate')->name('StatementofCashFlowByDate');
+Route::get('/QuarterlyProfitandlossByDate', 'ReportController@QuarterlyProfitandlossByDate')->name('QuarterlyProfitandlossByDate');
+Route::get('/ProfitandlossByMonthByDate', 'ReportController@ProfitandlossByMonthByDate')->name('ProfitandlossByMonthByDate');
+Route::get('/ProfitandlossByCustomerByDate', 'ReportController@ProfitandlossByCustomerByDate')->name('ProfitandlossByCustomerByDate');
+Route::get('/ProfitandlossaspercetagetotalByDate', 'ReportController@ProfitandlossaspercetagetotalByDate')->name('ProfitandlossaspercetagetotalByDate');
+Route::get('/ProfitandlossComparisonByDate', 'ReportController@ProfitandlossComparisonByDate')->name('ProfitandlossComparisonByDate');
+Route::get('/ProfitandlossByDate', 'ReportController@ProfitandlossByDate')->name('ProfitandlossByDate');
+Route::get('/AuditLogByDate', 'ReportController@AuditLogByDate')->name('AuditLogByDate');
+Route::get('/TransactionListByDateDate', 'ReportController@TransactionListByDateDate')->name('TransactionListByDateDate');
+Route::get('/TransactionListByDate_Date', 'ReportController@TransactionListByDate_Date')->name('TransactionListByDate_Date');
+Route::get('/AccountsPayableAgeingSummaryByDate', 'ReportController@AccountsPayableAgeingSummaryByDate')->name('AccountsPayableAgeingSummaryByDate');
+Route::get('/ChequeDetail_bydate', 'ReportController@ChequeDetail_bydate')->name('ChequeDetail_bydate');
+Route::get('/collectionreport_bydate', 'ReportController@collectionreport_bydate')->name('collectionreport_bydate');
+Route::get('/General_Ledger_by_date', 'ReportController@General_Ledger_by_date')->name('General_Ledger_by_date');
+Route::get('/Trial_balance_by_date', 'ReportController@Trial_balance_by_date')->name('Trial_balance_by_date');
+Route::get('/Journal_by_date', 'ReportController@Journal_by_date')->name('Journal_by_date');
+Route::get('/deposit_detail_by_date', 'ReportController@deposit_detail_by_date')->name('deposit_detail_by_date');
+Route::get('/salesbyProduct_Summary_by_date', 'ReportController@salesbyProduct_Summary_by_date')->name('salesbyProduct_Summary_by_date');
+Route::get('/salesbyCustomer_Summary_by_date', 'ReportController@salesbyCustomer_Summary_by_date')->name('salesbyCustomer_Summary_by_date');
+Route::get('/AR_REceivable_ageing_by_date', 'ReportController@AR_REceivable_ageing_by_date')->name('AR_REceivable_ageing_by_date');
+Route::get('/Open_Invoice_List_by_date', 'ReportController@Open_Invoice_List_by_date')->name('Open_Invoice_List_by_date');
+Route::get('/estimatebycustomer_by_date', 'ReportController@estimatebycustomer_by_date')->name('estimatebycustomer_by_date');
+Route::get('/VAT_List_By_Date', 'ReportController@VAT_List_By_Date')->name('VAT_List_By_Date');
+Route::get('/sales_transaction_list_by_date', 'ReportController@sales_transaction_list_by_date')->name('sales_transaction_list_by_date');
+Route::get('/expense_transaction_list_by_date', 'ReportController@expense_transaction_list_by_date')->name('expense_transaction_list_by_date');
+Route::get('/Invoice_List_by_date', 'ReportController@Invoice_List_by_date')->name('Invoice_List_by_date');
+Route::get('/Budget_Summary_By_Date', 'ReportController@Budget_Summary_By_Date')->name('Budget_Summary_By_Date');
+Route::get('/Customer_Balance_Summary_by_date', 'ReportController@Customer_Balance_Summary_by_date')->name('Customer_Balance_Summary_by_date');
+Route::get('/ledger_for_desc_by_date', 'ReportController@ledger_for_desc_by_date')->name('ledger_for_desc_by_date');
+Route::get('/ledger_desc_sub_by_date', 'ReportController@ledger_desc_sub_by_date')->name('ledger_desc_sub_by_date');
+Route::post('/monthly_sales_transaction_list_by_date', 'ReportController@monthly_sales_transaction_list_by_date')->name('monthly_sales_transaction_list_by_date');
     
+    
+    Route::post('/monthly_expense_by_date', 'ReportController@monthly_expense_by_date')->name('monthly_expense_by_date');
+    Route::group(['middleware'=>['auth']], function() {
+    Route::get('/print_invoice_info', 'GetController@print_invoice_info');
+    Route::get('/exporttoexcelINVOICELIST', 'ChartofAccountsController@exporttoexcelINVOICELIST')->name('exporttoexcelINVOICELIST');
+    Route::get('/export_monthly_expense', 'ChartofAccountsController@export_monthly_expense')->name('export_monthly_expense');
+    Route::get('/export_monthly_invoice', 'ChartofAccountsController@export_monthly_invoice')->name('export_monthly_invoice');
+    Route::post('/get_cancel_entry_desc', 'GetController@get_cancel_entry_desc');
     Route::post('/get_bill_account_detail', 'GetController@get_bill_account_detail');
     Route::post('/get_bill_info_for_supplier_credit', 'GetController@get_bill_info_for_supplier_credit');
     Route::post('/check_supplier_credit_no', 'GetController@check_supplier_credit_no');
@@ -148,9 +216,12 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/check_cost_center_name', 'GetController@check_cost_center_name');
     Route::post('/get_customer_info', 'GetController@get_customer_info');
     Route::post('/get_product_info', 'GetController@get_product_info');
-    
+    Route::get('/export_to_excel', 'ChartofAccountsController@export_to_excel');
     Route::post('/destroy2', 'ChartofAccountsController@destroy2');
     Route::post('/supplierdestroy', 'SuppliersController@destroy2');
+    Route::post('/submit_delete_request_supplier', 'SuppliersController@submit_delete_request_supplier');
+    Route::post('/delete_Supplier_edit', 'SuppliersController@delete_Supplier_edit');
+
     Route::get('/dashboard', 'PagesController@dashboard');
     Route::get('/banking', 'PagesController@banking');
     Route::get('/voucher', 'PagesController@voucher');
@@ -169,9 +240,13 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/delete_overwrite_journal_entry', 'JournalEntryController@delete_overwrite_journal_entry')->name('delete_overwrite_journal_entry');
     Route::post('/getJournalEntryInfo', 'JournalEntryController@getJournalEntryInfo')->name('getJournalEntryInfo');
     Route::post('/cancel_entry', 'JournalEntryController@cancel_entry')->name('cancel_entry');
+    Route::post('/delete_cancel_entry_request', 'JournalEntryController@delete_cancel_entry_request')->name('delete_cancel_entry_request');
+    Route::post('/approve_cancel_entry_request', 'JournalEntryController@approve_cancel_entry_request')->name('approve_cancel_entry_request');
+
     Route::post('/add_journal_entry', 'JournalEntryController@add_journal_entry')->name('add_journal_entry');
     Route::post('/get_latest_journal_no', 'JournalEntryController@get_latest_journal_no')->name('get_latest_journal_no');
     
+    Route::post('/submit_delete_request_customer', 'CustomersController@submit_delete_request_customer')->name('submit_delete_request_customer');
     Route::post('/update_customer_note', 'CustomersController@update_customer_note')->name('update_customer_note');
     Route::post('/update_supplier_note', 'SuppliersController@update_supplier_note')->name('update_supplier_note');
     Route::post('/update_expenses_credit_card_charges', 'SuppliersController@update_expenses_credit_card_charges')->name('update_expenses_credit_card_charges');
@@ -312,7 +387,9 @@ Route::group(['middleware'=>['auth']], function() {
     Route::get('/Supplier_Contact_List', 'ReportController@Supplier_Contact_List')->name('Supplier_Contact_List');
     Route::get('/Open_Invoice_List', 'ReportController@Open_Invoice_List')->name('Open_Invoice_List');
     
-    
+    Route::get('/SalesandBillingInvoiceReport', 'ReportController@SalesandBillingInvoiceReport')->name('SalesandBillingInvoiceReport');
+    Route::get('/monthly_expense_collection', 'ReportController@monthly_expense_collection')->name('monthly_expense_collection');
+    Route::get('/monthly_invoice_collection', 'ReportController@monthly_invoice_collection')->name('monthly_invoice_collection');
     Route::get('/Movements_in_Equity', 'ReportController@Movements_in_Equity')->name('Movements_in_Equity');
     Route::get('/VAT_List', 'ReportController@VAT_List')->name('VAT_List');
     Route::get('/sales_transaction_list', 'ReportController@sales_transaction_list')->name('sales_transaction_list');
@@ -357,11 +434,9 @@ Route::group(['middleware'=>['auth']], function() {
     Route::get('/BudgetSummaryReport', 'ReportController@BudgetSummaryReport')->name('BudgetSummaryReport');
     
     
-    Route::post('/MovementinEquityByDate', 'ReportController@MovementinEquityByDate')->name('MovementinEquityByDate');
+    
     Route::post('/favorite_report', 'ReportController@favorite_report')->name('favorite_report');
-    Route::post('/VAT_List_By_Date', 'ReportController@VAT_List_By_Date')->name('VAT_List_By_Date');
-    Route::post('/sales_transaction_list_by_date', 'ReportController@sales_transaction_list_by_date')->name('sales_transaction_list_by_date');
-    Route::post('/expense_transaction_list_by_date', 'ReportController@expense_transaction_list_by_date')->name('expense_transaction_list_by_date');
+    
     Route::post('/update_sales_receipt_edit', 'ReportController@update_sales_receipt_edit')->name('update_sales_receipt_edit');
     Route::post('/update_credit_note_edit', 'ReportController@update_credit_note_edit')->name('update_credit_note_edit');
     Route::post('/update_invoice_edit', 'ReportController@update_invoice_edit')->name('update_invoice_edit');
@@ -377,43 +452,14 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/update_prod_edit','CustomersController@update_prod_edit')->name('update_prod_edit');
     Route::post('/delete_prod_edit','CustomersController@delete_prod_edit')->name('delete_prod_edit');
     
-    Route::post('/AccountsPayableByDate', 'ReportController@AccountsPayableByDate')->name('AccountsPayableByDate');
-    Route::post('/BalanceSheetComparisonByDate', 'ReportController@BalanceSheetComparisonByDate')->name('BalanceSheetComparisonByDate');
-    Route::post('/BalanceSheetDetailByDate', 'ReportController@BalanceSheetDetailByDate')->name('BalanceSheetDetailByDate');
-    Route::post('/BalanceSheetByDate', 'ReportController@BalanceSheetByDate')->name('BalanceSheetByDate');
-    Route::post('/StatementofchangeinequityByDate', 'ReportController@StatementofchangeinequityByDate')->name('StatementofchangeinequityByDate');
-    Route::post('/StatementofCashFlowByDate', 'ReportController@StatementofCashFlowByDate')->name('StatementofCashFlowByDate');
-    Route::post('/QuarterlyProfitandlossByDate', 'ReportController@QuarterlyProfitandlossByDate')->name('QuarterlyProfitandlossByDate');
-    Route::post('/ProfitandlossByMonthByDate', 'ReportController@ProfitandlossByMonthByDate')->name('ProfitandlossByMonthByDate');
-    Route::post('/ProfitandlossByCustomerByDate', 'ReportController@ProfitandlossByCustomerByDate')->name('ProfitandlossByCustomerByDate');
-    Route::post('/ProfitandlossaspercetagetotalByDate', 'ReportController@ProfitandlossaspercetagetotalByDate')->name('ProfitandlossaspercetagetotalByDate');
-    Route::post('/ProfitandlossComparisonByDate', 'ReportController@ProfitandlossComparisonByDate')->name('ProfitandlossComparisonByDate');
-    Route::post('/ProfitandlossByDate', 'ReportController@ProfitandlossByDate')->name('ProfitandlossByDate');
-    Route::post('/AuditLogByDate', 'ReportController@AuditLogByDate')->name('AuditLogByDate');
-    Route::post('/TransactionListByDateDate', 'ReportController@TransactionListByDateDate')->name('TransactionListByDateDate');
-    Route::post('/TransactionListByDate_Date', 'ReportController@TransactionListByDate_Date')->name('TransactionListByDate_Date');
-    Route::post('/AccountsPayableAgeingSummaryByDate', 'ReportController@AccountsPayableAgeingSummaryByDate')->name('AccountsPayableAgeingSummaryByDate');
+    
     
     Route::post('/TransactionListBySupplier', 'ReportController@TransactionListBySupplier')->name('TransactionListBySupplier');
-    Route::post('/ChequeDetail_bydate', 'ReportController@ChequeDetail_bydate')->name('ChequeDetail_bydate');
-    Route::post('/General_Ledger_by_date', 'ReportController@General_Ledger_by_date')->name('General_Ledger_by_date');
-    Route::post('/Trial_balance_by_date', 'ReportController@Trial_balance_by_date')->name('Trial_balance_by_date');
-    Route::post('/Journal_by_date', 'ReportController@Journal_by_date')->name('Journal_by_date');
-    Route::post('/deposit_detail_by_date', 'ReportController@deposit_detail_by_date')->name('deposit_detail_by_date');
-    Route::post('/salesbyProduct_Summary_by_date', 'ReportController@salesbyProduct_Summary_by_date')->name('salesbyProduct_Summary_by_date');
-    Route::post('/salesbyCustomer_Summary_by_date', 'ReportController@salesbyCustomer_Summary_by_date')->name('salesbyCustomer_Summary_by_date');
-    Route::post('/AR_REceivable_ageing_by_date', 'ReportController@AR_REceivable_ageing_by_date')->name('AR_REceivable_ageing_by_date');
-    Route::post('/Open_Invoice_List_by_date', 'ReportController@Open_Invoice_List_by_date')->name('Open_Invoice_List_by_date');
-    Route::post('/estimatebycustomer_by_date', 'ReportController@estimatebycustomer_by_date')->name('estimatebycustomer_by_date');
-    Route::post('/collectionreport_bydate', 'ReportController@collectionreport_bydate')->name('collectionreport_bydate');
-    Route::post('/Invoice_List_by_date', 'ReportController@Invoice_List_by_date')->name('Invoice_List_by_date');
+    
+    
     Route::post('/GetCostCenterBudget', 'ReportController@GetCostCenterBudget')->name('GetCostCenterBudget');
     Route::post('/SaveBudget', 'ReportController@SaveBudget')->name('SaveBudget');
-    Route::post('/Budget_Summary_By_Date', 'ReportController@Budget_Summary_By_Date')->name('Budget_Summary_By_Date');
     
-    Route::post('/Customer_Balance_Summary_by_date', 'ReportController@Customer_Balance_Summary_by_date')->name('Customer_Balance_Summary_by_date');
-    Route::post('/ledger_for_desc_by_date', 'ReportController@ledger_for_desc_by_date')->name('ledger_for_desc_by_date');
-    Route::post('/ledger_desc_sub_by_date', 'ReportController@ledger_desc_sub_by_date')->name('ledger_desc_sub_by_date');
     Route::post('/employee_contact_add', 'ReportController@employee_contact_add')->name('employee_contact_add');
     Route::post('/getSessionTimeout', 'CompanyController@getSessionTimeout')->name('getSessionTimeout');
     Route::post('/findInvoiceNo', 'CustomersController@findInvoiceNo')->name('findInvoiceNo');

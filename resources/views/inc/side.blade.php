@@ -131,6 +131,11 @@
     @endforeach
     @endif
     @endif
+    @foreach ($PendingCancelEntry as $item)
+    <?php
+    $pendingapprovals++;
+    ?>  
+    @endforeach
     <div id="main-menu" class="main-menu collapse navbar-collapse">
         <ul class="nav navbar-nav">
             <li class="active"><a href="dashboard" > <i class="menu-icon fas fa-tachometer-alt"></i>Dashboard </a></li>

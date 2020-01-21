@@ -143,7 +143,7 @@
                                     
                                     //window.location.replace("/Invoice_List?date_from="+FROM+"&date_to="+TO);
                                     $.ajax({
-                                        type: 'POST',
+                                        type: 'GET',
                                         url: 'salesbyProduct_Summary_by_date',                
                                         data: {CostCenterFilter:CostCenterFilter,filtertemplate:filtertemplate,FROM:FROM,TO:TO,_token: '{{csrf_token()}}'},
                                         success: function(data) {

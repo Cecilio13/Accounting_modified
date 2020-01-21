@@ -176,7 +176,7 @@
     <div class="row" style="">
         <div class="col-md-10" >
             <div class=" mr-2 mb-5 mt-3">
-                <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Cheque Voucher')" data-toggle="modal">Create New Cheque Voucher</a>
+                <a href="#" class="btn btn-success" data-target='#journalentrymodal' id="enterjournalentry" onclick="changejournalentrytype('Cheque Voucher')" data-toggle="modal">Create New Cheque Voucher</a>
                 <a href="#" class="btn btn-success" data-target='#journalentrymodal' onclick="changejournalentrytype('Journal Voucher')" data-toggle="modal">Create New Journal Voucher</a>
                 <a href="#" class="btn btn-success" data-target='#ImportJournalEntryModal' data-toggle="modal">Import Journal Entry</a>
                 
@@ -185,28 +185,17 @@
         </div>
         <div class="col-md-2">
             <script>
-                function changeyearjournal(year){
-                    location.href="journalentry?year="+year;
+                function changeyearjournal(){
+                    var year=document.getElementById('yearSSSEELLEECCRTTED').value;
+                    location.href="expenses?year="+year;
                 }
             </script>
-            <select class="form-control" style="float:right;" onchange="currentjournal_no_go()" id="yearSSSEELLEECCRTTED">
-                @for ($i = 2019; $i <= date('Y'); $i++)
-                    @if (!empty($yyyyy))
-                    @if ($i==$yyyyy)
-                        <option selected>{{$i}}</option>   
-                    @else
-                        <option>{{$i}}</option>   
-                    @endif
-                    @else
-                        @if ($i==date('Y'))
-                            <option selected>{{$i}}</option>   
-                        @else
-                            <option>{{$i}}</option>   
-                        @endif
-                    @endif
-                @endfor
-                
-            </select> 
+            <div class="input-group mb-3">
+                <input type="number" class="form-control" id="yearSSSEELLEECCRTTED" style="float:right;" value="{{!empty($yyyyy)? $yyyyy : date('Y')}}">
+                <div class="input-group-prepend">
+                    <button class="btn btn-secondary" onclick="currentjournal_no_go()">GO</button>
+                </div>
+            </div> 
         </div>
     </div>
     {{-- preview modal --}}
@@ -473,7 +462,7 @@
                                     @endif
                                 @endforeach
                                
-                                <tr>
+                                <tr class=" {{$je->remark=="Cancelled"? 'table-warning'  : ''}}">
                                 <td style="vertical-align:middle;">{{$je->je_no}}</td>
                                 <td style="vertical-align:middle;">{{date("m-d-Y", strtotime($je->je_attachment))}}</td>
                                 <td style="vertical-align:middle;text-align:center;">{{$je->journal_type}}</td>
@@ -529,6 +518,7 @@
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-custom">
                                             <a  class="dropdown-item" href="print_journal_entry?no={{$je->je_no}}" target="_blank">Print</a>
+                                            <a  class="dropdown-item" href="export_to_excel?no={{$je->je_no}}" target="_blank">Export to Excel</a>
                                             @if ($je->je_transaction_type=="Journal Entry")
                                             <a href="#" style="display:none;"  onclick="edit_journal_entries('{{$je->je_no}}')" class="dropdown-item">Edit</a>
                                             @endif

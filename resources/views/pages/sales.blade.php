@@ -119,29 +119,17 @@
                             </div>
                             <div class="col-md-2">
                                 <script>
-                                    function changeyearsales(year){
+                                    function changeyearsales(){
+                                        var year=document.getElementById('yearsorte').value;
                                         location.href="sales?year="+year;
                                     }
                                 </script>
-                                
-                                <select class="form-control" style="float:right;" onchange="changeyearsales(this.value)">
-                                    @for ($i = 2019; $i <= date('Y'); $i++)
-                                        @if (!empty($yyyyy))
-                                        @if ($i==$yyyyy)
-                                            <option selected>{{$i}}</option>   
-                                        @else
-                                            <option>{{$i}}</option>   
-                                        @endif
-                                        @else
-                                            @if ($i==date('Y'))
-                                                <option selected>{{$i}}</option>   
-                                            @else
-                                                <option>{{$i}}</option>   
-                                            @endif
-                                        @endif
-                                    @endfor
-                                    
-                                </select>  
+                                <div class="input-group mb-3">
+                                    <input type="number" class="form-control" id="yearsorte" style="float:right;" value="{{!empty($yyyyy)? $yyyyy : date('Y')}}">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-secondary" onclick="changeyearsales()">GO</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -309,8 +297,11 @@
                                 <th class="text-center">DATE</th>
                                 <th class="text-center">TYPE</th>
                                 <th class="text-center">NO.</th>
+                                <th class="text-center">COST CENTER</th>
                                 <th class="text-center">CUSTOMER</th>
                                 <th class="text-center">DUE-DATE</th>
+                                <th class="text-center" width="10%">OR NO</th>
+                                <th class="text-center" width="10%">OR DATE</th>
                                 <th class="text-center">BALANCE</th>
                                 <th class="text-center">TOTAL</th>
                                 <th class="text-center">STATUS</th>
@@ -496,6 +487,7 @@
                                 <th class="text-center">DATE</th>
                                 <th class="text-center">TYPE</th>
                                 <th class="text-center">NO.</th>
+                                
                                 <th class="text-center">CUSTOMER</th>
                                 <th class="text-center">DUE-DATE</th>
                                 <th class="text-center">BALANCE</th>
@@ -733,7 +725,7 @@
                                 <th class="text-center">PHONE</th>
                                 <th class="text-center">EMAIL</th>
                                 <th class="text-center">OPEN BALANCE</th>
-                                
+                                <th class="text-center"></th>
                             </thead>
                                 
                             

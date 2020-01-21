@@ -12,7 +12,7 @@ use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\CostCenter;
-
+use App\PendingCancelEntry;
 class JournalEntryController extends Controller
 {
     public function __construct()
@@ -97,104 +97,135 @@ class JournalEntryController extends Controller
        
        
     }
-    public function cancel_entry(Request $request){
-        $updateDetails=array(
-            'remark' => 'Cancelled',
-            'cancellation_date' => date('Y-m-d'),
-            'cancellation_reason' => $request->Reason
-        );
-        if($request->type=="Journal Entry"){
-            
+    public function delete_cancel_entry_request(Request $request){
+        $entry=PendingCancelEntry::find($request->id);
+        if(!empty($entry)){
+            $entry->entry_status="0";
+            $entry->save();
         }
-        else if($request->type=="Voucher"){
-            DB::table('voucher')
-            ->where([
-                ['voucher_id', '=', $request->id]
+        
+    }
+    public function approve_cancel_entry_request(Request $request){
+        $entry=PendingCancelEntry::find($request->id);
+        if(!empty($entry)){
+            $updateDetails=array(
+                'remark' => 'Cancelled',
+                'cancellation_date' => date('Y-m-d'),
+                'cancellation_reason' => $entry->Reason
+            );
+            if($entry->type=="Journal Entry"){
                 
-            ])
-            ->update($updateDetails);
-        }
-        else if($request->type=="Invoice" || $request->type=="Sales Receipt" || $request->type=="Credit Note"){
-            DB::table('sales_transaction')
-            ->where([
-                ['st_no', '=', $request->id],
-                ['st_type', '=', $request->type],
-                ['st_location','=',$request->locationss],
-                ['st_invoice_type','=',$request->invoice_type]
-            ])
-            ->update($updateDetails);
-            if($request->type=="Sales Receipt"){
-                $data=DB::table('sales_transaction')
+            }
+            else if($entry->type=="Voucher"){
+                DB::table('voucher')
                 ->where([
-                    ['st_no', '=', $request->id],
-                    ['st_type', '=', $request->type],
-                    ['st_location','=',$request->locationss],
-                    ['st_invoice_type','=',$request->invoice_type]
-                ])->get();
-                foreach($data as $set){
+                    ['voucher_id', '=', $entry->entry_id]
                     
-                    $amount=$set->st_amount_paid;
-                    $invoice_sss=DB::table('sales_transaction')
-                    ->where([
-                        ['st_no', '=', $set->st_payment_for],
-                        ['st_type', '=', 'Invoice'],
-                        ['st_location','=',$request->locationss],
-                        ['st_invoice_type','=',$request->invoice_type]
-                    ])->first();
-                    if(!empty($invoice_sss)){
-                        $amount+=$invoice_sss->st_balance;
-                    }
-                   
-                    $sales_receipt_insert=array(
-                        'st_balance' => $amount,
-                        'st_status' => 'Open'
-                    );
+                ])
+                ->update($updateDetails);
+            }
+            else if($entry->type=="Invoice" || $entry->type=="Sales Receipt" || $entry->type=="Credit Note"){
+                DB::table('sales_transaction')
+                ->where([
+                    ['st_no', '=', $entry->entry_id],
+                    ['st_type', '=', $entry->type],
+                    ['st_location','=',$entry->locationss],
+                    ['st_invoice_type','=',$entry->invoice_type],
+                    ['cancellation_reason','=',NULL]
+                ])
+                ->update($updateDetails);
+                if($entry->type=="Sales Receipt"){
                     $data=DB::table('sales_transaction')
                     ->where([
-                        ['st_no', '=', $set->st_payment_for],
-                        ['st_type', '=', 'Invoice'],
-                        ['st_location','=',$request->locationss],
-                        ['st_invoice_type','=',$request->invoice_type]
-                    ])->update($sales_receipt_insert);
-                    $data=DB::table('st_invoice')
-                    ->where([
-                        ['st_i_no', '=', $set->st_payment_for],
-                        ['st_p_location','=',$request->locationss],
-                        ['st_p_invoice_type','=',$request->invoice_type],
-                        ['st_i_item_no','=',$set->st_email]
-                    ])->first();
-                    $balance_st=$data->st_p_amount-$amount;
-                    $st_invoice_data=array(
-                        'st_p_amount' => $balance_st
-                    );
-                    $data=DB::table('st_invoice')
-                    ->where([
-                        ['st_i_no', '=', $set->st_payment_for],
-                        ['st_p_location','=',$request->locationss],
-                        ['st_p_invoice_type','=',$request->invoice_type],
-                        ['st_i_item_no','=',$set->st_email]
-                    ])->update($st_invoice_data);
-
+                        ['st_no', '=', $entry->entry_id],
+                        ['st_type', '=', $entry->type],
+                        ['st_location','=',$entry->locationss],
+                        ['st_invoice_type','=',$entry->invoice_type],
+                        
+                    ])->get();
+                    foreach($data as $set){
+                        
+                        $amount=$set->st_amount_paid;
+                        $invoice_sss=DB::table('sales_transaction')
+                        ->where([
+                            ['st_no', '=', $set->st_payment_for],
+                            ['st_type', '=', 'Invoice'],
+                            ['st_location','=',$entry->locationss],
+                            ['st_invoice_type','=',$entry->invoice_type],
+                        ])->first();
+                        if(!empty($invoice_sss)){
+                            $amount+=$invoice_sss->st_balance;
+                        }
+                       
+                        $sales_receipt_insert=array(
+                            'st_balance' => $amount,
+                            'st_status' => 'Open'
+                        );
+                        $data=DB::table('sales_transaction')
+                        ->where([
+                            ['st_no', '=', $set->st_payment_for],
+                            ['st_type', '=', 'Invoice'],
+                            ['st_location','=',$entry->locationss],
+                            ['st_invoice_type','=',$entry->invoice_type],
+                        ])->update($sales_receipt_insert);
+                        $data=DB::table('st_invoice')
+                        ->where([
+                            ['st_i_no', '=', $set->st_payment_for],
+                            ['st_p_location','=',$entry->locationss],
+                            ['st_p_invoice_type','=',$entry->invoice_type],
+                            ['st_p_reference_no','=',$entry->st_i_attachment],
+                            ['st_i_item_no','=',$set->st_email]
+                        ])->first();
+                        $balance_st=$data->st_p_amount-$amount;
+                        $st_invoice_data=array(
+                            'st_p_amount' => $balance_st
+                        );
+                        $data=DB::table('st_invoice')
+                        ->where([
+                            ['st_i_no', '=', $set->st_payment_for],
+                            ['st_p_location','=',$entry->locationss],
+                            ['st_p_invoice_type','=',$entry->invoice_type],
+                            ['st_p_reference_no','=',$entry->st_i_attachment],
+                            ['st_i_item_no','=',$set->st_email]
+                        ])->update($st_invoice_data);
+    
+                    }
                 }
             }
+            else if($entry->type=="Bill" || $entry->type=="Expense" || $entry->type="Credit card credit" || $entry->type=="Supplier Credit" || $entry->type=="Cheque"){
+                DB::table('expense_transactions')
+                ->where([
+                    ['et_no', '=', $entry->entry_id],
+                    ['et_type', '=', $entry->type]
+                ])
+                ->update($updateDetails);
+            }
+            $trrs=DB::table('journal_entries')
+                ->where([
+                    ['other_no', '=', $entry->entry_id],
+                    ['je_transaction_type', '=', $entry->type],
+                    ['je_invoice_location_and_type', '=', $entry->locationss!=""?$entry->locationss." ".$entry->invoice_type : NULL]
+                ])
+                ->update($updateDetails);
+            $entry->entry_status="0";
+            $entry->save();
         }
-        else if($request->type=="Bill" || $request->type=="Expense" || $request->type="Credit card credit" || $request->type=="Supplier Credit" || $request->type=="Cheque"){
-            DB::table('expense_transactions')
-            ->where([
-                ['et_no', '=', $request->id],
-                ['et_type', '=', $request->type]
-            ])
-            ->update($updateDetails);
-        }
-        $trrs=DB::table('journal_entries')
-            ->where([
-                ['other_no', '=', $request->id],
-                ['je_transaction_type', '=', $request->type],
-                ['je_invoice_location_and_type', '=', $request->locationss!=""?$request->locationss." ".$request->invoice_type : NULL]
-            ])
-            ->update($updateDetails);
         
-        return 'Success';
+    }
+    public function cancel_entry(Request $request){
+        $entry=PendingCancelEntry::find($request->id);
+        if(empty($entry)){
+            $entry= new PendingCancelEntry;
+        }
+        $entry->type=$request->type;
+        $entry->entry_id=$request->id;
+        $entry->locationss=$request->locationss;
+        $entry->invoice_type=$request->invoice_type;
+        $entry->Reason=$request->Reason;
+        $entry->entry_status='1';
+        $entry->save();
+        return 'Successfully Requested Entry Cancel';
+        
     }
     public function delete_overwrite_journal_entry(Request $request){
         $updateDetails=array(

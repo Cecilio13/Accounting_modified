@@ -719,7 +719,7 @@
                                 var textbox = '#ad_beg_bal_shown';
                                 var hidden = '#ad_beg_bal';
                                 $(textbox).keyup(function () {
-                                    $(textbox).val(this.value.match(/[0-9.,=]*/));
+                                    $(textbox).val(this.value.match(/[0-9.,-]*/));
                                 var num = $(textbox).val();
                                     var comma = /,/g;
                                     num = num.replace(comma,'');

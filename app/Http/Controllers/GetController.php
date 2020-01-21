@@ -33,6 +33,7 @@ use App\CC_Type;
 use App\ExpenseTransaction;
 use App\ExpenseTransactionNew;
 use App\EtAccountDetail;
+use App\PendingCancelEntry;
 class GetController extends Controller
 {
     public function __construct()
@@ -43,6 +44,64 @@ class GetController extends Controller
         // DB::disconnect('mysql');//here connection name, I used mysql for example
         // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
 
+    }
+    public function get_cancel_entry_desc(Request $request){
+        $cancel_request_id=$request->id;
+        $PendingCancelEntry=PendingCancelEntry::find($cancel_request_id);
+        if(!empty($PendingCancelEntry)){
+            $other_no=$PendingCancelEntry->entry_id;
+            $type=$PendingCancelEntry->type;
+            $locationss=$PendingCancelEntry->locationss;
+            $invoice_type=$PendingCancelEntry->invoice_type;
+            $combined=$locationss!=NULL? $locationss." ".$invoice_type : NULL;
+            if($type=="Invoice" || $type=="Sales Receipt"){
+                $SS=DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE other_no='$other_no' AND (je_debit!='' OR je_debit IS NULL) AND je_transaction_type='$type' AND je_invoice_location_and_type='$combined' AND (remark='' OR remark IS NULL)");
+            }else{
+                $SS=DB::connection('mysql')->select("SELECT * FROM journal_entries WHERE other_no='$other_no' AND (je_debit!='' OR je_debit IS NULL) AND je_transaction_type='$type' AND je_invoice_location_and_type IS NULL AND (remark='' OR remark IS NULL)");
+            }
+           
+            $r="";
+            foreach($SS as $entry){
+                $r.=$entry->je_desc."<br>";
+            }
+            return $r;
+        }else{
+            return "";
+        }
+        
+    }
+    public function print_invoice_info(Request $request){
+        $no=$request->no;
+        $location=$request->location;
+        $type=$request->type;
+        $SS=DB::connection('mysql')->select("SELECT * FROM sales_transaction LEFT JOIN customers ON customers.customer_id=sales_transaction.st_customer_id WHERE st_no='$no' AND st_location='$location' AND st_invoice_type='$type' AND st_type='Invoice'");
+        $st_invoice =DB::connection('mysql')->select("SELECT * FROM st_invoice LEFT JOIN cost_center ON cost_center.cc_no=st_invoice.st_p_cost_center LEFT JOIN products_and_services ON products_and_services.product_id=st_invoice.st_i_product WHERE st_i_no='$no' AND st_p_location='$location' AND st_p_invoice_type='$type'");
+        $invoice_date="";
+        $invoice_due_date="";
+        $customer="";
+        $address="";
+        $terms="";
+        $job_order="";
+        $work_no="";
+        $email="";
+        $note="";
+        $memo="";
+        $COA= ChartofAccount::all();
+        foreach($SS as $data){
+            $invoice_date=$data->st_date;
+            $invoice_due_date=$data->st_due_date;
+            $customer=$data->display_name!=""? $data->display_name : $data->f_name." ".$data->l_name;
+            $address=$data->st_bill_address;
+            $terms=$data->st_term;
+            $job_order=$data->st_invoice_job_order;
+            $work_no=$data->st_invoice_work_no;
+            $email=$data->st_email;
+            $note=$data->st_note;
+            $memo=$data->st_memo;
+        }
+        
+        return view('pages.print_invoice', compact('COA','SS','st_invoice','type','location','no','invoice_date','invoice_due_date','customer','address','terms','job_order','work_no','email','note','memo'));
+        
     }
     public function get_bill_info_for_supplier_credit(Request $request){
         $supplier_credit_bill_no=$request->supplier_credit_bill_no;
@@ -116,8 +175,17 @@ class GetController extends Controller
             ['st_type','=','Invoice'],
             ['st_location', '=', $invoice_location_top],
             ['st_invoice_type','=',$invoice_type_top],
-            ['st_no','=',$invoice_no_field]
-        ])->count();
+            ['st_no','=',$invoice_no_field],
+            ['remark','!=','Cancelled'],
+            ['remark','!=','NULLED'],
+        ])->orWhere([
+            ['st_type','=','Invoice'],
+            ['st_location', '=', $invoice_location_top],
+            ['st_invoice_type','=',$invoice_type_top],
+            ['st_no','=',$invoice_no_field],
+            ['remark','=',NULL],
+        ])
+        ->count();
 
         return $invoice_count;
     }

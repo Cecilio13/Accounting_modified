@@ -329,12 +329,12 @@
     </div>
 <div class="row">
     <div class="col-md-12">
-        <h4>VAT Relief Report</h4>
+        <h4>TAX Report</h4>
     </div>
 </div>
 <div class="row">
     <div class="col-md-12">
-        <a href="reports" class="btn btn-link btn-upper-back" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
+        <a href="reports" class="btn btn-link btn-sm" style="padding-left:0px;text-decoration: none;"><span class="oi oi-chevron-left"></span> Back to report list</a>
     </div>
 </div>
 <div class="row">
@@ -488,7 +488,7 @@
             reportsettings['ReportID']=document.getElementById('InputReportID').value;
             reportsettings['ReportHeader']=document.getElementById('report_employee_companynameheader').innerHTML;
             reportsettings['ReportTitle']=document.getElementById('report_employee_companynameheader').innerHTML;
-            reportsettings['ReportType']="VAT Relief";
+            reportsettings['ReportType']="TAX";
             reportsettings['noteShow']=noteshow;
             reportsettings['noteContent']=document.getElementById('employeecontactnote').value;
             reportsettings['ReportSortBy']=document.getElementById('Sortbyselect').value;
@@ -550,7 +550,7 @@
                         <a style="display:none;" class="btn-link dropdown-toggle btn-sm" href="#" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Sort
                         </a>
-                        <a href="#!" class="btn-link btn-upper-report" id="showhidebtn" onclick="showhode()">Add note</a>
+                        <a href="#!" class="btn-link btn-sm" id="showhidebtn" onclick="showhode()">Add note</a>
                         <script>
                             var noteshow="0";
                             function showhode(){
@@ -615,12 +615,11 @@
                         
                     </td>
                     <td style="vertical-align:middle;text-align:right;">
-                        <a href="export_dat_file" class="btn-link btn-upper-report" title="Export to DAT" ><span class="fa fa-file"></a>
-                        <a href="#" class="btn-link btn-upper-report" title="Export to Excel" onclick="exporttoexcelTaxRelief()"><span class="fa fa-table"></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-email"></span></a>
-                        <a href="#" class="btn-link btn-upper-report" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
-                        <a href="#" style="display:none;" class="btn-link btn-upper-report"><span class="ti-export"></span></a>
-                        <button style="display:none;" class="btn btn-link btn-upper-report" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
+                        <a href="#" class="btn-link btn-sm" title="Export to Excel" onclick="exporttoexcel('tablemain')"><span class="fa fa-table"></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-email"></span></a>
+                        <a href="#" class="btn-link btn-sm" onclick="PrintElem('printablereport_employee_contact_list')"><span class="ti-printer"></span></a>
+                        <a href="#" style="display:none;" class="btn-link btn-sm"><span class="ti-export"></span></a>
+                        <button style="display:none;" class="btn btn-link btn-sm" onclick="showcustomizationsection()"><span class="ti-settings"></span></button>
 
                     </td>
                     </tr>
@@ -628,11 +627,12 @@
                         <td id="report_employee_companynameheader" colspan="2" style="vertical-align:middle;font-size:22px;text-align:center;padding-top:30px;" contenteditable="true" >ECC</td>
                     </tr>
                     <tr>
-                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >VAT Relief</td>
+                        <td colspan="2" id="report_employee_title" style="vertical-align:middle;text-align:center;font-size:14px;font-weight:bold;text-transform: uppercase;" contenteditable="true" >TAX</td>
                     </tr>
                     <tr>
                         <td colspan="2" style="vertical-align:middle;" >
                         <script>
+                            
                         function sortTable(n,order) {
                         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
                         table = document.getElementById("tablemain");
@@ -695,19 +695,23 @@
                             <table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">
                                 <thead>
                                 <tr >
-                                    <th>TIN</th>
-                                    <th>Company Name</th>
-                                    <th>Address</th>
-                                    
-                                    <th>Gross Amount</th>
+                                    <th>#</th>
+                                    <th>Type</th>
                                     <th>Date</th>
-                                    <th>Reference No.</th>
-                                    <th>OR No.</th>
+                                    
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Rate</th>
+                                    <th>Amount</th>
+                                    <th>VAT</th>
+                                    <th>Total</th>
+                                    <th>Withhold Tax</th>
+                                    <th>Net Amount</th>
                                 </tr>
                                 
                                 </thead>
                                 <tbody>
-                                    
+                                
                                 </tbody>
                             </table>
                         </td>

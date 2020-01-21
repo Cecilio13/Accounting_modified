@@ -39,6 +39,477 @@ class ChartofAccountsController extends Controller
         // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
 
     }
+    public function exporttoexcelINVOICELIST(Request $request){
+        $FROM=$request->FROM;
+        $no_header="";
+        $title="";
+        $InvoiceTYPE=$request->InvoiceTYPE;
+        if($InvoiceTYPE=="Main Sales Invoice"){
+            $no_header="Sales Invoice no";
+            $title="Main Sales Invoice";
+        }else if($InvoiceTYPE=="Main Bill Invoice"){
+            $no_header="Billing Invoice no";
+            $title="Main Billing Invoice";
+        }else if($InvoiceTYPE=="Branch Sales Invoice"){
+            $no_header="Sales Invoice no";
+            $title="Branch Sales Invoice";
+        }else if($InvoiceTYPE=="Branch Bill Invoice"){
+            $no_header="Billing Invoice no";
+            $title="Branch Billing Invoice";
+        }
+        Excel::load('extra/edit_excel/export_invoice_sorted.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $InvoiceTYPE=$request->InvoiceTYPE;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $filtertemplate=$request->filtertemplate;
+            $sortsetting="";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting."
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice LEFT JOIN cost_center ON cost_center.cc_no=st_invoice.st_p_cost_center");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $no_header="";
+            $title="";
+            if($InvoiceTYPE=="Main Sales Invoice"){
+                $no_header="Sales Invoice no";
+                $title="Main Sales Invoice";
+            }else if($InvoiceTYPE=="Main Bill Invoice"){
+                $no_header="Billing Invoice no";
+                $title="Main Billing Invoice";
+            }else if($InvoiceTYPE=="Branch Sales Invoice"){
+                $no_header="Sales Invoice no";
+                $title="Branch Sales Invoice";
+            }else if($InvoiceTYPE=="Branch Bill Invoice"){
+                $no_header="Billing Invoice no";
+                $title="Branch Billing Invoice";
+            }
+            $sheet = $doc->setActiveSheetIndex(0);
+            $sheet->setCellValue('B2', $title);
+            $sheet->setCellValue('B3', $no_header);
+            $cuss=3;
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                if($CostCenterFilter=="All"){
+                    foreach($SalesTransaction as $emp){
+                        if($emp->st_type=="Invoice" && $InvoiceTYPE==$emp->st_location." ".$emp->st_invoice_type){
+                            $cuss++;
+                            $sheet->setCellValue('B'.$cuss, $emp->st_no);
+                            $sheet->setCellValue('C'.$cuss, $emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "");
+                            $cost_center="";
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $st_i->st_p_cost_center!='' && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $cost_center.=$st_i->cc_name."\n";
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$cuss, $cost_center);
+                            $sheet->getStyle('H5')->getAlignment()->setWrapText(true);
+                            $cost_center="";
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $st_i->st_i_desc!='' && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $cost_center.=$st_i->st_i_desc."\n";
+                                }
+                            }
+                            $sheet->setCellValue('E'.$cuss, $cost_center);
+                            $sheet->setCellValue('F'.$cuss, $emp->display_name!=""? $emp->display_name : $emp->f_name." ".$emp->l_name);
+                            $sheet->setCellValue('G'.$cuss, $emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "");
+                            $payment_for_id=$emp->st_no;
+                            $st_location=$emp->st_location;
+                            $st_invoice_type=$emp->st_invoice_type;
+                            $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                            $sr_nos="";
+                            $sr_nos2="";
+                            if($emp->cancellation_reason==NULL){
+                                foreach($sales_receipts as $sal){
+                                    if($sr_nos!=''){
+                                        $sr_nos.=", ".$sal->st_no;
+                                    }else{
+                                        $sr_nos.=$sal->st_no;
+                                    }
+                                    if($sr_nos2!=''){
+                                        $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }else{
+                                        $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('H'.$cuss, $sr_nos);
+                            $sheet->setCellValue('I'.$cuss, $sr_nos2);
+                            $total=0;
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $total=$total+$st_i->st_i_total;
+                                }
+                            }
+                            $sheet->setCellValue('J'.$cuss, number_format($emp->st_balance,2));
+                            $sheet->setCellValue('K'.$cuss, number_format($total,2));
+                            $sheet->setCellValue('L'.$cuss, $emp->st_status);
+                            $sheet->setCellValue('M'.$cuss, $emp->remark);
+                        }
+                    }
+                }
+            }
+        })->setFilename($title.' ('.date('m-d-Y').")")->download('xlsx');
+    }
+    public function export_monthly_expense(Request $request){
+        $FROM=$request->FROM;
+        Excel::load('extra/edit_excel/export_bill.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingex="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."' AND et_type='Bill'";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+                $sortsettingex="WHERE et_type='Bill'";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingex="WHERE et_type='Bill'";
+                    $sortsettingjournal="";
+                }
+            }
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+            ".$sortjournal." 
+            ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            $expense_transactions= DB::connection('mysql')->select("SELECT * FROM expense_transactions
+                                JOIN customers ON expense_transactions.et_customer=customers.customer_id
+                                JOIN et_account_details ON expense_transactions.et_no=et_account_details.et_ad_no
+                                ".$sortsettingex." 
+                                ORDER BY et_no ASC");
+                    $COA= DB::connection('mysql')->select("SELECT * FROM chart_of_accounts WHERE coa_active='1' ORDER BY coa_code+0 ASC");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $tablecontent="";
+            $PaymentFor="";
+            $sheet = $doc->setActiveSheetIndex(0);
+            $cuss=3;
+
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                if($CostCenterFilter=="All"){
+                    foreach($expense_transactions as $et){
+                        if($et->remark!="Cancelled"){
+                            $cuss++;
+                            $sheet->setCellValue('B'.$cuss, $et->et_date!=""?date('m-d-Y',strtotime($et->et_date)) : '');
+                            $sheet->setCellValue('C'.$cuss, $et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name);
+                            $sheet->setCellValue('D'.$cuss, $et->tin_no);
+                            $sheet->setCellValue('E'.$cuss, "");
+                            $sheet->setCellValue('F'.$cuss, $et->et_ad_desc);
+                            $sheet->setCellValue('G'.$cuss, "PHP ".number_format($et->et_ad_total,2));
+                        }
+                    }
+                }else if($CostCenterFilter=="By Cost Center"){
+                    //none?
+                }
+            }else{
+                foreach($cost_center_list as $ccl){
+                    if($ccl->cc_no==$CostCenterFilter){
+                        $sheet->setCellValue('B2', $ccl->cc_name );
+                        
+                    }
+                }
+                foreach($expense_transactions as $et){
+                
+                    if($et->remark!="Cancelled"){
+                        foreach($JournalEntry as $JJJJ){
+                            if($JJJJ->je_cost_center==$CostCenterFilter){
+                                if($JJJJ->other_no==$et->et_no && ($JJJJ->je_transaction_type=="Expense" || $JJJJ->je_transaction_type=="Bill" || $JJJJ->je_transaction_type=="Cheque" || $JJJJ->je_transaction_type=="Supplier Credit" || $JJJJ->je_transaction_type=="Credit card credit") && $JJJJ->je_credit!=""){
+                                    $cuss++;
+                                    $sheet->setCellValue('B'.$cuss, $et->et_date!=""?date('m-d-Y',strtotime($et->et_date)) : '');
+                                    $sheet->setCellValue('C'.$cuss, $et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name);
+                                    $sheet->setCellValue('D'.$cuss, $et->tin_no);
+                                    $sheet->setCellValue('E'.$cuss, "");
+                                    $sheet->setCellValue('F'.$cuss, $et->et_ad_desc);
+                                    $sheet->setCellValue('G'.$cuss, "PHP ".number_format($et->et_ad_total,2));
+                                }
+                            }
+                        }
+                    }
+                }
+                
+            }
+
+        
+        
+        
+        })->setFilename('Monthly Expense Report ('.date('m-Y',strtotime($FROM)).")")->download('xlsx');
+    }
+    public function export_monthly_invoice(Request $request){
+        $FROM=$request->FROM;
+        Excel::load('extra/edit_excel/export_invoice.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."' AND st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="WHERE st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND (st_status='PAID' OR st_status='Partially Paid')";
+                if($filtertemplate=="All"){
+                    $sortsetting="WHERE st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+                    $sortsettingjournal="";
+                }
+            }
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $st_credit_notes= DB::connection('mysql')->select("SELECT * FROM st_credit_notes");
+            $st_estimates= DB::connection('mysql')->select("SELECT * FROM st_estimates");
+            $st_delayed_charges= DB::connection('mysql')->select("SELECT * FROM st_delayed_charges");
+            $st_delayed_credit= DB::connection('mysql')->select("SELECT * FROM st_delayed_credits");
+            $st_refund_receipts= DB::connection('mysql')->select("SELECT * FROM st_refund_receipts");
+            $st_sales_receipts= DB::connection('mysql')->select("SELECT * FROM st_sales_receipts");
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            $COA= DB::connection('mysql')->select("SELECT * FROM chart_of_accounts WHERE coa_active='1' ORDER BY coa_code+0 ASC");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+            $cuss=3;
+
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                if($CostCenterFilter=="All"){
+                    foreach ($SalesTransaction as $ST){
+                        if($ST->remark!="Cancelled"){
+                            $cuss++;
+                            $payment_for_id=$ST->st_no;
+                            $st_location=$ST->st_location;
+                            $st_invoice_type=$ST->st_invoice_type;
+                            $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' ND st_invoice_type='$st_invoice_type'");
+                            $sheet->setCellValue('B'.$cuss, $ST->created_at!=""?date('m-d-Y',strtotime($ST->created_at)) : '');
+                            $sheet->setCellValue('C'.$cuss, $ST->display_name!=""? $ST->display_name : $ST->f_name." ".$ST->l_name);
+                            $sheet->setCellValue('D'.$cuss, $ST->tin_no);
+                            $sr_nos="";
+                            $sr_nos2="";
+                            if($ST->cancellation_reason==NULL){
+                                foreach($sales_receipts as $sal){
+                                    if($sr_nos!=''){
+                                        $sr_nos.=", ".$sal->st_no;
+                                    }else{
+                                        $sr_nos.=$sal->st_no;
+                                    }
+                                    if($sr_nos2!=''){
+                                        $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }else{
+                                        $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('E'.$cuss, $sr_nos);
+                            $sheet->setCellValue('F'.$cuss, $sr_nos2);
+                            $sheet->setCellValue('G'.$cuss, $ST->st_no);
+                            $sheet->setCellValue('H'.$cuss, $ST->st_date!=""?date('m-d-Y',strtotime($ST->st_date)) : '');
+                            if($ST->st_type == "Invoice"){
+                                $invoice_total=0;
+                                foreach ($st_invoice as $invoice){
+                                    if($ST->st_no==$invoice->st_i_no && $ST->st_location==$invoice->st_p_location && $ST->st_invoice_type==$invoice->st_p_invoice_type && $ST->st_i_attachment==$invoice->st_p_reference_no){
+                                        $invoice_total=$invoice_total+$invoice->st_i_total;
+                
+                                    }
+                
+                                }
+                                $sheet->setCellValue('I'.$cuss, number_format($invoice_total,2));
+                            }
+                            
+                        }
+                    }
+                }else if($CostCenterFilter=="By Cost Center"){
+                    //none?
+                }
+            }else{
+                foreach($cost_center_list as $ccl){
+                    if($ccl->cc_no==$CostCenterFilter){
+                        $sheet->setCellValue('B2', $ccl->cc_name );
+                        
+                    }
+                }
+                foreach ($SalesTransaction as $ST){
+                    if($ST->remark!="Cancelled"){
+                        $cuss++;
+                        $payment_for_id=$ST->st_no;
+                        $st_location=$ST->st_location;
+                        $st_invoice_type=$ST->st_invoice_type;
+                        $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                        $sheet->setCellValue('B'.$cuss, $ST->created_at!=""?date('m-d-Y',strtotime($ST->created_at)) : '');
+                        $sheet->setCellValue('C'.$cuss, $ST->display_name!=""? $ST->display_name : $ST->f_name." ".$ST->l_name);
+                        $sheet->setCellValue('D'.$cuss, $ST->tin_no);
+                        $sr_nos="";
+                        $sr_nos2="";
+                        if($ST->cancellation_reason==NULL){
+                            foreach($sales_receipts as $sal){
+                                if($sr_nos!=''){
+                                    $sr_nos.=", ".$sal->st_no;
+                                }else{
+                                    $sr_nos.=$sal->st_no;
+                                }
+                                if($sr_nos2!=''){
+                                    $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                }else{
+                                    $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                }
+                            }
+                        }
+                        
+                        $sheet->setCellValue('E'.$cuss, $sr_nos);
+                        $sheet->setCellValue('F'.$cuss, $sr_nos2);
+                        $sheet->setCellValue('G'.$cuss, $ST->st_no);
+                        $sheet->setCellValue('H'.$cuss, $ST->st_date!=""?date('m-d-Y',strtotime($ST->st_date)) : '');
+                        if($ST->st_type == "Invoice"){
+                            $invoice_total=0;
+                            foreach ($st_invoice as $invoice){
+                                if($ST->st_no==$invoice->st_i_no && $ST->st_location==$invoice->st_p_location && $ST->st_invoice_type==$invoice->st_p_invoice_type && $ST->st_i_attachment==$invoice->st_p_reference_no){
+                                    $invoice_total=$invoice_total+$invoice->st_i_total;
+                
+                                }
+                
+                            }
+                            $sheet->setCellValue('I'.$cuss, number_format($invoice_total,2));
+                        }
+                        
+                    }
+                }
+                
+            }
+
+        
+        
+        
+        })->setFilename('Monthly Invoice Collection Report ('.date('m-Y',strtotime($FROM)).")")->download('xlsx');
+    }
+    public function export_to_excel(Request $request){
+        
+        
+        Excel::load('extra/edit_excel/export_journal.xlsx', function($doc) use($request) {
+            $Journal_no_selected= $request->no;
+            $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+            $numbering = Numbering::first();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+            $sheet = $doc->setActiveSheetIndex(0);
+             
+            $cuss=3;
+            
+            foreach($JournalEntry as $je){
+                if($Journal_no_selected==$je->je_no){
+                    $cuss++;
+                    $sheet->setCellValue('B'.$cuss, date("m-d-Y", strtotime($je->created_at)));
+                    foreach ($COA as $coa){
+                        if($coa->id==$je->je_account){
+                            if(!empty($numbering) && $numbering->use_cost_center=="Off"){
+                                $sheet->setCellValue('C'.$cuss, $coa->coa_code);
+                            }else{
+                                if($je->je_cost_center!=""){
+                                    foreach ($cost_center_list as $list){
+                                        if($list->cc_no==$je->je_cost_center){
+                                            $sheet->setCellValue('C'.$cuss, $list->cc_name_code."-".$coa->coa_code);
+                                            break;
+                                        }
+                                    }
+                                }else{
+                                    $sheet->setCellValue('C'.$cuss, $coa->coa_code); 
+                                }
+                            }
+                        }
+                    }
+                    
+                    $sheet->setCellValue('D'.$cuss, $je->je_no);
+                    $journalaccount="";
+                    foreach ($COA as $coa){
+                        if($coa->id==$je->je_account){
+                            $journalaccount=$coa->coa_name;
+                            break;
+                        }
+                    }
+                    $sheet->setCellValue('E'.$cuss, is_numeric($je->je_account)==true? $journalaccount : $je->je_account);
+                    $sheet->setCellValue('F'.$cuss, $je->je_debit!=""? number_format($je->je_debit,2): "");
+                    $sheet->setCellValue('G'.$cuss, $je->je_credit!=""? number_format($je->je_credit,2) : "");
+                    $sheet->setCellValue('H'.$cuss, $je->je_desc);
+                    $sheet->setCellValue('I'.$cuss, $je->je_name);
+                    foreach ($customers as $item){
+                        if ($je->je_name!="" && $je->je_name!=null && $je->je_name!=" "){
+                            if ($item->display_name==$je->je_name ){
+                                if ($je->je_name!="" && $je->je_name!=null){
+                                    $sheet->setCellValue('J'.$cuss,$item->tin_no );
+                                    break;
+                                }
+                            }elseif($item->f_name." ".$item->l_name==$je->je_name){
+                                if ($je->je_name!="" && $je->je_name!=null){
+                                    $sheet->setCellValue('J'.$cuss,$item->tin_no );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+                
+                
+                
+            }
+            
+            })->setFilename('Journal '.$request->no." ".date('m-d-Y'))->download('xlsx');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -137,7 +608,9 @@ class ChartofAccountsController extends Controller
      */
     public function edit($id)
     {
-        $customers = Customers::all();
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $chart= ChartofAccount::find($id);
         $products_and_services = ProductsAndServices::all();
         $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
@@ -176,7 +649,9 @@ class ChartofAccountsController extends Controller
     }
     public function editchartofAccounts(Request $request)
     {
-        $customers = Customers::all();
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $chart= ChartofAccount::find($request->id);
         $products_and_services = ProductsAndServices::all();
         $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
@@ -6155,7 +6630,7 @@ class ChartofAccountsController extends Controller
             $filtertemplate=$request->filtertemplate;
             $CostCenterFilter=$request->CostCenterFilter;
             $filtertemplate=$request->filtertemplate;
-            $sortsetting="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
             $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
             if($filtertemplate=="All"){
                 $sortsetting="";
@@ -6244,7 +6719,9 @@ class ChartofAccountsController extends Controller
     }
     public function GetInvoiceExcelTemplateBill(Request $request){
         Excel::load('extra/edit_excel/bill.xlsx', function($doc) {
-            $customers = Customers::all();
+             $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
             $cost_center_list= CostCenter::where('cc_status','1')->get();
             $COA= ChartofAccount::where('coa_active','1')->get();
             $sheet2 = $doc->setActiveSheetIndex(1);
@@ -6313,7 +6790,9 @@ class ChartofAccountsController extends Controller
     }
     public function GetInvoiceExcelTemplate(Request $request){
         Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {
-        $customers = Customers::all();
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $cost_center_list= CostCenter::where('cc_status','1')->get();
         $COA= ChartofAccount::where('coa_active','1')->get();
         $sheet2 = $doc->setActiveSheetIndex(1);
@@ -6395,7 +6874,9 @@ class ChartofAccountsController extends Controller
         //Excel::load('extra/edit_excel/Mass Adjustment Template.xlsx', function($file) {
             Excel::load('extra/edit_excel/Journal_Import Data.xlsx', function($doc) {
                 $COA= ChartofAccount::where('coa_active','1')->get();
-                $customers = Customers::all();
+                 $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
                 $cost_center_list= CostCenter::where('cc_status','1')->get();
                 $sheet = $doc->setActiveSheetIndex(1);
                 $sheet2 = $doc->setActiveSheetIndex(2);
@@ -7212,8 +7693,8 @@ class ChartofAccountsController extends Controller
                                                                     $sales_transaction->save();
         
                                                                     
-                                                                    $customer->opening_balance = $customer->opening_balance+$total_balance;
-                                                                    $customer->save();
+                                                                    // $customer->opening_balance = $customer->opening_balance+$total_balance;
+                                                                    // $customer->save();
                                                                     $saved_count++;
                                                                 }else{
                                                                     $valid=1; 
@@ -7690,7 +8171,9 @@ class ChartofAccountsController extends Controller
         $path = $file->getRealPath();
         $data = Excel::load($path, function($reader) {
         })->get();
-        $customers = Customers::all();
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $rowcount=0;
         foreach($data as $row){
             $rowcount++;
@@ -7782,7 +8265,9 @@ class ChartofAccountsController extends Controller
         $path = $file->getRealPath();
         $data = Excel::load($path, function($reader) {
         })->get();
-        $supplier = Customers::all();
+        $supplier= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
         $rowcount=0;
         $extra=$data;
         
